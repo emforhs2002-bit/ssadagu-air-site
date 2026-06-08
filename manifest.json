@@ -1,0 +1,12 @@
+{
+  "name": "싸다구항공 — 딜 검문소",
+  "short_name": "싸다구항공",
+  "description": "인천·김포발 항공권 특가를 검수해서 알려주는 딜 검문소",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#eefbf8",
+  "theme_color": "#14b8a6",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
