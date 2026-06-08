@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body {
+  background: #eefbf8;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  font-feature-settings: "tnum";
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sheet-up { animation: sheetUp .28s cubic-bezier(.22,.61,.36,1); }
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+.fade-in { animation: fadeIn .2s ease; }
