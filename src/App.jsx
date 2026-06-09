@@ -299,17 +299,57 @@ const Seg = ({ on, children, onClick }) => <button onClick={onClick} className={
 const Pick = ({ label, value, onChange, options }) => <div><label className="text-[12px] text-slate-500">{label}</label><select value={value} onChange={e => onChange(e.target.value)} className="w-full mt-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-[14px]">{options.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></div>
 const inputCls = 'w-full mt-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-[14px]'
 
-function FlightSearch() {
+const PROXY = 'https://curly-meadow-ab36ssadagu-proxy.emforhs2002.workers.dev'
+const IATA_NAME = { KE: '대한항공', OZ: '아시아나항공', '7C': '제주항공', LJ: '진에어', TW: '티웨이항공', BX: '에어부산', RS: '에어서울', ZE: '이스타항공', YP: '에어프레미아', '5J': '세부퍼시픽', VJ: '비엣젯', VN: '베트남항공', MM: '피치항공', AK: '에어아시아', FD: '타이에어아시아', TR: '스쿠트', PR: '필리핀항공', CX: '캐세이퍼시픽', UO: '홍콩익스프레스', SQ: '싱가포르항공', TG: '타이항공', NH: 'ANA', JL: '일본항공', JX: '스타럭스', CI: '중화항공', BR: '에바항공', UA: '유나이티드', MH: '말레이시아항공' }
+const airlineName = c => IATA_NAME[c] || c
+function fmtISO(s) { if (!s) return { full: '-' }; const dt = new Date(s); if (isNaN(dt)) return { full: s }; const w = dt.getDay(); return { md: `${dt.getMonth() + 1}/${dt.getDate()}`, dow: DAYS[w], time: `${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`, weekend: w === 0 || w === 6 } }
+function offerLink(o) { const base = 'https://www.aviasales.com' + (o.link || ''); return base + (base.includes('?') ? '&' : '?') + 'marker=' + MARKER }
+const durStr = m => m ? `${Math.floor(m / 60)}시간 ${m % 60}분` : ''
+
+function FlightResult({ o }) {
+  const dep = fmtISO(o.departure_at), ret = fmtISO(o.return_at)
+  return (
+    <a href={offerLink(o)} target="_blank" rel="noopener" className="block bg-white rounded-2xl shadow-soft p-3.5 active:scale-[.99] transition">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <img src={`https://pics.avs.io/60/60/${o.airline}.png`} alt="" className="w-8 h-8 object-contain rounded-md bg-slate-50" onError={e => { e.target.style.visibility = 'hidden' }} />
+          <div className="min-w-0">
+            <div className="text-[14px] font-bold text-slate-800 truncate">{airlineName(o.airline)}</div>
+            <div className="text-[11.5px] text-slate-400">{o.transfers === 0 ? '직항' : '경유 ' + o.transfers + '회'}{o.duration ? ' · ' + durStr(o.duration) : ''}</div>
+          </div>
+        </div>
+        <div className="text-right shrink-0 pl-2">
+          <div className="text-[17px] font-black text-brand-600 leading-none">{won(o.price)}</div>
+          <div className="text-[10px] text-slate-400 mt-0.5">{o.return_at ? '왕복' : '편도'}</div>
+        </div>
+      </div>
+      <div className="mt-2.5 pt-2.5 border-t border-slate-100 text-[12px] text-slate-500 flex items-center justify-between">
+        <span>🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-700'}>{dep.md}({dep.dow})</b> {dep.time}{o.return_at && <> · 🛬 <b className={ret.weekend ? 'text-rose-500' : 'text-slate-700'}>{ret.md}({ret.dow})</b> {ret.time}</>}</span>
+        <span className="text-brand-600 font-bold shrink-0">예약처 확인 ›</span>
+      </div>
+    </a>
+  )
+}
+
+function Flights() {
   const [origin, setOrigin] = useState('ICN'), [dest, setDest] = useState('FUK')
   const [oneway, setOneway] = useState(false)
-  const [depart, setDepart] = useState(''), [ret, setRet] = useState(''), [pax, setPax] = useState(1)
-  const go = () => {
+  const [depart, setDepart] = useState(''), [ret, setRet] = useState(''), [pax, setPax] = useState(1), [cabin, setCabin] = useState('Y')
+  const [st, setSt] = useState({ status: 'idle' })
+  const search = async () => {
     if (!depart) return alert('가는 날을 선택해 주세요')
     if (!oneway && !ret) return alert('오는 날을 선택하거나 편도를 켜주세요')
-    window.open(aviaLink({ origin, dest, depart, ret: oneway ? '' : ret, pax }), '_blank', 'noopener')
+    setSt({ status: 'loading' })
+    const params = new URLSearchParams({ origin, destination: dest, departure_at: depart, currency: 'krw', market: 'kr', one_way: oneway ? 'true' : 'false', sorting: 'price', limit: '30', unique: 'false' })
+    if (!oneway && ret) params.set('return_at', ret)
+    try {
+      const r = await fetch(`${PROXY}/aviasales/v3/prices_for_dates?${params}`)
+      const j = await r.json()
+      setSt({ status: 'done', data: (j.data || []).sort((a, b) => a.price - b.price) })
+    } catch (e) { setSt({ status: 'error' }) }
   }
   return (
-    <div className="space-y-3">
+    <div className="px-4 pt-2 pb-4 space-y-3">
       <div className="bg-white rounded-2xl shadow-soft p-4 space-y-3">
         <div className="grid grid-cols-2 gap-2">
           <Pick label="출발" value={origin} onChange={setOrigin} options={ORIGINS.map(([c, n]) => [c, `${n}(${c})`])} />
@@ -319,84 +359,25 @@ function FlightSearch() {
           <div><label className="text-[12px] text-slate-500">가는 날</label><input type="date" min={todayStr()} value={depart} onChange={e => setDepart(e.target.value)} className={inputCls} /></div>
           <div><label className="text-[12px] text-slate-500">오는 날</label><input type="date" min={depart || todayStr()} value={ret} disabled={oneway} onChange={e => setRet(e.target.value)} className={inputCls + (oneway ? ' opacity-40' : '')} /></div>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <label className="flex items-center gap-2 text-[13px] text-slate-600"><input type="checkbox" checked={oneway} onChange={e => setOneway(e.target.checked)} /> 편도</label>
-          <div className="flex items-center gap-2 text-[13px] text-slate-600">인원<select value={pax} onChange={e => setPax(+e.target.value)} className="bg-white border border-slate-200 rounded-lg px-2 py-1">{[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}명</option>)}</select></div>
+          <div className="flex items-center gap-3 text-[13px] text-slate-600">
+            <span className="flex items-center gap-1">인원<select value={pax} onChange={e => setPax(+e.target.value)} className="bg-white border border-slate-200 rounded-lg px-2 py-1">{[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}</select></span>
+            <select value={cabin} onChange={e => setCabin(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-2 py-1">{[['Y', '일반석'], ['C', '비즈니스']].map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select>
+          </div>
         </div>
-        <button onClick={go} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">예약처에서 가격 확인하기 →</button>
+        <button onClick={search} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">항공권 검색</button>
       </div>
-      <p className="text-[12px] text-slate-400 leading-relaxed px-1">싸다구항공은 항공권을 직접 팔지 않고, <b className="text-slate-500">별도 예약 수수료도 붙이지 않아요.</b> 버튼을 누르면 예약처(Aviasales) 검색 결과로 이동해요. 가격·수하물·환불 조건은 예약처에서 최종 확인하세요.</p>
-    </div>
-  )
-}
 
-function FlightCalendar({ deals, onOpen }) {
-  const [origin, setOrigin] = useState('ICN'), [dest, setDest] = useState('FUK'), [nights, setNights] = useState(3)
-  const now = new Date()
-  const [cur, setCur] = useState({ y: now.getFullYear(), m: now.getMonth() })
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const dealByDay = {}
-  deals.forEach(d => { if (destOf(d) === dest) { const t = parseDt(d.departure_time); if (t) dealByDay[ymd(t.getFullYear(), t.getMonth(), t.getDate())] = d } })
-  const lead = new Date(cur.y, cur.m, 1).getDay()
-  const daysIn = new Date(cur.y, cur.m + 1, 0).getDate()
-  const cells = []
-  for (let i = 0; i < lead; i++) cells.push(null)
-  for (let d = 1; d <= daysIn; d++) cells.push(d)
-  const prevM = () => setCur(c => c.m === 0 ? { y: c.y - 1, m: 11 } : { y: c.y, m: c.m - 1 })
-  const nextM = () => setCur(c => c.m === 11 ? { y: c.y + 1, m: 0 } : { y: c.y, m: c.m + 1 })
-  const onDay = d => {
-    const key = ymd(cur.y, cur.m, d)
-    if (dealByDay[key]) return onOpen(dealByDay[key])
-    const r = new Date(cur.y, cur.m, d + nights)
-    window.open(aviaLink({ origin, dest, depart: key, ret: ymd(r.getFullYear(), r.getMonth(), r.getDate()), pax: 1 }), '_blank', 'noopener')
-  }
-  return (
-    <div className="space-y-3">
-      <div className="bg-white rounded-2xl shadow-soft p-4 space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          <Pick label="출발" value={origin} onChange={setOrigin} options={ORIGINS.map(([c, n]) => [c, `${n}(${c})`])} />
-          <Pick label="도착" value={dest} onChange={setDest} options={CITIES.map(([c, n]) => [c, `${n}(${c})`])} />
-        </div>
-        <div className="flex items-center gap-2 text-[13px] text-slate-600">여행 기간<select value={nights} onChange={e => setNights(+e.target.value)} className="bg-white border border-slate-200 rounded-lg px-2 py-1">{[2, 3, 4, 5, 6, 7].map(n => <option key={n} value={n}>{n}박</option>)}</select><span className="text-[12px] text-slate-400">(날짜를 누르면 그 일정으로 검색)</span></div>
-      </div>
-      <div className="bg-white rounded-2xl shadow-soft p-3">
-        <div className="flex items-center justify-between px-1 mb-2">
-          <button onClick={prevM} className="text-slate-400 text-2xl px-3 leading-none">‹</button>
-          <div className="font-bold text-[15px]">{cur.y}년 {cur.m + 1}월</div>
-          <button onClick={nextM} className="text-slate-400 text-2xl px-3 leading-none">›</button>
-        </div>
-        <div className="grid grid-cols-7 text-center text-[11px] mb-1">{['일', '월', '화', '수', '목', '금', '토'].map((w, i) => <div key={i} className={i === 0 ? 'text-rose-400' : i === 6 ? 'text-blue-400' : 'text-slate-400'}>{w}</div>)}</div>
-        <div className="grid grid-cols-7 gap-1">
-          {cells.map((d, i) => {
-            if (!d) return <div key={i} />
-            const key = ymd(cur.y, cur.m, d)
-            const past = new Date(cur.y, cur.m, d) < today
-            const deal = dealByDay[key]
-            const dow = (lead + d - 1) % 7
-            return (
-              <button key={i} disabled={past} onClick={() => onDay(d)}
-                className={'aspect-square rounded-xl flex flex-col items-center justify-center text-[12px] ' + (past ? 'text-slate-200' : deal ? 'bg-brand-500 text-white font-bold' : 'bg-slate-50 active:bg-slate-100 ' + (dow === 0 ? 'text-rose-400' : dow === 6 ? 'text-blue-400' : 'text-slate-600'))}>
-                <span>{d}</span>
-                {deal && <span className="text-[8.5px] font-bold leading-none mt-0.5">{Math.round(deal.price / 10000)}만</span>}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-      <p className="text-[12px] text-slate-400 leading-relaxed px-1"><b className="text-brand-600">초록 날</b>은 사람이 확인한 <b className="text-brand-600">안심 특가</b>가 있는 날이에요(가격 표시·누르면 상세). 그 외 날짜를 누르면 예약처(Aviasales)에서 <b className="text-slate-500">{nights}박 일정</b> 가격을 확인해요. 인앱에 가격을 따로 띄우지 않아요 — 예약처 실제가가 정확하니까요.</p>
-    </div>
-  )
-}
-
-function Flights({ deals, onOpen }) {
-  const [mode, setMode] = useState('search')
-  return (
-    <div className="px-4 pt-2 pb-4">
-      <div className="flex gap-2 mb-3">
-        <Seg on={mode === 'search'} onClick={() => setMode('search')}>🔎 검색</Seg>
-        <Seg on={mode === 'calendar'} onClick={() => setMode('calendar')}>📅 달력</Seg>
-      </div>
-      {mode === 'search' ? <FlightSearch /> : <FlightCalendar deals={deals} onOpen={onOpen} />}
+      {st.status === 'idle' && <p className="text-[12.5px] text-slate-400 px-1 leading-relaxed">출발·도착·날짜를 고르고 검색하면 <b className="text-slate-500">우리 앱 안에서</b> 항공권을 둘러볼 수 있어요. 예약·결제는 예약처에서 진행돼요(가격·환불 최종 확인).</p>}
+      {st.status === 'loading' && <div className="text-center text-slate-400 py-12"><div className="text-3xl mb-2 animate-pulse">✈️</div><div className="text-[13px]">최근 가격을 불러오는 중…</div></div>}
+      {st.status === 'error' && <Empty icon="⚠️" text="조회 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요." />}
+      {st.status === 'done' && (st.data.length
+        ? <>
+          <div className="text-[12px] text-slate-400 px-1">최근 캐시 기준 <b className="text-slate-500">참고가</b> {st.data.length}건 · 실제가는 예약처에서 최종 확인</div>
+          {st.data.map((o, i) => <FlightResult key={i} o={o} />)}
+        </>
+        : <Empty icon="🔎" text="이 날짜엔 캐시된 가격이 없어요. 날짜를 바꿔서 다시 검색해 보세요." />)}
     </div>
   )
 }
