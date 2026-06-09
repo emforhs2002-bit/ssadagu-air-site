@@ -6,8 +6,6 @@ const DAYS = ['일', '월', '화', '수', '목', '금', '토']
 const won = n => (n == null ? '-' : Number(n).toLocaleString('ko-KR') + '원')
 function parseDt(s) { if (!s) return null; const [d, t] = String(s).split(' '); const dt = new Date(d.replace(/-/g, '/') + ' ' + (t || '00:00')); return isNaN(dt) ? null : dt }
 function fmtDate(s) { const dt = parseDt(s); if (!dt) return { full: s || '-', weekend: false, month: 0 }; const w = dt.getDay(); return { md: `${dt.getMonth() + 1}/${dt.getDate()}`, dow: DAYS[w], time: (s.split(' ')[1] || ''), weekend: w === 0 || w === 6, month: dt.getMonth() + 1, full: `${dt.getMonth() + 1}/${dt.getDate()}(${DAYS[w]}) ${s.split(' ')[1] || ''}` } }
-const moveComfort = f => ({ '좋음': '이동 편해요', '보통': '조금 번거로워요', '나쁨': '많이 번거로워요' }[f] || f)
-const comfortStyle = f => ({ '좋음': 'text-brand-700 bg-brand-100', '보통': 'text-amber-700 bg-amber-100', '나쁨': 'text-rose-700 bg-rose-100' }[f] || 'text-slate-600 bg-slate-100')
 const safeBooking = g => (g === 'A' || g === 'B') ? { t: '안심 예약처', c: 'bg-brand-500' } : { t: '확인 필요 예약처', c: 'bg-amber-500' }
 
 /* 확인가 비교(price_check): 우리가 싸게 파는 게 아니라, 여러 채널을 확인해서 보여준다.
@@ -29,7 +27,8 @@ function priceCheckView(pc) {
     else if (diff === 0) { kind = 'same'; short = `${ref}와 동일가`; line = `${ref}·${our} 모두 ${won(ourP)} · 동일가 확인` }
     else { kind = 'refcheaper'; short = `${ref}가 최저`; line = `최저는 ${ref} ${won(refP)} · ${our} ${won(ourP)} 확인` }
   }
-  return { kind, channels: chs, short, line, warn: kind === 'phantom', card: `${chs.length}개 채널 확인${kind === 'checked' ? '' : ' · ' + short}` }
+  const cards = { lower: '💰 최저가', same: '💰 최저가', checked: '💰 최저가', phantom: '⚠️ 표시가와 실제가 달라요', refcheaper: '🔍 여러 채널 확인' }
+  return { kind, channels: chs, short, line, warn: kind === 'phantom', card: cards[kind] }
 }
 
 /* ───────── 지역 매핑 (핫딜 카테고리) ───────── */
@@ -81,7 +80,6 @@ function DealCard({ d, saved, onSave, onOpen }) {
       <div className="text-[12.5px] text-slate-500 mt-1.5">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-700'}>{dep.md}({dep.dow})</b> {dep.time}<span className="text-slate-300"> · </span>{d.transfers === 0 ? '직항' : '경유 ' + d.transfers + '회'}{d.duration ? ' · ' + d.duration : ''}</div>
       <div className="flex flex-wrap gap-1.5 mt-3">
         <span className="text-[11px] font-bold text-brand-700 bg-brand-50 rounded-full px-2 py-1">✅ 안심 특가</span>
-        <span className={'text-[11px] font-bold rounded-full px-2 py-1 ' + comfortStyle(d.fatigue)}>{moveComfort(d.fatigue)}</span>
         <span className="text-[11px] font-medium text-slate-500 bg-slate-100 rounded-full px-2 py-1">🧳 {d.carrier_type === 'LCC' ? '수하물 별도 추정' : '수하물 포함 추정'}</span>
       </div>
       {pcv && <div className={'mt-2 inline-flex items-center gap-1 text-[11.5px] font-bold rounded-lg px-2 py-1 ' + (pcv.warn ? 'text-amber-700 bg-amber-50' : 'text-brand-700 bg-brand-50')}>🔍 {pcv.card}</div>}
@@ -106,7 +104,7 @@ function DealSheet({ d, onClose }) {
           <div className="flex items-end gap-2 mt-1"><div className="text-3xl font-black text-brand-600">{won(d.price)}</div>{d.discount_rate > 0 && <span className="mb-1.5 text-[12px] font-bold text-rose-500 bg-rose-50 rounded-full px-2 py-0.5">평소 대비 -{d.discount_rate}%</span>}</div>
         </div>
         <div className="px-5 pb-8 space-y-4 text-[13px]">
-          <div className="text-slate-600">🛫 가는 편 <b className={dep.weekend ? 'text-rose-500' : ''}>{dep.full}</b><br />🛬 오는 편 <b className={ret.weekend ? 'text-rose-500' : ''}>{ret.full}</b><br />{d.transfers === 0 ? '직항' : '경유 ' + d.transfers + '회'} · {d.duration} · <b>{moveComfort(d.fatigue)}</b></div>
+          <div className="text-slate-600">🛫 가는 편 <b className={dep.weekend ? 'text-rose-500' : ''}>{dep.full}</b><br />🛬 오는 편 <b className={ret.weekend ? 'text-rose-500' : ''}>{ret.full}</b><br />{d.transfers === 0 ? '직항' : '경유 ' + d.transfers + '회'} · {d.duration}</div>
           <section className="border border-slate-100 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-2"><h3 className="font-bold text-slate-700">🔎 꼼꼼 확인표</h3><span className={'text-[11px] text-white rounded-full px-2 py-0.5 ' + sb.c}>{sb.t}</span></div>
             <div className="text-slate-600 space-y-0.5">
