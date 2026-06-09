@@ -321,12 +321,12 @@ function FlightResult({ o }) {
         </div>
         <div className="text-right shrink-0 pl-2">
           <div className="text-[17px] font-black text-brand-600 leading-none">{won(o.price)}</div>
-          <div className="text-[10px] text-slate-400 mt-0.5">{o.return_at ? '왕복' : '편도'}</div>
+          <div className="text-[10px] text-slate-400 mt-0.5">{o.return_at ? '왕복' : '편도'} · 참고가</div>
         </div>
       </div>
       <div className="mt-2.5 pt-2.5 border-t border-slate-100 text-[12px] text-slate-500 flex items-center justify-between">
         <span>🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-700'}>{dep.md}({dep.dow})</b> {dep.time}{o.return_at && <> · 🛬 <b className={ret.weekend ? 'text-rose-500' : 'text-slate-700'}>{ret.md}({ret.dow})</b> {ret.time}</>}</span>
-        <span className="text-brand-600 font-bold shrink-0">예약처 확인 ›</span>
+        <span className="text-brand-600 font-bold shrink-0">실시간 확인 ›</span>
       </div>
     </a>
   )
@@ -376,6 +376,7 @@ function Flights() {
   const [oneway, setOneway] = useState(false)
   const [pax, setPax] = useState(1), [cabin, setCabin] = useState('Y')
   const [day, setDay] = useState(null)
+  const [sort, setSort] = useState('price'), [directOnly, setDirectOnly] = useState(false)
   const [st, setSt] = useState({ status: 'idle' })
   const anywhere = dest === '-'
   const routeSearch = async (d) => {
@@ -403,6 +404,8 @@ function Flights() {
   const search = () => anywhere ? anywhereSearch() : routeSearch(dest)
   const DESTOPTS = [['-', '🌍 어디든지'], ...CITIES.map(([c, n]) => [c, `${n}(${c})`])]
   const results = st.status === 'route' ? (day ? st.data.filter(o => (o.departure_at || '').slice(0, 10) === day) : st.data) : []
+  const view = results.filter(o => !directOnly || o.transfers === 0).sort((a, b) => sort === 'duration' ? ((a.duration || 9e9) - (b.duration || 9e9)) : (a.price - b.price))
+  const lowest = view.length ? view.reduce((m, o) => Math.min(m, o.price), Infinity) : 0
 
   return (
     <div className="px-4 pt-2 pb-4 space-y-3">
@@ -427,7 +430,7 @@ function Flights() {
         <button onClick={search} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">{anywhere ? '🌍 어디가 싼지 보기' : '항공권 검색'}</button>
       </div>
 
-      {st.status === 'idle' && <p className="text-[12.5px] text-slate-400 px-1 leading-relaxed">출발·도착·월을 고르고 검색하면 <b className="text-slate-500">우리 앱 안에서</b> 항공권을 둘러봐요. 도착을 <b className="text-slate-500">🌍 어디든지</b>로 하면 어디가 싼지 한눈에! 예약·결제만 예약처에서.</p>}
+      {st.status === 'idle' && <p className="text-[12.5px] text-slate-400 px-1 leading-relaxed">출발·도착·월을 고르고 검색하면 <b className="text-slate-500">우리 앱 안에서</b> 최저가 항공권을 찾아요. 도착을 <b className="text-slate-500">🌍 어디든지</b>로 하면 어디가 싼지 한눈에! 표시가는 참고가고, 누르면 예약처에서 실시간 확정·결제돼요.</p>}
       {st.status === 'loading' && <div className="text-center text-slate-400 py-12"><div className="text-3xl mb-2 animate-pulse">✈️</div><div className="text-[13px]">최근 가격을 불러오는 중…</div></div>}
       {st.status === 'error' && <Empty icon="⚠️" text="조회 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요." />}
 
@@ -447,8 +450,14 @@ function Flights() {
       {st.status === 'route' && (st.data.length
         ? <>
           <PriceCalendar y={st.y} m={st.m} cal={st.cal} day={day} onPick={setDay} />
-          <div className="text-[12px] text-slate-400 px-1">{day ? <><b className="text-brand-600">{day.slice(5).replace('-', '/')}</b> 출발 · <button onClick={() => setDay(null)} className="text-brand-600 font-bold">전체 보기</button></> : <>{st.label} <b className="text-slate-500">참고가</b> {results.length}건 · 날짜 누르면 그날만</>}</div>
-          {results.map((o, i) => <FlightResult key={i} o={o} />)}
+          <div className="flex items-center gap-1.5 text-[12.5px]">
+            <button onClick={() => setSort('price')} className={'rounded-full px-3 py-1.5 font-bold ' + (sort === 'price' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>최저가순</button>
+            <button onClick={() => setSort('duration')} className={'rounded-full px-3 py-1.5 font-bold ' + (sort === 'duration' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>빠른순</button>
+            <label className="ml-auto flex items-center gap-1.5 text-slate-600"><input type="checkbox" checked={directOnly} onChange={e => setDirectOnly(e.target.checked)} /> 직항만</label>
+          </div>
+          <div className="text-[12px] text-slate-500 px-1">{day ? <><b className="text-brand-600">{day.slice(5).replace('-', '/')}</b> 출발 · <button onClick={() => setDay(null)} className="text-brand-600 font-bold">전체</button></> : st.label} · 최저가 <b className="text-brand-600">{won(lowest)}</b> · {view.length}편</div>
+          <div className="bg-amber-50 text-amber-800 text-[11.5px] rounded-xl px-3 py-2">💡 표시가는 <b>참고가</b>예요. 카드를 누르면 <b>예약처에서 실시간 최저가 확인 후 결제</b>돼요.</div>
+          {view.length ? view.map((o, i) => <FlightResult key={i} o={o} />) : <Empty icon="🔎" text="직항만 조건에 맞는 게 없어요. 직항만을 꺼보세요." />}
         </>
         : <Empty icon="🔎" text="이 달엔 캐시된 가격이 없어요. 다른 달·도시로 검색해 보세요." />)}
     </div>
@@ -509,7 +518,7 @@ const Planner = () => <div className="px-6 pt-16 text-center">
 
 /* ───────── shell ───────── */
 const TABS = [['hot', '🔥', '핫딜'], ['flights', '✈️', '항공편'], ['planner', '🗺️', '여행플래너'], ['my', '👤', '마이']]
-const TAB_TITLE = { flights: '항공편', planner: '여행플래너', my: '마이' }
+const TAB_TITLE = { flights: '최저가 항공권 검색', planner: '여행플래너', my: '마이' }
 export default function App() {
   const [tab, setTab] = useState('hot')
   const [deals, setDeals] = useState(null)
