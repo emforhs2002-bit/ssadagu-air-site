@@ -1,15 +1,57 @@
 {
-  "updated_at": "2026-06-08T13:58:02+00:00",
-  "note": "샘플 데이터 — 관리자 검수 콘솔 연동 후 '검수완료' 딜로 대체됩니다",
+  "updated_at": "2026-06-09T00:16:32+00:00",
+  "note": null,
   "deals": [
+    {
+      "id": "ICN-FUK-2026-07-24",
+      "route": "ICN-FUK",
+      "city": "후쿠오카",
+      "badge": "",
+      "price": 176870,
+      "normal_price": 230000,
+      "discount_rate": 23,
+      "airline": "에어부산",
+      "carrier_type": "LCC",
+      "departure_time": "2026-07-24 07:20",
+      "return_time": "2026-07-28 10:00",
+      "duration": "3시간 10분",
+      "transfers": 0,
+      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
+      "fatigue": "좋음",
+      "hidden_cost": {
+        "airfare": 176870,
+        "baggage_est": 60000,
+        "esim": 8900,
+        "hotel_note": "숙소 별도 (연계 추천 예정)",
+        "total_est": 245770
+      },
+      "fit_recommend": [
+        "짐 가벼운 2인·주말 여행",
+        "평일 연차 가능자"
+      ],
+      "fit_avoid": [
+        "날짜 고정이라 못 바꾸는 사람",
+        "위탁수하물 많은 가족 여행"
+      ],
+      "booking_grade": "B",
+      "inspection": {
+        "checked_at": "6/9(화) 09:16",
+        "price_ok": false,
+        "link_ok": false,
+        "refund": "특가운임 변경제한 가능"
+      },
+      "affiliate_url": "https://www.aviasales.com/search/ICN2407FUK28071?t=BX17848776001784883300000095ICNFUK17852328001785238500000095FUKICN_3839f3565e2b4ea1c32b00185181cc1d_8501&search_date=03062026&expected_price_uuid=019e8f25-3848-8030-2e52-3ed6e9c76cf6&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=176870&marker=737258",
+      "source": "Travelpayouts 자동발견",
+      "status": "published"
+    },
     {
       "id": "ICN-KIX-2026-06-10",
       "route": "ICN-KIX",
       "city": "오사카",
       "badge": "🔥",
-      "price": 174648,
+      "price": 183396,
       "normal_price": 260000,
-      "discount_rate": 33,
+      "discount_rate": 29,
       "airline": "티웨이",
       "carrier_type": "LCC",
       "departure_time": "2026-06-10 15:55",
@@ -19,11 +61,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 174648,
+        "airfare": 183396,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 243548
+        "total_est": 252296
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -33,56 +75,16 @@
         "날짜 고정이라 못 바꾸는 사람",
         "위탁수하물 많은 가족 여행"
       ],
-      "booking_grade": "검수 전",
+      "booking_grade": "B",
       "inspection": {
-        "checked_at": "(검수 콘솔 연동 전 — 샘플)",
-        "price_ok": null,
-        "link_ok": null,
-        "refund": "특가운임 변경제한 가능 — 검수 예정"
+        "checked_at": "6/9(화) 09:16",
+        "price_ok": false,
+        "link_ok": false,
+        "refund": "특가운임 변경제한 가능"
       },
-      "affiliate_url": "https://www.aviasales.com/search/ICN1006KIX17061?t=TW17811069001781114700000130ICNKIX17817246001781731500000115KIXICN_5c1a9eeab3f04c6ddb6d699c3c9cb349_8252&search_date=06062026&expected_price_uuid=019e9d14-21bd-8030-a8c8-2207dbdba689&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=174648&marker=737258",
-      "status": "sample"
-    },
-    {
-      "id": "ICN-DAD-2026-06-08",
-      "route": "ICN-DAD",
-      "city": "다낭",
-      "badge": "🔥",
-      "price": 272872,
-      "normal_price": 420000,
-      "discount_rate": 35,
-      "airline": "에어서울",
-      "carrier_type": "LCC",
-      "departure_time": "2026-06-08 20:55",
-      "return_time": "2026-06-18 00:40",
-      "duration": "9시간 20분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 272872,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 341772
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "검수 전",
-      "inspection": {
-        "checked_at": "(검수 콘솔 연동 전 — 샘플)",
-        "price_ok": null,
-        "link_ok": null,
-        "refund": "특가운임 변경제한 가능 — 검수 예정"
-      },
-      "affiliate_url": "https://www.aviasales.com/search/ICN0806DAD18061?t=RS17809521001780962000000285ICNDAD17817432001781766900000275DADICN_b61c03c94a2d1dda151d97337533636e_12893&search_date=06062026&expected_price_uuid=019e9d15-6a70-8030-63ec-35f1cf1b4eee&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=272872&marker=737258",
-      "status": "sample"
+      "affiliate_url": "https://www.aviasales.com/search/ICN1006KIX17061?t=TW17811069001781114700000130ICNKIX17817246001781731500000115KIXICN_5c1a9eeab3f04c6ddb6d699c3c9cb349_8784&search_date=08062026&expected_price_uuid=019ea708-b5f4-8030-a87e-2cea337e9bee&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=183396&marker=737258",
+      "source": "Travelpayouts 자동발견",
+      "status": "published"
     },
     {
       "id": "ICN-CEB-2026-07-20",
@@ -115,56 +117,16 @@
         "날짜 고정이라 못 바꾸는 사람",
         "위탁수하물 많은 가족 여행"
       ],
-      "booking_grade": "검수 전",
+      "booking_grade": "B",
       "inspection": {
-        "checked_at": "(검수 콘솔 연동 전 — 샘플)",
-        "price_ok": null,
-        "link_ok": null,
-        "refund": "특가운임 변경제한 가능 — 검수 예정"
+        "checked_at": "6/9(화) 09:16",
+        "price_ok": false,
+        "link_ok": false,
+        "refund": "특가운임 변경제한 가능"
       },
       "affiliate_url": "https://www.aviasales.com/search/ICN2007CEB23071?t=5J17845833001784596800000285ICNCEB17848182001784838900000285CEBICN_027f563ccbacf7c75ae6677a98dea70d_11512&search_date=07062026&expected_price_uuid=019ea3dc-5d11-8030-68d4-a9d54b49f617&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH1%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=243378&marker=737258",
-      "status": "sample"
-    },
-    {
-      "id": "ICN-NHA-2026-06-08",
-      "route": "ICN-NHA",
-      "city": "나트랑",
-      "badge": "🔥",
-      "price": 330714,
-      "normal_price": 450000,
-      "discount_rate": 27,
-      "airline": "이스타항공",
-      "carrier_type": "LCC",
-      "departure_time": "2026-06-08 20:55",
-      "return_time": "2026-06-12 00:05",
-      "duration": "10시간 5분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 330714,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 399614
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "검수 전",
-      "inspection": {
-        "checked_at": "(검수 콘솔 연동 전 — 샘플)",
-        "price_ok": null,
-        "link_ok": null,
-        "refund": "특가운임 변경제한 가능 — 검수 예정"
-      },
-      "affiliate_url": "https://www.aviasales.com/search/ICN0806NHA12061?t=RS17809521001780962900000300ICNCXR17812227001781248200000305CXRICN_4330a1934a2c6f729863636b2ad49a20_15834&search_date=04062026&expected_price_uuid=019e94de-c979-8030-a2a7-7993b3f9fb4b&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=330714&marker=737258",
-      "status": "sample"
+      "source": "Travelpayouts 자동발견",
+      "status": "published"
     },
     {
       "id": "GMP-KIX-2026-07-05",
@@ -197,15 +159,16 @@
         "날짜 고정이라 못 바꾸는 사람",
         "위탁수하물 많은 가족 여행"
       ],
-      "booking_grade": "검수 전",
+      "booking_grade": "B",
       "inspection": {
-        "checked_at": "(검수 콘솔 연동 전 — 샘플)",
-        "price_ok": null,
-        "link_ok": null,
-        "refund": "특가운임 변경제한 가능 — 검수 예정"
+        "checked_at": "6/9(화) 09:16",
+        "price_ok": false,
+        "link_ok": false,
+        "refund": "특가운임 변경제한 가능"
       },
       "affiliate_url": "https://www.aviasales.com/search/GMP0507KIX08071?t=MM17832507001783257000000105GMPKIX17835267001783533600000115KIXGMP_cbc74c08b3e6d2a08612a3d5563b7555_9564&search_date=02062026&expected_price_uuid=019e870d-adaf-8030-a1b7-26968db07dd2&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=201530&marker=737258",
-      "status": "sample"
+      "source": "Travelpayouts 자동발견",
+      "status": "published"
     }
   ]
 }
