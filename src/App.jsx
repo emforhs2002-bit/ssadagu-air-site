@@ -54,6 +54,13 @@ function filterCat(deals, cat) {
   return byGeo(deals, cat)
 }
 
+/* ───────── 목적지 사진(번들) + 항공사 로고 ───────── */
+const DEST_PHOTO = { FUK: 'fukuoka', KIX: 'osaka', TYO: 'tokyo', NRT: 'tokyo', HND: 'tokyo', OKA: 'okinawa', CTS: 'sapporo', TPE: 'taipei', KHH: 'kaohsiung', DAD: 'danang', NHA: 'nhatrang', HAN: 'hanoi', SGN: 'hochiminh', BKK: 'bangkok', HKT: 'phuket', CEB: 'cebu', MNL: 'manila', BKI: 'kota', HKG: 'hongkong', SIN: 'singapore', GUM: 'guam' }
+const photoOf = d => { const s = DEST_PHOTO[destOf(d)]; return s ? import.meta.env.BASE_URL + 'dest/' + s + '.jpg' : null }
+const photoBySlug = s => import.meta.env.BASE_URL + 'dest/' + s + '.jpg'
+const AIRLINE_IATA = { '대한항공': 'KE', '아시아나항공': 'OZ', '아시아나': 'OZ', '제주항공': '7C', '진에어': 'LJ', '티웨이항공': 'TW', '티웨이': 'TW', '에어부산': 'BX', '에어서울': 'RS', '이스타항공': 'ZE', '에어프레미아': 'YP', '세부퍼시픽': '5J', '세부퍼시픽항공': '5J', '비엣젯': 'VJ', '비엣젯항공': 'VJ', '베트남항공': 'VN', '피치': 'MM', '피치항공': 'MM', '에어아시아': 'AK', '타이에어아시아': 'FD', '스쿠트': 'TR', '필리핀항공': 'PR', '캐세이퍼시픽': 'CX', '홍콩익스프레스': 'UO', '싱가포르항공': 'SQ', '타이항공': 'TG', '전일본공수': 'NH', 'ANA': 'NH', '일본항공': 'JL', 'JAL': 'JL', '스타럭스': 'JX', '중화항공': 'CI', '에바항공': 'BR', '유나이티드항공': 'UA', '말레이시아항공': 'MH' }
+const logoOf = d => { const c = d.airline_code || AIRLINE_IATA[(d.airline || '').trim()]; return c ? `https://pics.avs.io/60/60/${c}.png` : null }
+
 /* ───────── localStorage ───────── */
 function useSaved() {
   const [ids, setIds] = useState(() => { try { return JSON.parse(localStorage.getItem('saved') || '[]') } catch { return [] } })
@@ -78,92 +85,126 @@ function matchPrefs(d, p) {
   return true
 }
 
-/* ───────── deal card ───────── */
+/* ───────── deal card (사진형) ───────── */
 function DealCard({ d, saved, onSave, onOpen, mine }) {
-  const dep = fmtDate(d.departure_time)
-  const pcv = priceCheckView(d.price_check)
+  const dep = fmtDate(d.departure_time), ret = fmtDate(d.return_time)
+  const pcv = priceCheckView(d.price_check), photo = photoOf(d), logo = logoOf(d)
   return (
-    <div className="bg-white rounded-3xl shadow-soft p-4 active:scale-[.99] transition" onClick={() => onOpen(d)}>
-      <div className="flex items-start justify-between">
-        <div><div className="text-[12px] text-slate-400 font-medium">{d.route} · {d.airline}</div><div className="text-[17px] font-extrabold leading-tight mt-0.5">{d.badge} {d.city}</div></div>
-        <button onClick={e => { e.stopPropagation(); onSave(d.id) }} className={'text-xl leading-none px-1 ' + (saved ? 'text-rose-500' : 'text-slate-300')}>♥</button>
+    <div className="relative flex gap-3 bg-white rounded-2xl shadow-soft p-3 active:scale-[.99] transition" onClick={() => onOpen(d)}>
+      {photo
+        ? <div className="w-[80px] h-[80px] rounded-2xl bg-cover bg-center shrink-0 bg-slate-100" style={{ backgroundImage: `url(${photo})` }} />
+        : <div className="w-[80px] h-[80px] rounded-2xl shrink-0 bg-brand-50 flex items-center justify-center text-2xl">✈️</div>}
+      <div className="flex-1 min-w-0 pr-7">
+        <div className="text-[16px] font-extrabold text-slate-900 leading-tight">{d.badge} {d.city}</div>
+        <div className="text-[12px] text-slate-400 mt-1 flex items-center gap-1.5">
+          {logo && <img src={logo} alt="" className="w-4 h-4 object-contain rounded-sm" onError={e => { e.target.style.display = 'none' }} />}
+          {d.airline} · {d.transfers === 0 ? '직항' : '경유 ' + d.transfers}
+        </div>
+        <div className="text-[12px] text-slate-500 mt-1.5">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-700'}>{dep.md}({dep.dow})</b> · <b className={ret.weekend ? 'text-rose-500' : 'text-slate-700'}>{ret.md}({ret.dow})</b></div>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {mine && <span className="text-[10.5px] font-bold text-rose-600 bg-rose-50 rounded-full px-2 py-0.5">🔔 내 조건</span>}
+          <span className="text-[10.5px] font-bold text-brand-700 bg-brand-50 rounded-full px-2 py-0.5">✅ 안심 특가</span>
+          {pcv && <span className={'text-[10.5px] font-bold rounded-full px-2 py-0.5 ' + (pcv.warn ? 'text-amber-700 bg-amber-50' : 'text-brand-700 bg-brand-50')}>{pcv.card}</span>}
+        </div>
       </div>
-      <div className="flex items-end gap-2 mt-2">
-        <div className="text-2xl font-black text-brand-600">{won(d.price)}</div>
-        {d.discount_rate > 0 && <span className="mb-1 text-[12px] font-bold text-rose-500 bg-rose-50 rounded-full px-2 py-0.5">-{d.discount_rate}%</span>}
-        <span className="mb-1 text-[11px] text-slate-400">평소 <s>{won(d.normal_price)}</s></span>
+      <button onClick={e => { e.stopPropagation(); onSave(d.id) }} className={'absolute top-3 right-3 text-lg leading-none ' + (saved ? 'text-rose-500' : 'text-slate-300')}>♥</button>
+      <div className="absolute bottom-3 right-3 text-right">
+        <div className="text-[16px] font-black text-brand-600 leading-none">{won(d.price)}</div>
+        <div className="text-[10px] text-slate-400 mt-0.5">왕복</div>
       </div>
-      <div className="text-[12.5px] text-slate-500 mt-1.5">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-700'}>{dep.md}({dep.dow})</b> {dep.time}<span className="text-slate-300"> · </span>{d.transfers === 0 ? '직항' : '경유 ' + d.transfers + '회'}{d.duration ? ' · ' + d.duration : ''}</div>
-      <div className="flex flex-wrap gap-1.5 mt-3">
-        {mine && <span className="text-[11px] font-bold text-rose-600 bg-rose-50 rounded-full px-2 py-1">🔔 내 조건</span>}
-        <span className="text-[11px] font-bold text-brand-700 bg-brand-50 rounded-full px-2 py-1">✅ 안심 특가</span>
-        <span className="text-[11px] font-medium text-slate-500 bg-slate-100 rounded-full px-2 py-1">🧳 {d.carrier_type === 'LCC' ? '수하물 별도 추정' : '수하물 포함 추정'}</span>
-      </div>
-      {pcv && <div className={'mt-2 inline-flex items-center gap-1 text-[11.5px] font-bold rounded-lg px-2 py-1 ' + (pcv.warn ? 'text-amber-700 bg-amber-50' : 'text-brand-700 bg-brand-50')}>🔍 {pcv.card}</div>}
     </div>
   )
 }
 
-/* ───────── detail sheet ───────── */
+/* ───────── detail sheet (간결) ───────── */
 function DealSheet({ d, onClose }) {
   if (!d) return null
-  const dep = fmtDate(d.departure_time), ret = fmtDate(d.return_time), hc = d.hidden_cost || {}, insp = d.inspection || {}, sb = safeBooking(d.booking_grade)
-  const pcv = priceCheckView(d.price_check)
-  const Row = ({ l, r, s }) => <div className={'flex justify-between ' + (s ? 'font-bold text-brand-700 border-t border-brand-100 pt-1 mt-1' : '')}><span>{l}</span><span>{r}</span></div>
+  const dep = fmtDate(d.departure_time), ret = fmtDate(d.return_time)
+  const pcv = priceCheckView(d.price_check), photo = photoOf(d), logo = logoOf(d)
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/40 fade-in" onClick={onClose} />
-      <div className="absolute bottom-0 inset-x-0 max-w-md mx-auto bg-white rounded-t-3xl sheet-up max-h-[90vh] overflow-y-auto no-scrollbar">
-        <div className="sticky top-0 bg-white pt-2 pb-3 px-5 rounded-t-3xl">
-          <div className="w-10 h-1.5 bg-slate-200 rounded-full mx-auto mb-2" />
-          <button onClick={onClose} className="text-[13px] text-slate-500 font-bold mb-2">← 뒤로</button>
-          <div className="flex items-start justify-between"><div><div className="text-[12px] text-slate-400">{d.route} · {d.airline}</div><div className="text-xl font-extrabold">{d.badge} {d.city}</div></div><button onClick={onClose} className="text-slate-400 text-2xl leading-none">✕</button></div>
-          <div className="flex items-end gap-2 mt-1"><div className="text-3xl font-black text-brand-600">{won(d.price)}</div>{d.discount_rate > 0 && <span className="mb-1.5 text-[12px] font-bold text-rose-500 bg-rose-50 rounded-full px-2 py-0.5">평소 대비 -{d.discount_rate}%</span>}</div>
+      <div className="absolute bottom-0 inset-x-0 max-w-md mx-auto bg-white rounded-t-3xl sheet-up max-h-[92vh] overflow-y-auto no-scrollbar">
+        <div className="relative h-44 bg-cover bg-center bg-slate-200" style={photo ? { backgroundImage: `linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55)),url(${photo})` } : {}}>
+          <button onClick={onClose} className="absolute top-3 left-4 text-white/90 text-[13px] font-bold bg-black/25 rounded-full px-3 py-1.5">← 뒤로</button>
+          <button onClick={onClose} className="absolute top-3 right-4 text-white text-xl bg-black/25 rounded-full w-8 h-8">✕</button>
+          <div className="absolute bottom-3 left-5 right-5 text-white">
+            <div className="text-[12px] opacity-90 flex items-center gap-1.5">{logo && <img src={logo} alt="" className="w-4 h-4 object-contain rounded-sm bg-white/80 p-px" onError={e => { e.target.style.display = 'none' }} />}{d.airline} · {d.transfers === 0 ? '직항' : '경유 ' + d.transfers}</div>
+            <div className="text-2xl font-extrabold leading-tight mt-0.5">{d.badge} {d.city}</div>
+          </div>
         </div>
-        <div className="px-5 pb-8 space-y-4 text-[13px]">
-          <div className="text-slate-600">🛫 가는 편 <b className={dep.weekend ? 'text-rose-500' : ''}>{dep.full}</b><br />🛬 오는 편 <b className={ret.weekend ? 'text-rose-500' : ''}>{ret.full}</b><br />{d.transfers === 0 ? '직항' : '경유 ' + d.transfers + '회'} · {d.duration}</div>
-          <section className="border border-slate-100 rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-2"><h3 className="font-bold text-slate-700">🔎 꼼꼼 확인표</h3><span className={'text-[11px] text-white rounded-full px-2 py-0.5 ' + sb.c}>{sb.t}</span></div>
-            <div className="text-slate-600 space-y-0.5">
-              <div>확인 시각: {insp.checked_at || '-'}</div>
-              <div>가격 확인: {insp.price_ok === true ? '✅ 직접 확인했어요' : insp.price_ok === false ? '❌' : '— (확인 예정)'}</div>
-              <div>링크 확인: {insp.link_ok === true ? '✅' : insp.link_ok === false ? '❌' : '— (확인 예정)'}</div>
-              <div>수하물: {d.baggage_note}</div>
-              <div>환불/변경: {insp.refund || '-'}</div>
-              {pcv && <div className="pt-1.5 mt-1.5 border-t border-slate-100 space-y-0.5">
-                <div>비교 확인: {pcv.channels.join(' / ')} 확인</div>
-                <div className={'font-bold ' + (pcv.warn ? 'text-amber-700' : 'text-brand-700')}>결과: {pcv.line}</div>
-                {d.price_check.memo && <div className="text-[12px] text-slate-400">메모: {d.price_check.memo}</div>}
-              </div>}
-            </div>
-          </section>
-          <section className="bg-brand-50/70 rounded-2xl p-4"><h3 className="font-bold text-brand-800 mb-2">💰 진짜 내는 돈</h3><div className="text-slate-700 space-y-0.5">
-            <Row l="항공권 표시가" r={won(hc.airfare)} /><Row l="위탁수하물(추정)" r={'+' + won(hc.baggage_est)} /><Row l="eSIM" r={'+' + won(hc.esim)} /><Row l="숙소" r={hc.hotel_note || '별도'} /><Row l="예상 총여행비" r={won(hc.total_est)} s />
-          </div><div className="text-[11px] text-slate-400 mt-2">※ 수하물·좌석 등 일부는 항공사 유형 기준 예상값이에요. 예약 전 결제화면에서 확인하세요.</div></section>
-          <section className="grid gap-2"><div className="bg-brand-50 rounded-2xl p-3"><b className="text-brand-700">👍 이런 분께 추천</b><div className="text-slate-600 mt-1">{(d.fit_recommend || []).join(' · ')}</div></div><div className="bg-rose-50 rounded-2xl p-3"><b className="text-rose-600">👎 이런 분껜 비추천</b><div className="text-slate-600 mt-1">{(d.fit_avoid || []).join(' · ')}</div></div></section>
-          <a href={d.affiliate_url} target="_blank" rel="noopener" className="block text-center bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">예약하러 가기 →</a>
-          <div className="text-center text-[12px] text-slate-400">결제·환불은 항공사/판매처 직접 · 예약 전 실제가 꼭 확인</div>
-          <div className="border-t border-slate-100 pt-3"><div className="text-[12px] text-slate-400 mb-2">가격이 다르거나 마감됐나요?</div><div className="grid grid-cols-2 gap-2 text-[12.5px]">{[['price', '가격이 달라요'], ['soldout', '마감됐어요'], ['baggage', '수하물 달라요'], ['link', '링크 이상해요']].map(([k, t]) => <button key={k} onClick={() => report(d.id, k)} className="bg-slate-100 text-slate-600 rounded-xl py-2">{t}</button>)}</div></div>
+        <div className="px-5 pt-4 pb-8 space-y-4 text-[13.5px]">
+          <div className="flex items-end justify-between">
+            <div className="text-slate-600 text-[13px]">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-800'}>{dep.full}</b><br />🛬 <b className={ret.weekend ? 'text-rose-500' : 'text-slate-800'}>{ret.full}</b></div>
+            <div className="text-right"><div className="text-[28px] font-black text-brand-600 leading-none">{won(d.price)}</div><div className="text-[11px] text-slate-400 mt-1">왕복 · 항공권 표시가</div></div>
+          </div>
+          {pcv && <div className={'rounded-2xl p-3 ' + (pcv.warn ? 'bg-amber-50' : 'bg-brand-50')}>
+            <div className={'font-bold ' + (pcv.warn ? 'text-amber-700' : 'text-brand-700')}>{pcv.card}</div>
+            <div className="text-slate-600 text-[12.5px] mt-1">{pcv.line}</div>
+            {d.price_check.memo && <div className="text-[12px] text-slate-400 mt-1">메모: {d.price_check.memo}</div>}
+          </div>}
+          <a href={d.affiliate_url} target="_blank" rel="noopener" className="block text-center bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">예약처에서 확인하기 →</a>
+          <div className="text-center text-[12px] text-slate-400">싸다구항공은 항공권을 직접 팔지 않아요. 가격·수하물·환불은 예약처에서 최종 확인하세요.</div>
+          <div className="border-t border-slate-100 pt-3"><div className="text-[12px] text-slate-400 mb-2">가격이 다르거나 마감됐나요?</div><div className="grid grid-cols-3 gap-2 text-[12.5px]">{[['price', '가격이 달라요'], ['soldout', '마감됐어요'], ['link', '링크 이상해요']].map(([k, t]) => <button key={k} onClick={() => report(d.id, k)} className="bg-slate-100 text-slate-600 rounded-xl py-2">{t}</button>)}</div></div>
         </div>
       </div>
     </div>
   )
 }
 
-/* ───────── 🔥 핫딜 (본체) ───────── */
-function HotDeals({ deals, savedIds, onSave, onOpen, prefs }) {
+/* ───────── 🔥 핫딜 (본체 · 포토 히어로) ───────── */
+function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onSearch }) {
   const [cat, setCat] = useState('all')
-  const list = filterCat(deals, cat).sort((a, b) => (matchPrefs(b, prefs) - matchPrefs(a, prefs)) || (b.discount_rate - a.discount_rate))
+  const [pick, setPick] = useState(null)
+  const base = pick ? deals.filter(d => destOf(d) === pick) : filterCat(deals, cat)
+  const list = [...base].sort((a, b) => (matchPrefs(b, prefs) - matchPrefs(a, prefs)) || (b.discount_rate - a.discount_rate))
   const mineCount = hasPrefs(prefs) ? list.filter(d => matchPrefs(d, prefs)).length : 0
+  const byCity = {}; deals.forEach(d => { const c = destOf(d); if (!byCity[c] || d.price < byCity[c].price) byCity[c] = d })
+  const circles = Object.values(byCity).sort((a, b) => a.price - b.price)
   return (
     <div>
-      <div className="flex gap-1.5 overflow-x-auto no-scrollbar px-4 pt-1 pb-2 sticky top-[60px] z-20 bg-[#eefbf8]/90 backdrop-blur">
-        {CATS.map(([k, label]) => <button key={k} onClick={() => setCat(k)} className={'shrink-0 text-[13px] rounded-full px-3.5 py-1.5 font-medium ' + (cat === k ? 'bg-brand-500 text-white' : 'bg-white text-slate-500 border border-slate-200')}>{label}</button>)}
+      {/* hero */}
+      <div className="relative h-[330px] bg-cover bg-center bg-slate-300" style={{ backgroundImage: `linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,0) 26%,rgba(0,0,0,.62)),url(${photoBySlug('hero')})` }}>
+        <div className="absolute top-5 left-5 right-5 flex items-center justify-between text-white" style={{ textShadow: '0 1px 8px rgba(0,0,0,.45)' }}>
+          <span className="font-extrabold text-[15px]">✈️ 싸다구항공</span>
+        </div>
+        <div className="absolute left-5 right-5 bottom-24 text-white">
+          <span className="inline-block text-[11.5px] font-bold border border-white/60 rounded-full px-3 py-1 mb-3">이번 주 안심 특가</span>
+          <h1 className="text-[25px] font-extrabold leading-[1.32]" style={{ textShadow: '0 2px 14px rgba(0,0,0,.35)' }}>발품은 우리가 팔게.<br />넌 떠나기만 해.</h1>
+          <p className="text-[12.5px] text-white/90 mt-2" style={{ textShadow: '0 1px 10px rgba(0,0,0,.4)' }}>6개 사이트 안 뒤져도, 안심 특가만 골라드려요</p>
+        </div>
       </div>
-      <div className="px-4 pb-4 space-y-3">
-        <p className="text-[12.5px] text-slate-500">✅ 사람이 직접 확인한 <b className="text-slate-700">안심 특가</b> {list.length}건{mineCount > 0 && <> · <b className="text-rose-500">🔔 내 조건 {mineCount}건 먼저</b></>}</p>
-        {list.length ? list.map(d => <DealCard key={d.id} d={d} saved={savedIds.includes(d.id)} onSave={onSave} onOpen={onOpen} mine={matchPrefs(d, prefs)} />)
-          : <Empty icon="🔎" text="이 조건엔 안심 특가가 아직 없어요. 다른 카테고리를 눌러보세요." />}
+      {/* sheet */}
+      <div className="bg-[#eefbf8] rounded-t-[26px] -mt-6 relative px-4 pb-4">
+        {/* floating search card → 어디 갈까 */}
+        <div onClick={onSearch} className="bg-white rounded-2xl shadow-soft -mt-10 relative px-4 py-0.5 active:scale-[.99] transition cursor-pointer">
+          <div className="flex items-center gap-2.5 py-3.5 text-[14.5px]"><span>🔍</span><span className="text-slate-400">어디로 떠나세요?</span></div>
+          <div className="flex border-t border-slate-100 text-[14px]"><div className="flex-1 flex items-center gap-2 py-3.5"><span>📅</span><span className="text-slate-400">언제든</span></div><div className="flex-1 flex items-center gap-2 py-3.5 border-l border-slate-100 pl-3"><span>👤</span><span className="text-slate-400">1명</span></div></div>
+          <div className="bg-brand-500 text-white text-center font-bold rounded-xl py-3.5 my-2">안심 특가 찾기</div>
+        </div>
+        {/* circles */}
+        {circles.length > 0 && <>
+          <div className="flex items-baseline justify-between mt-6 mb-3"><h2 className="text-[16.5px] font-extrabold text-slate-900">🔥 지금 뜬 안심 특가</h2>{pick && <button onClick={() => setPick(null)} className="text-[12.5px] text-brand-600 font-bold">전체 ›</button>}</div>
+          <div className="flex gap-3.5 overflow-x-auto no-scrollbar pb-1">
+            {circles.map(d => { const c = destOf(d), ph = photoOf(d); return (
+              <button key={d.id} onClick={() => { setPick(pick === c ? null : c); setCat('all') }} className="shrink-0 w-[72px] text-center">
+                <div className={'w-[68px] h-[68px] rounded-full bg-cover bg-center mx-auto bg-slate-200 ' + (pick === c ? 'ring-[3px] ring-brand-500' : '')} style={ph ? { backgroundImage: `url(${ph})` } : {}} />
+                <div className="text-[12px] font-bold text-slate-700 mt-1.5 truncate">{d.city}</div>
+                <div className="text-[11px] font-extrabold text-brand-600">{Math.round(d.price / 10000)}만</div>
+              </button>
+            ) })}
+          </div>
+        </>}
+        {/* chips */}
+        {!pick && <div className="flex gap-1.5 overflow-x-auto no-scrollbar mt-5 mb-1">
+          {CATS.map(([k, label]) => <button key={k} onClick={() => setCat(k)} className={'shrink-0 text-[12.5px] rounded-full px-3 py-1.5 font-medium ' + (cat === k ? 'bg-brand-500 text-white' : 'bg-white text-slate-500 border border-slate-200')}>{label}</button>)}
+        </div>}
+        {/* list */}
+        <div className="flex items-baseline justify-between mt-5 mb-3"><h2 className="text-[16.5px] font-extrabold text-slate-900">{mineCount > 0 ? '🔔 내 조건에 맞는 특가' : '✈️ 안심 특가'}</h2><span className="text-[12px] text-slate-400">{list.length}건</span></div>
+        <div className="space-y-3">
+          {list.length ? list.map(d => <DealCard key={d.id} d={d} saved={savedIds.includes(d.id)} onSave={onSave} onOpen={onOpen} mine={matchPrefs(d, prefs)} />)
+            : <Empty icon="🔎" text="이 조건엔 안심 특가가 아직 없어요." />}
+        </div>
       </div>
     </div>
   )
@@ -410,15 +451,13 @@ export default function App() {
   const [prefs, savePrefs] = useAlertPrefs()
   useEffect(() => { fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => setDeals(d.deals || [])).catch(() => setDeals([])) }, [])
   const p = { savedIds, onSave: toggleSave, onOpen: setSel }
+  const TAB_TITLE = { where: '어디 갈까?', flights: '항공편', saved: '찜한 특가', my: '마이' }
   return (
-    <div className="max-w-md mx-auto min-h-full flex flex-col">
-      <header className="sticky top-0 z-30 bg-[#eefbf8]/90 backdrop-blur px-4 pt-6 pb-2">
-        <div className="flex items-center gap-2"><span className="text-2xl">✈️</span><h1 className="text-xl font-extrabold">싸다구항공</h1></div>
-        <p className="text-[12px] text-slate-500 mt-0.5">검색하기 전에, 안심 특가만 골라드려요</p>
-      </header>
+    <div className="max-w-md mx-auto min-h-full flex flex-col bg-[#eefbf8]">
       <main className="flex-1 pb-20">
         {deals === null && <Empty icon="⏳" text="불러오는 중…" />}
-        {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} /> : <Empty icon="🔎" text="안심 특가가 아직 없어요." />)}
+        {deals && tab !== 'hot' && <div className="px-5 pt-7 pb-1"><h1 className="text-[22px] font-extrabold text-slate-900">{TAB_TITLE[tab]}</h1></div>}
+        {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} onSearch={() => setTab('where')} /> : <Empty icon="🔎" text="안심 특가가 아직 없어요." />)}
         {deals && tab === 'where' && <Where deals={deals} onOpen={setSel} />}
         {deals && tab === 'flights' && <Flights deals={deals} onOpen={setSel} />}
         {deals && tab === 'saved' && <Saved deals={deals} {...p} />}
