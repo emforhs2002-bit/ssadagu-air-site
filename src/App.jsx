@@ -103,7 +103,6 @@ function DealCard({ d, saved, onSave, onOpen, mine }) {
         <div className="text-[12px] text-slate-500 mt-1.5">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-700'}>{dep.md}({dep.dow})</b> · <b className={ret.weekend ? 'text-rose-500' : 'text-slate-700'}>{ret.md}({ret.dow})</b></div>
         <div className="flex flex-wrap gap-1.5 mt-2">
           {mine && <span className="text-[10.5px] font-bold text-rose-600 bg-rose-50 rounded-full px-2 py-0.5">🔔 내 조건</span>}
-          <span className="text-[10.5px] font-bold text-orange-600 bg-orange-50 rounded-full px-2 py-0.5">{d.badge || '🔥'} 핫딜</span>
           {d.discount_rate > 0 && <span className="text-[10.5px] font-bold text-rose-500 bg-rose-50 rounded-full px-2 py-0.5">평소 대비 -{d.discount_rate}%</span>}
           {pcv && <span className={'text-[10.5px] font-bold rounded-full px-2 py-0.5 ' + (pcv.warn ? 'text-amber-700 bg-amber-50' : 'text-brand-700 bg-brand-50')}>{pcv.card}</span>}
         </div>
@@ -156,6 +155,8 @@ function DealSheet({ d, onClose }) {
 function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onSearch, onRefresh, updatedAt }) {
   const [cat, setCat] = useState('all')
   const [pick, setPick] = useState(null)
+  const [flash, setFlash] = useState(false)
+  const doRefresh = () => { Promise.resolve(onRefresh && onRefresh()).then(() => { setFlash(true); setTimeout(() => setFlash(false), 1600) }) }
   const base = pick ? deals.filter(d => destOf(d) === pick) : filterCat(deals, cat)
   const list = [...base].sort((a, b) => (matchPrefs(b, prefs) - matchPrefs(a, prefs)) || (b.discount_rate - a.discount_rate))
   const mineCount = hasPrefs(prefs) ? list.filter(d => matchPrefs(d, prefs)).length : 0
@@ -169,7 +170,7 @@ function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onSearch, onRefresh,
           <span className="font-extrabold text-[15px]">✈️ 싸다구항공</span>
         </div>
         <div className="absolute left-5 right-5 bottom-24 text-white">
-          <span className="inline-block text-[11.5px] font-bold border border-white/60 rounded-full px-3 py-1 mb-3">이번 주 안심 특가</span>
+          <span className="inline-block text-[11.5px] font-bold border border-white/60 rounded-full px-3 py-1 mb-3">🔥 핫딜 리스트</span>
           <h1 className="text-[25px] font-extrabold leading-[1.32]" style={{ textShadow: '0 2px 14px rgba(0,0,0,.35)' }}>발품은 우리가 팔게.<br />넌 떠나기만 해.</h1>
           <p className="text-[12.5px] text-white/90 mt-2" style={{ textShadow: '0 1px 10px rgba(0,0,0,.4)' }}>6개 사이트 안 뒤져도, 안심 특가만 골라드려요</p>
         </div>
@@ -202,7 +203,7 @@ function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onSearch, onRefresh,
         {/* list */}
         <div className="flex items-center justify-between mt-5 mb-1">
           <h2 className="text-[16.5px] font-extrabold text-slate-900">{mineCount > 0 ? '🔔 내 조건 핫딜' : '🔥 핫딜'} <span className="text-[12px] font-medium text-slate-400">{list.length}건</span></h2>
-          <button onClick={onRefresh} className="text-[12.5px] font-bold text-brand-600 active:scale-95">🔄 새로고침</button>
+          <button onClick={doRefresh} className={'text-[12.5px] font-bold active:scale-95 ' + (flash ? 'text-emerald-500' : 'text-brand-600')}>{flash ? '✓ 최신이에요' : '🔄 새로고침'}</button>
         </div>
         {updatedAt && <div className="text-[11px] text-slate-400 mb-3"><b className="text-slate-500">{updatedAt}</b> 기준 · 1시간마다 자동 갱신, 누르면 최신 조회</div>}
         <div className="space-y-3">
@@ -331,34 +332,91 @@ function FlightResult({ o }) {
   )
 }
 
+const CITY_NAME = Object.fromEntries(CITIES)
+const cityName = c => CITY_NAME[c] || c
+function monthsList() {
+  const out = [], now = new Date()
+  for (let i = 0; i < 8; i++) { const m = now.getMonth() + i, y = now.getFullYear() + Math.floor(m / 12), mm = ((m % 12) + 12) % 12; out.push({ value: `${y}-${pad2(mm + 1)}`, label: `${mm + 1}월`, y, m: mm }) }
+  return out
+}
+
+/* 날짜별 최저가 달력 (월 캐시 데이터 → 날짜별 min, 탭하면 그날 필터) */
+function PriceCalendar({ y, m, cal, day, onPick }) {
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const lead = new Date(y, m, 1).getDay(), daysIn = new Date(y, m + 1, 0).getDate()
+  const ps = Object.values(cal), min = ps.length ? Math.min(...ps) : 0
+  const cells = []
+  for (let i = 0; i < lead; i++) cells.push(null)
+  for (let d = 1; d <= daysIn; d++) cells.push(d)
+  return (
+    <div className="bg-white rounded-2xl shadow-soft p-3">
+      <div className="text-center font-bold text-[13.5px] mb-2">{y}년 {m + 1}월 · 날짜별 최저가</div>
+      <div className="grid grid-cols-7 text-center text-[10px] mb-1">{['일', '월', '화', '수', '목', '금', '토'].map((w, i) => <div key={i} className={i === 0 ? 'text-rose-400' : i === 6 ? 'text-blue-400' : 'text-slate-400'}>{w}</div>)}</div>
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map((d, i) => {
+          if (!d) return <div key={i} />
+          const key = `${y}-${pad2(m + 1)}-${pad2(d)}`, p = cal[key], past = new Date(y, m, d) < today, sel = day === key
+          return (
+            <button key={i} disabled={!p || past} onClick={() => onPick(sel ? null : key)}
+              className={'aspect-square rounded-lg flex flex-col items-center justify-center leading-none ' + (sel ? 'bg-brand-500 text-white' : (p && !past) ? (p === min ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700') : 'text-slate-200')}>
+              <span className="text-[11px] font-bold">{d}</span>
+              {p && !past && <span className="text-[8px] font-bold mt-0.5">{Math.round(p / 10000)}만</span>}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function Flights() {
+  const months = monthsList()
   const [origin, setOrigin] = useState('ICN'), [dest, setDest] = useState('FUK')
+  const [mi, setMi] = useState(1)
   const [oneway, setOneway] = useState(false)
-  const [depart, setDepart] = useState(''), [ret, setRet] = useState(''), [pax, setPax] = useState(1), [cabin, setCabin] = useState('Y')
+  const [pax, setPax] = useState(1), [cabin, setCabin] = useState('Y')
+  const [day, setDay] = useState(null)
   const [st, setSt] = useState({ status: 'idle' })
-  const search = async () => {
-    if (!depart) return alert('가는 날을 선택해 주세요')
-    if (!oneway && !ret) return alert('오는 날을 선택하거나 편도를 켜주세요')
-    setSt({ status: 'loading' })
-    const params = new URLSearchParams({ origin, destination: dest, departure_at: depart, currency: 'krw', market: 'kr', one_way: oneway ? 'true' : 'false', sorting: 'price', limit: '30', unique: 'false' })
-    if (!oneway && ret) params.set('return_at', ret)
+  const anywhere = dest === '-'
+  const routeSearch = async (d) => {
+    setDest(d); setDay(null); setSt({ status: 'loading' })
+    const mo = months[mi]
+    const params = new URLSearchParams({ origin, destination: d, departure_at: mo.value, currency: 'krw', market: 'kr', one_way: oneway ? 'true' : 'false', sorting: 'price', limit: '100', unique: 'false' })
     try {
       const r = await fetch(`${PROXY}/aviasales/v3/prices_for_dates?${params}`)
       const j = await r.json()
-      setSt({ status: 'done', data: (j.data || []).sort((a, b) => a.price - b.price) })
+      const data = (j.data || []).sort((a, b) => a.price - b.price)
+      const cal = {}; data.forEach(o => { const k = (o.departure_at || '').slice(0, 10); if (k && (!cal[k] || o.price < cal[k])) cal[k] = o.price })
+      setSt({ status: 'route', data, cal, y: mo.y, m: mo.m, label: mo.label })
     } catch (e) { setSt({ status: 'error' }) }
   }
+  const anywhereSearch = async () => {
+    setDay(null); setSt({ status: 'loading' })
+    const params = new URLSearchParams({ origin, currency: 'krw', market: 'kr', limit: '40', one_way: oneway ? 'true' : 'false', period_type: 'year', page: '1' })
+    try {
+      const r = await fetch(`${PROXY}/aviasales/v3/get_latest_prices?${params}`)
+      const j = await r.json()
+      const byDest = {}; (j.data || []).forEach(o => { const c = o.destination; if (c && (!byDest[c] || o.value < byDest[c].value)) byDest[c] = o })
+      setSt({ status: 'anywhere', dests: Object.values(byDest).sort((a, b) => a.value - b.value) })
+    } catch (e) { setSt({ status: 'error' }) }
+  }
+  const search = () => anywhere ? anywhereSearch() : routeSearch(dest)
+  const DESTOPTS = [['-', '🌍 어디든지'], ...CITIES.map(([c, n]) => [c, `${n}(${c})`])]
+  const results = st.status === 'route' ? (day ? st.data.filter(o => (o.departure_at || '').slice(0, 10) === day) : st.data) : []
+
   return (
     <div className="px-4 pt-2 pb-4 space-y-3">
       <div className="bg-white rounded-2xl shadow-soft p-4 space-y-3">
         <div className="grid grid-cols-2 gap-2">
           <Pick label="출발" value={origin} onChange={setOrigin} options={ORIGINS.map(([c, n]) => [c, `${n}(${c})`])} />
-          <Pick label="도착" value={dest} onChange={setDest} options={CITIES.map(([c, n]) => [c, `${n}(${c})`])} />
+          <Pick label="도착" value={dest} onChange={setDest} options={DESTOPTS} />
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div><label className="text-[12px] text-slate-500">가는 날</label><input type="date" min={todayStr()} value={depart} onChange={e => setDepart(e.target.value)} className={inputCls} /></div>
-          <div><label className="text-[12px] text-slate-500">오는 날</label><input type="date" min={depart || todayStr()} value={ret} disabled={oneway} onChange={e => setRet(e.target.value)} className={inputCls + (oneway ? ' opacity-40' : '')} /></div>
-        </div>
+        {!anywhere && <div>
+          <label className="text-[12px] text-slate-500">출발 월</label>
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar mt-1">
+            {months.map((mo, i) => <button key={mo.value} onClick={() => setMi(i)} className={'shrink-0 text-[13px] rounded-xl px-3.5 py-2 font-bold ' + (mi === i ? 'bg-brand-500 text-white' : 'bg-slate-50 text-slate-500 border border-slate-200')}>{mo.label}</button>)}
+          </div>
+        </div>}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <label className="flex items-center gap-2 text-[13px] text-slate-600"><input type="checkbox" checked={oneway} onChange={e => setOneway(e.target.checked)} /> 편도</label>
           <div className="flex items-center gap-3 text-[13px] text-slate-600">
@@ -366,18 +424,33 @@ function Flights() {
             <select value={cabin} onChange={e => setCabin(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-2 py-1">{[['Y', '일반석'], ['C', '비즈니스']].map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select>
           </div>
         </div>
-        <button onClick={search} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">항공권 검색</button>
+        <button onClick={search} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">{anywhere ? '🌍 어디가 싼지 보기' : '항공권 검색'}</button>
       </div>
 
-      {st.status === 'idle' && <p className="text-[12.5px] text-slate-400 px-1 leading-relaxed">출발·도착·날짜를 고르고 검색하면 <b className="text-slate-500">우리 앱 안에서</b> 항공권을 둘러볼 수 있어요. 예약·결제는 예약처에서 진행돼요(가격·환불 최종 확인).</p>}
+      {st.status === 'idle' && <p className="text-[12.5px] text-slate-400 px-1 leading-relaxed">출발·도착·월을 고르고 검색하면 <b className="text-slate-500">우리 앱 안에서</b> 항공권을 둘러봐요. 도착을 <b className="text-slate-500">🌍 어디든지</b>로 하면 어디가 싼지 한눈에! 예약·결제만 예약처에서.</p>}
       {st.status === 'loading' && <div className="text-center text-slate-400 py-12"><div className="text-3xl mb-2 animate-pulse">✈️</div><div className="text-[13px]">최근 가격을 불러오는 중…</div></div>}
       {st.status === 'error' && <Empty icon="⚠️" text="조회 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요." />}
-      {st.status === 'done' && (st.data.length
+
+      {st.status === 'anywhere' && (st.dests.length
         ? <>
-          <div className="text-[12px] text-slate-400 px-1">최근 캐시 기준 <b className="text-slate-500">참고가</b> {st.data.length}건 · 실제가는 예약처에서 최종 확인</div>
-          {st.data.map((o, i) => <FlightResult key={i} o={o} />)}
+          <div className="text-[12px] text-slate-400 px-1">가장 싼 여행지 <b className="text-slate-500">{st.dests.length}곳</b> · 탭하면 그 도시 항공권</div>
+          <div className="grid grid-cols-2 gap-2">
+            {st.dests.map((o, i) => <button key={i} onClick={() => routeSearch(o.destination)} className="text-left bg-white rounded-2xl shadow-soft p-3 active:scale-[.98]">
+              <div className="text-[15px] font-extrabold text-slate-800 truncate">{cityName(o.destination)} <span className="text-[11px] text-slate-400 font-medium">{o.destination}</span></div>
+              <div className="text-[11.5px] text-slate-400 mt-0.5">{(o.depart_date || '').slice(5, 10).replace('-', '/')} · {o.number_of_changes === 0 ? '직항' : '경유'}</div>
+              <div className="text-[16px] font-black text-brand-600 mt-1">{won(o.value)}</div>
+            </button>)}
+          </div>
         </>
-        : <Empty icon="🔎" text="이 날짜엔 캐시된 가격이 없어요. 날짜를 바꿔서 다시 검색해 보세요." />)}
+        : <Empty icon="🔎" text="지금은 캐시된 여행지가 없어요. 잠시 후 다시 시도해 보세요." />)}
+
+      {st.status === 'route' && (st.data.length
+        ? <>
+          <PriceCalendar y={st.y} m={st.m} cal={st.cal} day={day} onPick={setDay} />
+          <div className="text-[12px] text-slate-400 px-1">{day ? <><b className="text-brand-600">{day.slice(5).replace('-', '/')}</b> 출발 · <button onClick={() => setDay(null)} className="text-brand-600 font-bold">전체 보기</button></> : <>{st.label} <b className="text-slate-500">참고가</b> {results.length}건 · 날짜 누르면 그날만</>}</div>
+          {results.map((o, i) => <FlightResult key={i} o={o} />)}
+        </>
+        : <Empty icon="🔎" text="이 달엔 캐시된 가격이 없어요. 다른 달·도시로 검색해 보세요." />)}
     </div>
   )
 }
