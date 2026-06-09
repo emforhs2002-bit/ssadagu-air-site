@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { DESTINATIONS } from './destinations'
 
 /* ───────── helpers ───────── */
 const DAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -74,7 +75,8 @@ function DealSheet({ d, onClose }) {
       <div className="absolute inset-0 bg-black/40 fade-in" onClick={onClose} />
       <div className="absolute bottom-0 inset-x-0 max-w-md mx-auto bg-white rounded-t-3xl sheet-up max-h-[90vh] overflow-y-auto no-scrollbar">
         <div className="sticky top-0 bg-white pt-2 pb-3 px-5 rounded-t-3xl">
-          <div className="w-10 h-1.5 bg-slate-200 rounded-full mx-auto mb-3" />
+          <div className="w-10 h-1.5 bg-slate-200 rounded-full mx-auto mb-2" />
+          <button onClick={onClose} className="text-[13px] text-slate-500 font-bold mb-2">← 뒤로</button>
           <div className="flex items-start justify-between"><div><div className="text-[12px] text-slate-400">{d.route} · {d.airline}</div><div className="text-xl font-extrabold">{d.badge} {d.city}</div></div><button onClick={onClose} className="text-slate-400 text-2xl leading-none">✕</button></div>
           <div className="flex items-end gap-2 mt-1"><div className="text-3xl font-black text-brand-600">{won(d.price)}</div>{d.discount_rate > 0 && <span className="mb-1.5 text-[12px] font-bold text-rose-500 bg-rose-50 rounded-full px-2 py-0.5">평소 대비 -{d.discount_rate}%</span>}</div>
         </div>
@@ -92,7 +94,7 @@ function DealSheet({ d, onClose }) {
           </section>
           <section className="bg-brand-50/70 rounded-2xl p-4"><h3 className="font-bold text-brand-800 mb-2">💰 진짜 내는 돈</h3><div className="text-slate-700 space-y-0.5">
             <Row l="항공권 표시가" r={won(hc.airfare)} /><Row l="위탁수하물(추정)" r={'+' + won(hc.baggage_est)} /><Row l="eSIM" r={'+' + won(hc.esim)} /><Row l="숙소" r={hc.hotel_note || '별도'} /><Row l="예상 총여행비" r={won(hc.total_est)} s />
-          </div></section>
+          </div><div className="text-[11px] text-slate-400 mt-2">※ 수하물·좌석 등 일부는 항공사 유형 기준 예상값이에요. 예약 전 결제화면에서 확인하세요.</div></section>
           <section className="grid gap-2"><div className="bg-brand-50 rounded-2xl p-3"><b className="text-brand-700">👍 이런 분께 추천</b><div className="text-slate-600 mt-1">{(d.fit_recommend || []).join(' · ')}</div></div><div className="bg-rose-50 rounded-2xl p-3"><b className="text-rose-600">👎 이런 분껜 비추천</b><div className="text-slate-600 mt-1">{(d.fit_avoid || []).join(' · ')}</div></div></section>
           <a href={d.affiliate_url} target="_blank" rel="noopener" className="block text-center bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">예약하러 가기 →</a>
           <div className="text-center text-[12px] text-slate-400">결제·환불은 항공사/판매처 직접 · 예약 전 실제가 꼭 확인</div>
@@ -130,7 +132,72 @@ const Soon = ({ icon, title, lines }) => (
     <div className="text-[13.5px] text-slate-500 leading-relaxed space-y-1">{lines.map((l, i) => <div key={i}>{l}</div>)}</div>
   </div>
 )
-const Where = () => <Soon icon="🧭" title="어디 갈까?" lines={['언제 · 누구랑 · 예산 · 분위기만 고르면', '딱 맞는 여행지를 추천해드려요.', '', '“이번 달 30만원, 커플, 맛집” →', '후쿠오카·타이베이 + 지금 뜬 특가까지.']} />
+const Q_WHEN = ['이번 달', '다음 달', '3개월 안', '연휴', '상관없음']
+const Q_WHO = ['혼자', '커플', '친구', '가족', '부모님']
+const Q_BUDGET = [['20만대', 299000], ['30만대', 399000], ['50만대', 599000], ['상관없음', 9e12]]
+const Q_MOOD = ['맛집', '쇼핑', '휴양', '바다', '자연', '도시', '온천']
+const Q_FLIGHT = [['짧게 (3시간 이내)', 180], ['상관없음', 9999]]
+const Chip = ({ on, children, onClick }) => <button onClick={onClick} className={'text-[13px] rounded-full px-3.5 py-2 font-medium border ' + (on ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>{children}</button>
+const QGroup = ({ title, children }) => <div className="mb-4"><div className="text-[13px] font-bold text-slate-700 mb-2">{title}</div><div className="flex flex-wrap gap-2">{children}</div></div>
+function scoreDest(d, { who, budgetMax, moods, flightMax }) {
+  let s = 0
+  moods.forEach(m => { if (d.themes.includes(m)) s += 3 })
+  if (who) { if (d.goodFor.includes(who)) s += 3; if (d.badFor.includes(who)) s -= 5 }
+  s += d.budgetMin <= budgetMax ? 2 : -2
+  if (flightMax <= 180) s += d.flightMin <= 180 ? 3 : -4
+  return s
+}
+function whyReasons(d, { who, budgetMax, moods, flightMax }) {
+  const r = []
+  if (flightMax <= 180 && d.flightMin <= 180) r.push(`비행 ${Math.round(d.flightMin / 6) / 10}시간 정도로 짧아요`)
+  const mm = moods.filter(m => d.themes.includes(m)); if (mm.length) r.push(`${mm.join('·')} 분위기와 잘 맞아요`)
+  if (who && d.goodFor.includes(who)) r.push(`${who} 여행에 좋아요`)
+  if (d.budgetMin <= budgetMax) r.push(`예산 ${d.budget}대로 가능해요`)
+  if (!r.length) r.push('전반적으로 무난한 여행지예요')
+  return r
+}
+function Where({ deals, onOpen }) {
+  const [who, setWho] = useState(null), [when, setWhen] = useState(null), [budgetMax, setB] = useState(null), [moods, setMoods] = useState([]), [flightMax, setF] = useState(null), [results, setResults] = useState(null)
+  const toggleMood = m => setMoods(p => p.includes(m) ? p.filter(x => x !== m) : [...p, m])
+  function recommend() {
+    const cond = { who, budgetMax: budgetMax ?? 9e12, moods, flightMax: flightMax ?? 9999 }
+    const ranked = [...DESTINATIONS].map(d => ({ d, s: scoreDest(d, cond) })).sort((a, b) => b.s - a.s).slice(0, 3)
+    setResults(ranked.map(({ d }) => ({ d, deal: deals.filter(x => d.codes.includes((x.route || '').split('-')[1])).sort((a, b) => a.price - b.price)[0], why: whyReasons(d, cond) })))
+  }
+  function saveAlert(d) {
+    const w = JSON.parse(localStorage.getItem('wishlist') || '[]'); w.push({ name: d.name, codes: d.codes, who, when, budgetMax, moods, at: new Date().toISOString() }); localStorage.setItem('wishlist', JSON.stringify(w))
+    alert(`${d.name} 조건 알림 신청 완료! 🔔\n이 조건에 맞는 안심 특가가 뜨면 알려드릴게요.`)
+  }
+  if (results) return (
+    <div className="px-4 pt-2 pb-4 space-y-3">
+      <button onClick={() => setResults(null)} className="text-[13px] text-brand-600 font-bold">← 다시 고르기</button>
+      <p className="text-[13px] text-slate-500">조건에 맞는 여행지 <b className="text-slate-700">{results.length}곳</b>이에요</p>
+      {results.map(({ d, deal, why }) => (
+        <div key={d.name} className="bg-white rounded-3xl shadow-soft p-4">
+          <div className="text-lg font-extrabold">📍 {d.name} <span className="text-[12px] text-slate-400 font-medium">{d.country} · 비행 {Math.round(d.flightMin / 6) / 10}h</span></div>
+          <div className="mt-2 text-[13px]"><b className="text-brand-700">왜 맞나요?</b><ul className="text-slate-600 mt-1 list-disc list-inside space-y-0.5">{why.map((x, i) => <li key={i}>{x}</li>)}</ul></div>
+          {d.caution.length > 0 && <div className="mt-2 text-[12.5px] text-amber-700">⚠️ {d.caution.join(' · ')}</div>}
+          <div className="mt-3">
+            {deal
+              ? <div onClick={() => onOpen(deal)} className="cursor-pointer bg-brand-50 rounded-2xl p-3 flex items-center justify-between"><div><div className="text-[12px] text-brand-700 font-bold">지금 볼 만한 안심 특가</div><div className="font-extrabold text-brand-700">{deal.city} 왕복 {Number(deal.price).toLocaleString('ko-KR')}원</div></div><span className="text-brand-500 text-xl">›</span></div>
+              : <button onClick={() => saveAlert(d)} className="w-full bg-slate-100 text-slate-600 rounded-2xl py-3 text-[13px] font-bold">현재 안심 특가 없음 · 🔔 이 조건 알림받기</button>}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+  return (
+    <div className="px-4 pt-2 pb-4">
+      <p className="text-[13px] text-slate-500 mb-4">어디 갈지 모르겠으면, 몇 개만 골라보세요 👇</p>
+      <QGroup title="누구랑 가세요?">{Q_WHO.map(x => <Chip key={x} on={who === x} onClick={() => setWho(x)}>{x}</Chip>)}</QGroup>
+      <QGroup title="예산은요? (1인 왕복)">{Q_BUDGET.map(([l, v]) => <Chip key={l} on={budgetMax === v} onClick={() => setB(v)}>{l}</Chip>)}</QGroup>
+      <QGroup title="무슨 분위기를 원해요? (여러 개)">{Q_MOOD.map(x => <Chip key={x} on={moods.includes(x)} onClick={() => toggleMood(x)}>{x}</Chip>)}</QGroup>
+      <QGroup title="비행시간은요?">{Q_FLIGHT.map(([l, v]) => <Chip key={l} on={flightMax === v} onClick={() => setF(v)}>{l}</Chip>)}</QGroup>
+      <QGroup title="언제 가세요?">{Q_WHEN.map(x => <Chip key={x} on={when === x} onClick={() => setWhen(x)}>{x}</Chip>)}</QGroup>
+      <button onClick={recommend} className="w-full bg-brand-500 text-white font-bold rounded-2xl py-3.5 mt-2">여행지 추천받기 ✨</button>
+    </div>
+  )
+}
 const Flights = () => <Soon icon="✈️" title="항공편 둘러보기" lines={['출발·도착·날짜를 직접 넣고', '항공권을 둘러보는 기능이에요.', '', '※ 최근 발견된 참고가 기준이며', '실제 결제가는 예약처에서 확인해요.']} />
 
 /* ───────── ♡ 찜 / 👤 마이 ───────── */
@@ -170,7 +237,7 @@ export default function App() {
       <main className="flex-1 pb-20">
         {deals === null && <Empty icon="⏳" text="불러오는 중…" />}
         {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} /> : <Empty icon="🔎" text="안심 특가가 아직 없어요." />)}
-        {deals && tab === 'where' && <Where />}
+        {deals && tab === 'where' && <Where deals={deals} onOpen={setSel} />}
         {deals && tab === 'flights' && <Flights />}
         {deals && tab === 'saved' && <Saved deals={deals} {...p} />}
         {deals && tab === 'my' && <My />}
