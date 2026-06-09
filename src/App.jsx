@@ -62,8 +62,24 @@ function useSaved() {
 }
 function report(id, kind) { const l = JSON.parse(localStorage.getItem('reports') || '[]'); l.push({ id, kind, at: new Date().toISOString() }); localStorage.setItem('reports', JSON.stringify(l)); alert('알려줘서 고마워요! 🙏 확인하고 바로 정리할게요.') }
 
+/* 🔔 핫딜 알림 조건(개인화) — 지금은 조건 저장 + 인앱 매칭(앱 열면 내 조건 딜 먼저).
+   진짜 푸시(새 딜 뜨면 알림)는 OneSignal 웹푸시+이메일이 다음 단계. 조건이 공통 뿌리. */
+function useAlertPrefs() {
+  const [prefs, setPrefs] = useState(() => { try { return JSON.parse(localStorage.getItem('alertPrefs') || 'null') } catch { return null } })
+  const save = p => { localStorage.setItem('alertPrefs', JSON.stringify(p)); setPrefs(p) }
+  return [prefs, save]
+}
+const hasPrefs = p => !!(p && ((p.regions && p.regions.length) || p.budgetMax || p.directOnly))
+function matchPrefs(d, p) {
+  if (!hasPrefs(p)) return false
+  if (p.budgetMax && d.price > p.budgetMax) return false
+  if (p.directOnly && d.transfers !== 0) return false
+  if (p.regions && p.regions.length && !p.regions.some(r => byGeo([d], r).length > 0)) return false
+  return true
+}
+
 /* ───────── deal card ───────── */
-function DealCard({ d, saved, onSave, onOpen }) {
+function DealCard({ d, saved, onSave, onOpen, mine }) {
   const dep = fmtDate(d.departure_time)
   const pcv = priceCheckView(d.price_check)
   return (
@@ -79,6 +95,7 @@ function DealCard({ d, saved, onSave, onOpen }) {
       </div>
       <div className="text-[12.5px] text-slate-500 mt-1.5">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-700'}>{dep.md}({dep.dow})</b> {dep.time}<span className="text-slate-300"> · </span>{d.transfers === 0 ? '직항' : '경유 ' + d.transfers + '회'}{d.duration ? ' · ' + d.duration : ''}</div>
       <div className="flex flex-wrap gap-1.5 mt-3">
+        {mine && <span className="text-[11px] font-bold text-rose-600 bg-rose-50 rounded-full px-2 py-1">🔔 내 조건</span>}
         <span className="text-[11px] font-bold text-brand-700 bg-brand-50 rounded-full px-2 py-1">✅ 안심 특가</span>
         <span className="text-[11px] font-medium text-slate-500 bg-slate-100 rounded-full px-2 py-1">🧳 {d.carrier_type === 'LCC' ? '수하물 별도 추정' : '수하물 포함 추정'}</span>
       </div>
@@ -134,17 +151,18 @@ function DealSheet({ d, onClose }) {
 }
 
 /* ───────── 🔥 핫딜 (본체) ───────── */
-function HotDeals({ deals, savedIds, onSave, onOpen }) {
+function HotDeals({ deals, savedIds, onSave, onOpen, prefs }) {
   const [cat, setCat] = useState('all')
-  const list = filterCat(deals, cat).sort((a, b) => b.discount_rate - a.discount_rate)
+  const list = filterCat(deals, cat).sort((a, b) => (matchPrefs(b, prefs) - matchPrefs(a, prefs)) || (b.discount_rate - a.discount_rate))
+  const mineCount = hasPrefs(prefs) ? list.filter(d => matchPrefs(d, prefs)).length : 0
   return (
     <div>
       <div className="flex gap-1.5 overflow-x-auto no-scrollbar px-4 pt-1 pb-2 sticky top-[60px] z-20 bg-[#eefbf8]/90 backdrop-blur">
         {CATS.map(([k, label]) => <button key={k} onClick={() => setCat(k)} className={'shrink-0 text-[13px] rounded-full px-3.5 py-1.5 font-medium ' + (cat === k ? 'bg-brand-500 text-white' : 'bg-white text-slate-500 border border-slate-200')}>{label}</button>)}
       </div>
       <div className="px-4 pb-4 space-y-3">
-        <p className="text-[12.5px] text-slate-500">✅ 사람이 직접 확인한 <b className="text-slate-700">안심 특가</b> {list.length}건</p>
-        {list.length ? list.map(d => <DealCard key={d.id} d={d} saved={savedIds.includes(d.id)} onSave={onSave} onOpen={onOpen} />)
+        <p className="text-[12.5px] text-slate-500">✅ 사람이 직접 확인한 <b className="text-slate-700">안심 특가</b> {list.length}건{mineCount > 0 && <> · <b className="text-rose-500">🔔 내 조건 {mineCount}건 먼저</b></>}</p>
+        {list.length ? list.map(d => <DealCard key={d.id} d={d} saved={savedIds.includes(d.id)} onSave={onSave} onOpen={onOpen} mine={matchPrefs(d, prefs)} />)
           : <Empty icon="🔎" text="이 조건엔 안심 특가가 아직 없어요. 다른 카테고리를 눌러보세요." />}
       </div>
     </div>
@@ -350,12 +368,37 @@ function Toggle({ label, k }) {
 }
 const Section = ({ title, children }) => <div className="bg-white rounded-2xl shadow-soft p-4"><div className="text-[13px] font-bold text-slate-700 mb-2">{title}</div>{children}</div>
 const Empty = ({ icon, text }) => <div className="text-center text-slate-400 py-20"><div className="text-4xl mb-2">{icon}</div><div className="text-[13px] px-10">{text}</div></div>
-const My = () => <div className="px-4 pb-4 pt-2 space-y-4">
-  <Section title="관심 공항"><div className="flex gap-2 flex-wrap">{['인천(ICN)', '김포(GMP)'].map(a => <span key={a} className="text-[13px] bg-brand-50 text-brand-700 rounded-full px-3 py-1.5">{a}</span>)}</div></Section>
-  <Section title="이런 특가는 숨기기"><Toggle label="경유 항공권 숨기기" k="no_transfer" /><Toggle label="새벽 출발/도착 숨기기" k="no_dawn" /><Toggle label="수하물 별도(LCC) 숨기기" k="no_lcc" /></Section>
-  <Section title="특가 알림"><div className="text-[13px] text-slate-500">🔥🔥 이상만 받기 (기본) · <span className="text-slate-400">알림은 다음 업데이트</span></div></Section>
-  <div className="text-center text-[11px] text-slate-400 pt-2">싸다구항공 · 결제·환불은 판매처 직접, 우린 안심 특가만 골라드려요</div>
-</div>
+
+const A_REGIONS = ['일본', '동남아', '대만', '베트남', '태국', '괌']
+const A_BUDGET = [['20만 이하', 200000], ['30만 이하', 300000], ['40만 이하', 400000], ['상관없음', 0]]
+function AlertSetup({ prefs, onSave }) {
+  const [regions, setRegions] = useState(prefs?.regions || [])
+  const [budgetMax, setBudget] = useState(prefs?.budgetMax || 0)
+  const [directOnly, setDirect] = useState(prefs?.directOnly || false)
+  const toggleR = r => setRegions(p => p.includes(r) ? p.filter(x => x !== r) : [...p, r])
+  const save = () => { onSave({ regions, budgetMax, directOnly }); alert('알림 조건을 저장했어요! 🔔\n지금은 앱을 열면 내 조건에 맞는 안심 특가를 먼저 보여드려요.\n곧 새 딜이 뜨면 알려주는 푸시·이메일 알림도 추가돼요.') }
+  return (
+    <Section title="🔔 내 특가 알림 조건">
+      <div className="text-[12px] text-slate-500 mb-3">조건을 저장하면 핫딜 탭에서 <b className="text-rose-500">내 조건에 맞는 안심 특가를 먼저</b> 보여드려요.</div>
+      <div className="text-[12px] font-bold text-slate-600 mb-1">지역</div>
+      <div className="flex flex-wrap gap-1.5">{A_REGIONS.map(r => <Chip key={r} on={regions.includes(r)} onClick={() => toggleR(r)}>{r}</Chip>)}</div>
+      <div className="text-[12px] font-bold text-slate-600 mt-3 mb-1">예산 (1인 왕복)</div>
+      <div className="flex flex-wrap gap-1.5">{A_BUDGET.map(([l, v]) => <Chip key={l} on={budgetMax === v} onClick={() => setBudget(v)}>{l}</Chip>)}</div>
+      <label className="flex items-center gap-2 text-[13px] text-slate-600 mt-3"><input type="checkbox" checked={directOnly} onChange={e => setDirect(e.target.checked)} /> 직항만 받기</label>
+      <button onClick={save} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3 mt-3">알림 조건 저장 🔔</button>
+    </Section>
+  )
+}
+function My({ prefs, onSavePrefs }) {
+  return (
+    <div className="px-4 pb-4 pt-2 space-y-4">
+      <AlertSetup prefs={prefs} onSave={onSavePrefs} />
+      <Section title="관심 공항"><div className="flex gap-2 flex-wrap">{['인천(ICN)', '김포(GMP)'].map(a => <span key={a} className="text-[13px] bg-brand-50 text-brand-700 rounded-full px-3 py-1.5">{a}</span>)}</div></Section>
+      <Section title="이런 특가는 숨기기"><Toggle label="경유 항공권 숨기기" k="no_transfer" /><Toggle label="새벽 출발/도착 숨기기" k="no_dawn" /><Toggle label="수하물 별도(LCC) 숨기기" k="no_lcc" /></Section>
+      <div className="text-center text-[11px] text-slate-400 pt-2">싸다구항공 · 결제·환불은 판매처 직접, 우린 안심 특가만 골라드려요</div>
+    </div>
+  )
+}
 
 /* ───────── shell ───────── */
 const TABS = [['hot', '🔥', '핫딜'], ['where', '🧭', '어디 갈까?'], ['flights', '✈️', '항공편'], ['saved', '♡', '찜'], ['my', '👤', '마이']]
@@ -364,6 +407,7 @@ export default function App() {
   const [deals, setDeals] = useState(null)
   const [sel, setSel] = useState(null)
   const [savedIds, toggleSave] = useSaved()
+  const [prefs, savePrefs] = useAlertPrefs()
   useEffect(() => { fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => setDeals(d.deals || [])).catch(() => setDeals([])) }, [])
   const p = { savedIds, onSave: toggleSave, onOpen: setSel }
   return (
@@ -374,11 +418,11 @@ export default function App() {
       </header>
       <main className="flex-1 pb-20">
         {deals === null && <Empty icon="⏳" text="불러오는 중…" />}
-        {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} /> : <Empty icon="🔎" text="안심 특가가 아직 없어요." />)}
+        {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} /> : <Empty icon="🔎" text="안심 특가가 아직 없어요." />)}
         {deals && tab === 'where' && <Where deals={deals} onOpen={setSel} />}
         {deals && tab === 'flights' && <Flights deals={deals} onOpen={setSel} />}
         {deals && tab === 'saved' && <Saved deals={deals} {...p} />}
-        {deals && tab === 'my' && <My />}
+        {deals && tab === 'my' && <My prefs={prefs} onSavePrefs={savePrefs} />}
       </main>
       <nav className="fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white border-t border-slate-100 grid grid-cols-5 pb-[env(safe-area-inset-bottom)] z-40">
         {TABS.map(([k, ic, label]) => <button key={k} onClick={() => setTab(k)} className={'py-2.5 flex flex-col items-center gap-0.5 text-[10.5px] ' + (tab === k ? 'text-brand-600 font-bold' : 'text-slate-400')}><span className="text-lg leading-none">{ic}</span>{label}</button>)}
