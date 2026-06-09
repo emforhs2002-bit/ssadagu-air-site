@@ -103,11 +103,11 @@ function DealCard({ d, saved, onSave, onOpen, mine }) {
         <div className="text-[12px] text-slate-500 mt-1.5">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-700'}>{dep.md}({dep.dow})</b> · <b className={ret.weekend ? 'text-rose-500' : 'text-slate-700'}>{ret.md}({ret.dow})</b></div>
         <div className="flex flex-wrap gap-1.5 mt-2">
           {mine && <span className="text-[10.5px] font-bold text-rose-600 bg-rose-50 rounded-full px-2 py-0.5">🔔 내 조건</span>}
-          <span className="text-[10.5px] font-bold text-brand-700 bg-brand-50 rounded-full px-2 py-0.5">✅ 안심 특가</span>
+          <span className="text-[10.5px] font-bold text-orange-600 bg-orange-50 rounded-full px-2 py-0.5">{d.badge || '🔥'} 핫딜</span>
+          {d.discount_rate > 0 && <span className="text-[10.5px] font-bold text-rose-500 bg-rose-50 rounded-full px-2 py-0.5">평소 대비 -{d.discount_rate}%</span>}
           {pcv && <span className={'text-[10.5px] font-bold rounded-full px-2 py-0.5 ' + (pcv.warn ? 'text-amber-700 bg-amber-50' : 'text-brand-700 bg-brand-50')}>{pcv.card}</span>}
         </div>
       </div>
-      <button onClick={e => { e.stopPropagation(); onSave(d.id) }} className={'absolute top-3 right-3 text-lg leading-none ' + (saved ? 'text-rose-500' : 'text-slate-300')}>♥</button>
       <div className="absolute bottom-3 right-3 text-right">
         <div className="text-[16px] font-black text-brand-600 leading-none">{won(d.price)}</div>
         <div className="text-[10px] text-slate-400 mt-0.5">왕복</div>
@@ -136,7 +136,7 @@ function DealSheet({ d, onClose }) {
         <div className="px-5 pt-4 pb-8 space-y-4 text-[13.5px]">
           <div className="flex items-end justify-between">
             <div className="text-slate-600 text-[13px]">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-800'}>{dep.full}</b><br />🛬 <b className={ret.weekend ? 'text-rose-500' : 'text-slate-800'}>{ret.full}</b></div>
-            <div className="text-right"><div className="text-[28px] font-black text-brand-600 leading-none">{won(d.price)}</div><div className="text-[11px] text-slate-400 mt-1">왕복 · 항공권 표시가</div></div>
+            <div className="text-right"><div className="text-[28px] font-black text-brand-600 leading-none">{won(d.price)}</div>{d.discount_rate > 0 ? <div className="text-[11px] font-bold text-rose-500 mt-1">왕복 · 평소 대비 -{d.discount_rate}%</div> : <div className="text-[11px] text-slate-400 mt-1">왕복</div>}</div>
           </div>
           {pcv && <div className={'rounded-2xl p-3 ' + (pcv.warn ? 'bg-amber-50' : 'bg-brand-50')}>
             <div className={'font-bold ' + (pcv.warn ? 'text-amber-700' : 'text-brand-700')}>{pcv.card}</div>
@@ -144,7 +144,7 @@ function DealSheet({ d, onClose }) {
             {d.price_check.memo && <div className="text-[12px] text-slate-400 mt-1">메모: {d.price_check.memo}</div>}
           </div>}
           <a href={d.affiliate_url} target="_blank" rel="noopener" className="block text-center bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">예약처에서 확인하기 →</a>
-          <div className="text-center text-[12px] text-slate-400">싸다구항공은 항공권을 직접 팔지 않아요. 가격·수하물·환불은 예약처에서 최종 확인하세요.</div>
+          <div className="text-center text-[11px] text-slate-400">가격·환불은 예약처에서 최종 확인</div>
           <div className="border-t border-slate-100 pt-3"><div className="text-[12px] text-slate-400 mb-2">가격이 다르거나 마감됐나요?</div><div className="grid grid-cols-3 gap-2 text-[12.5px]">{[['price', '가격이 달라요'], ['soldout', '마감됐어요'], ['link', '링크 이상해요']].map(([k, t]) => <button key={k} onClick={() => report(d.id, k)} className="bg-slate-100 text-slate-600 rounded-xl py-2">{t}</button>)}</div></div>
         </div>
       </div>
@@ -153,7 +153,7 @@ function DealSheet({ d, onClose }) {
 }
 
 /* ───────── 🔥 핫딜 (본체 · 포토 히어로) ───────── */
-function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onSearch }) {
+function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onSearch, onRefresh, updatedAt }) {
   const [cat, setCat] = useState('all')
   const [pick, setPick] = useState(null)
   const base = pick ? deals.filter(d => destOf(d) === pick) : filterCat(deals, cat)
@@ -184,7 +184,7 @@ function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onSearch }) {
         </div>
         {/* circles */}
         {circles.length > 0 && <>
-          <div className="flex items-baseline justify-between mt-6 mb-3"><h2 className="text-[16.5px] font-extrabold text-slate-900">🔥 지금 뜬 안심 특가</h2>{pick && <button onClick={() => setPick(null)} className="text-[12.5px] text-brand-600 font-bold">전체 ›</button>}</div>
+          <div className="flex items-baseline justify-between mt-6 mb-3"><h2 className="text-[16.5px] font-extrabold text-slate-900">🔥 지금 뜬 핫딜</h2>{pick && <button onClick={() => setPick(null)} className="text-[12.5px] text-brand-600 font-bold">전체 ›</button>}</div>
           <div className="flex gap-3.5 overflow-x-auto no-scrollbar pb-1">
             {circles.map(d => { const c = destOf(d), ph = photoOf(d); return (
               <button key={d.id} onClick={() => { setPick(pick === c ? null : c); setCat('all') }} className="shrink-0 w-[72px] text-center">
@@ -200,10 +200,14 @@ function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onSearch }) {
           {CATS.map(([k, label]) => <button key={k} onClick={() => setCat(k)} className={'shrink-0 text-[12.5px] rounded-full px-3 py-1.5 font-medium ' + (cat === k ? 'bg-brand-500 text-white' : 'bg-white text-slate-500 border border-slate-200')}>{label}</button>)}
         </div>}
         {/* list */}
-        <div className="flex items-baseline justify-between mt-5 mb-3"><h2 className="text-[16.5px] font-extrabold text-slate-900">{mineCount > 0 ? '🔔 내 조건에 맞는 특가' : '✈️ 안심 특가'}</h2><span className="text-[12px] text-slate-400">{list.length}건</span></div>
+        <div className="flex items-center justify-between mt-5 mb-1">
+          <h2 className="text-[16.5px] font-extrabold text-slate-900">{mineCount > 0 ? '🔔 내 조건 핫딜' : '🔥 핫딜'} <span className="text-[12px] font-medium text-slate-400">{list.length}건</span></h2>
+          <button onClick={onRefresh} className="text-[12.5px] font-bold text-brand-600 active:scale-95">🔄 새로고침</button>
+        </div>
+        {updatedAt && <div className="text-[11px] text-slate-400 mb-3"><b className="text-slate-500">{updatedAt}</b> 기준 · 1시간마다 자동 갱신, 누르면 최신 조회</div>}
         <div className="space-y-3">
           {list.length ? list.map(d => <DealCard key={d.id} d={d} saved={savedIds.includes(d.id)} onSave={onSave} onOpen={onOpen} mine={matchPrefs(d, prefs)} />)
-            : <Empty icon="🔎" text="이 조건엔 안심 특가가 아직 없어요." />}
+            : <Empty icon="🔎" text="이 조건엔 핫딜이 아직 없어요." />}
         </div>
       </div>
     </div>
@@ -441,29 +445,38 @@ function My({ prefs, onSavePrefs }) {
   )
 }
 
+/* ───────── 🗺️ 여행 플래너 (준비 중) ───────── */
+const Planner = () => <div className="px-6 pt-16 text-center">
+  <div className="text-5xl mb-3">🗺️</div>
+  <div className="text-lg font-extrabold mb-1">여행 플래너</div>
+  <div className="inline-block text-[11px] font-bold text-brand-700 bg-brand-100 rounded-full px-2.5 py-1 mb-4">준비 중</div>
+  <div className="text-[13.5px] text-slate-500 leading-relaxed">항공권을 예약하면, 도착·숙소 위치에 맞춰<br />일자별 동선까지 짜드릴게요. 곧 만나요!</div>
+</div>
+
 /* ───────── shell ───────── */
-const TABS = [['hot', '🔥', '핫딜'], ['where', '🧭', '어디 갈까?'], ['flights', '✈️', '항공편'], ['saved', '♡', '찜'], ['my', '👤', '마이']]
+const TABS = [['hot', '🔥', '핫딜'], ['flights', '✈️', '항공편'], ['planner', '🗺️', '여행플래너'], ['my', '👤', '마이']]
+const TAB_TITLE = { flights: '항공편', planner: '여행플래너', my: '마이' }
 export default function App() {
   const [tab, setTab] = useState('hot')
   const [deals, setDeals] = useState(null)
+  const [updatedAt, setUpdatedAt] = useState('')
   const [sel, setSel] = useState(null)
   const [savedIds, toggleSave] = useSaved()
   const [prefs, savePrefs] = useAlertPrefs()
-  useEffect(() => { fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => setDeals(d.deals || [])).catch(() => setDeals([])) }, [])
+  const loadDeals = () => fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => { setDeals(d.deals || []); const t = new Date(); setUpdatedAt(`${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`) }).catch(() => setDeals([]))
+  useEffect(() => { loadDeals() }, [])
   const p = { savedIds, onSave: toggleSave, onOpen: setSel }
-  const TAB_TITLE = { where: '어디 갈까?', flights: '항공편', saved: '찜한 특가', my: '마이' }
   return (
     <div className="max-w-md mx-auto min-h-full flex flex-col bg-[#eefbf8]">
       <main className="flex-1 pb-20">
         {deals === null && <Empty icon="⏳" text="불러오는 중…" />}
         {deals && tab !== 'hot' && <div className="px-5 pt-7 pb-1"><h1 className="text-[22px] font-extrabold text-slate-900">{TAB_TITLE[tab]}</h1></div>}
-        {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} onSearch={() => setTab('where')} /> : <Empty icon="🔎" text="안심 특가가 아직 없어요." />)}
-        {deals && tab === 'where' && <Where deals={deals} onOpen={setSel} />}
+        {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} onSearch={() => setTab('flights')} onRefresh={loadDeals} updatedAt={updatedAt} /> : <Empty icon="🔎" text="핫딜이 아직 없어요." />)}
         {deals && tab === 'flights' && <Flights deals={deals} onOpen={setSel} />}
-        {deals && tab === 'saved' && <Saved deals={deals} {...p} />}
+        {deals && tab === 'planner' && <Planner />}
         {deals && tab === 'my' && <My prefs={prefs} onSavePrefs={savePrefs} />}
       </main>
-      <nav className="fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white border-t border-slate-100 grid grid-cols-5 pb-[env(safe-area-inset-bottom)] z-40">
+      <nav className="fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white border-t border-slate-100 grid grid-cols-4 pb-[env(safe-area-inset-bottom)] z-40">
         {TABS.map(([k, ic, label]) => <button key={k} onClick={() => setTab(k)} className={'py-2.5 flex flex-col items-center gap-0.5 text-[10.5px] ' + (tab === k ? 'text-brand-600 font-bold' : 'text-slate-400')}><span className="text-lg leading-none">{ic}</span>{label}</button>)}
       </nav>
       {sel && <DealSheet d={sel} onClose={() => setSel(null)} />}
