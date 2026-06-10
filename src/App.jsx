@@ -45,7 +45,12 @@ const REGION = { '동남아': ['베트남', '태국', '필리핀', '싱가포르
 const destOf = d => (d.route || '').split('-')[1] || ''
 const ORIGIN_NAME = { ICN: '인천', GMP: '김포', PUS: '부산' }
 const originOf = d => ORIGIN_NAME[(d.route || '').split('-')[0]] || ''
-const durOf = d => { const m = +d.duration; return m > 0 ? `${Math.floor(m / 60)}시간 ${m % 60 ? m % 60 + '분' : ''}`.trim() : '' }
+const durOf = d => {
+  if (!d.duration) return ''
+  const m = +d.duration
+  if (m > 0) return `${Math.floor(m / 60)}시간 ${m % 60 ? m % 60 + '분' : ''}`.trim()
+  return typeof d.duration === 'string' ? d.duration : ''
+}
 function byGeo(deals, q) {
   const codes = new Set(); const countries = []
   for (const [r, cs] of Object.entries(REGION)) if (q.includes(r) || r.includes(q)) countries.push(...cs)
