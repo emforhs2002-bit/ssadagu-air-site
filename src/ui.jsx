@@ -6,8 +6,10 @@ import { HOLIDAYS, upcomingWeekends } from './holidays'
    · 스테퍼 · 스켈레톤 · 햅틱 · 공유 · 카운트업 · View Transition 헬퍼. 외부 라이브러리 0. */
 
 export const haptic = (ms = 8) => { try { if (navigator.vibrate) navigator.vibrate(ms) } catch (e) {} }
+// 문서가 숨겨진 상태(백그라운드 탭/창)에선 startViewTransition이 콜백을 버린 채
+// InvalidStateError로 중단됨 → 보일 때만 VT, 아니면 즉시 실행
 export const vt = fn => {
-  if (!document.startViewTransition) { fn(); return }
+  if (!document.startViewTransition || document.visibilityState !== 'visible') { fn(); return }
   try { document.startViewTransition(fn) } catch (e) { fn() }
 }
 
