@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Sheet, SearchOverlay, RangeCalendar, StepRow, MadLib, SkelRows, haptic, shareIt, useCountUp } from './ui'
 
 /* ───────── 🏨 호텔 최저가 비교 (메타서치 · 문장형 검색) ─────────
@@ -43,6 +43,20 @@ const PROVIDERS = {
 const provName = c => (PROVIDERS[c] && PROVIDERS[c].name) || c
 
 const MENTION_KO = { Family: '가족', Business: '비즈니스', 'Mid-range': '중급', Luxury: '럭셔리', Budget: '가성비', 'City View': '시티뷰', Romantic: '커플', Spa: '스파', Beach: '해변', 'Breakfast included': '조식 포함' }
+/* 필터 (트립닷컴 스타일 — 불러온 호텔에 즉시 적용) */
+const PRICE_BUCKETS = [['10만 이하', 0, 100000], ['10~20만', 100000, 200000], ['20~40만', 200000, 400000], ['40만 이상', 400000, Infinity]]
+const TAG_OPTIONS = ['조식 포함', '가족', '커플', '가성비', '럭셔리', '비즈니스', '스파', '해변', '시티뷰']
+const hotelTags = h => {
+  const t = (h.mentions || []).map(m => MENTION_KO[m]).filter(Boolean)
+  if ((h.labels || []).includes('Breakfast included')) t.push('조식 포함')
+  return t
+}
+/* 인기 도시 (빈 화면용 사진 카드) */
+const POPULAR_CITIES = [
+  ['g298566', '오사카', 'osaka'], ['g298184', '도쿄', 'tokyo'], ['g298207', '후쿠오카', 'fukuoka'], ['g293916', '방콕', 'bangkok'],
+  ['g298085', '다낭', 'danang'], ['g293913', '타이베이', 'taipei'], ['g294261', '세부', 'cebu'], ['g60668', '괌', 'guam'],
+]
+const destPhoto = slug => import.meta.env.BASE_URL + 'dest/' + slug + '.jpg'
 const wonFmt = n => (n == null ? '-' : '₩' + Math.round(n).toLocaleString('ko-KR'))
 const pad2 = n => String(n).padStart(2, '0')
 const dstr = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
@@ -320,6 +334,9 @@ export default function Hotels() {
   const [adults, setAdults] = useState(2)
   const [children, setChildren] = useState(0)
   const [sort, setSort] = useState('popularity')
+  const [clientSort, setClientSort] = useState(null)   // 'price' | 'rating' | null(API 순서)
+  const [flt, setFlt] = useState({ bucket: null, rating: null, tags: [] })
+  const [ovFilter, setOvFilter] = useState(false)
   const [view, setView] = useState('list')
   const [st, setSt] = useState({ status: 'idle' })
   const [sel, setSel] = useState(null)
@@ -344,7 +361,7 @@ export default function Hotels() {
         rating: x.review_summary && x.review_summary.rating, reviews: x.review_summary && x.review_summary.count,
         priceMin: x.price_ranges && x.price_ranges.minimum,
         image: x.image && x.image.replace('/photo-o/', '/photo-l/'),  // 원본 대신 550px 변형 (데이터 절약)
-        mentions: x.mentions,
+        mentions: x.mentions, labels: x.merchandising_labels || [],
         geo: x.geo, taUrl: x.url, cityName: CITY_OF[g],
       }))
       const seen = new Set(prev.map(p => p.key))
@@ -386,6 +403,26 @@ export default function Hotels() {
 
   const nights = nightsOf(ci, co)
   const guestLabel = `성인 ${adults}${children ? ` · 아동 ${children}` : ''} · 객실 ${rooms}`
+  const fltCount = (flt.bucket != null ? 1 : 0) + (flt.rating ? 1 : 0) + flt.tags.length
+  const toggleTag = t => setFlt(f => ({ ...f, tags: f.tags.includes(t) ? f.tags.filter(x => x !== t) : [...f.tags, t] }))
+  // 필터+정렬 적용 결과 (불러온 호텔에 즉시 적용)
+  const displayed = useMemo(() => {
+    if (st.status !== 'ok') return []
+    let arr = st.list.filter(h => {
+      if (flt.bucket != null) {
+        const b = PRICE_BUCKETS[flt.bucket]
+        const p = h.priceMin != null ? h.priceMin * usdKrw : null
+        if (p == null || p < b[1] || p >= b[2]) return false
+      }
+      if (flt.rating && !(h.rating >= flt.rating)) return false
+      if (flt.tags.length) { const ts = hotelTags(h); if (!flt.tags.every(t => ts.includes(t))) return false }
+      return true
+    })
+    if (clientSort === 'price') arr = [...arr].sort((a, b) => (a.priceMin != null ? a.priceMin : 9e9) - (b.priceMin != null ? b.priceMin : 9e9))
+    if (clientSort === 'rating') arr = [...arr].sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    return arr
+  }, [st, flt, clientSort, usdKrw])
+  const airbnbUrl = `https://www.airbnb.co.kr/s/${enc(CITY_OF[geo])}/homes?checkin=${ci}&checkout=${co}&adults=${adults}`
 
   return (
     <div className="px-4 pt-2 pb-4 space-y-3">
@@ -405,29 +442,54 @@ export default function Hotels() {
         </div>
       </div>
 
-      {st.status === 'idle' && <p className="text-[12.5px] text-slate-400 px-1 leading-relaxed">밑줄 친 부분을 눌러 조건을 바꾸고 검색하면, 호텔별로 <b className="text-slate-500">부킹닷컴·아고다·트립닷컴 등 예약처 가격을 비교</b>해 어디가 제일 싼지 보여드려요. 우린 호텔을 팔지 않아요 — 제일 싼 예약처로 연결만 해요.</p>}
+      {st.status === 'idle' && <div>
+        <div className="flex items-baseline justify-between px-1 mb-2.5 mt-1">
+          <h2 className="text-[16px] font-extrabold text-slate-900">🏨 어디 호텔을 비교해볼까요?</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {POPULAR_CITIES.map(([k, n, slug]) => (
+            <button key={k} onClick={() => { haptic(); setGeo(k); search(k, sort) }} className="relative h-[104px] rounded-2xl overflow-hidden text-left active:scale-[.98] transition">
+              <div className="absolute inset-0 bg-cover bg-center bg-slate-300" style={{ backgroundImage: `url(${destPhoto(slug)})` }} />
+              <div className="absolute inset-0 p-3 flex flex-col justify-end" style={{ background: 'linear-gradient(180deg,rgba(15,23,42,.05),rgba(15,23,42,.72))' }}>
+                <b className="text-white text-[15.5px]">{n}</b>
+                <span className="text-slate-300 text-[10.5px]">부킹·아고다·트립 비교 ›</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>}
       {st.status === 'loading' && <SkelRows n={5} />}
       {st.status === 'error' && <HEmpty icon="⚠️" text="호텔을 불러오지 못했어요. 잠시 후 다시 시도해 주세요." />}
       {st.status === 'ok' && <>
         <div className="flex items-center justify-between px-1">
-          <div className="text-[12px] text-slate-400">{CITY_OF[geo]} 숙소 <b className="text-slate-500">{(st.total || 0).toLocaleString('ko-KR')}곳</b></div>
-          <div className="flex gap-1.5">
-            <div className="flex bg-white border border-slate-200 rounded-full p-0.5">
-              {[['list', '목록'], ['map', '🗺️ 지도']].map(([v, t]) => <button key={v} onClick={() => { haptic(); setView(v) }} className={'text-[12px] rounded-full px-3 py-1 font-bold ' + (view === v ? 'bg-brand-500 text-white' : 'text-slate-500')}>{t}</button>)}
-            </div>
-            {view === 'list' && [['popularity', '인기순'], ['best_value', '가성비순']].map(([v, t]) => <button key={v} onClick={() => { setSort(v); search(geo, v) }} className={'text-[12px] rounded-full px-3 py-1.5 font-bold ' + (sort === v ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>{t}</button>)}
+          <div className="text-[12px] text-slate-400">{CITY_OF[geo]} <b className="text-slate-500">{(st.total || 0).toLocaleString('ko-KR')}곳</b>{fltCount > 0 && <> · 조건 맞는 <b className="text-brand-600">{displayed.length}곳</b></>}</div>
+          <div className="flex bg-white border border-slate-200 rounded-full p-0.5">
+            {[['list', '목록'], ['map', '🗺️ 지도']].map(([v, t]) => <button key={v} onClick={() => { haptic(); setView(v) }} className={'text-[12px] rounded-full px-3 py-1 font-bold ' + (view === v ? 'bg-brand-500 text-white' : 'text-slate-500')}>{t}</button>)}
           </div>
         </div>
+        {/* 필터 · 정렬 바 */}
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar px-0.5 -mt-1">
+          <button onClick={() => { haptic(); setOvFilter(true) }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (fltCount ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>⚙️ 필터{fltCount ? ' ' + fltCount : ''}</button>
+          <button onClick={() => { haptic(); setClientSort(clientSort === 'price' ? null : 'price') }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (clientSort === 'price' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200')}>💰 가격 낮은순</button>
+          <button onClick={() => { haptic(); setClientSort(clientSort === 'rating' ? null : 'rating') }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (clientSort === 'rating' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200')}>⭐ 평점순</button>
+          <button onClick={() => { haptic(); setFlt(f => ({ ...f, rating: f.rating === 4 ? null : 4 })) }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (flt.rating === 4 ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>4.0+</button>
+          <button onClick={() => { haptic(); toggleTag('조식 포함') }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (flt.tags.includes('조식 포함') ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>🍳 조식</button>
+          {view === 'list' && [['popularity', '인기순'], ['best_value', '가성비']].map(([v, t]) => <button key={v} onClick={() => { setClientSort(null); setSort(v); search(geo, v) }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (!clientSort && sort === v ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200')}>{t}</button>)}
+        </div>
         {view === 'map' && <>
-          <HotelMap hotels={st.list} usdKrw={usdKrw} onOpen={setSel}
+          <HotelMap hotels={displayed} usdKrw={usdKrw} onOpen={setSel}
             canLoadMore={!!st.more && !st.loadingMore}
             onLoadMore={() => { const s = stRef.current; if (s.status === 'ok' && s.more && !s.loadingMore) fetchList(geo, sort, s.list.length, s.list) }} />
-          <div className="text-[11.5px] text-slate-400 px-1">핀의 숫자는 <b className="text-slate-500">1박 참고가(원)</b> · 핀을 누르면 예약처별 가격 비교가 열려요</div>
+          <div className="text-[11.5px] text-slate-400 px-1">핀 숫자 = <b className="text-slate-500">1박 참고가(원)</b> · 핀을 누르면 가격 비교</div>
         </>}
-        {view === 'list' && <div className="space-y-3">{st.list.map(h => <HotelCard key={h.key + ci + co} h={h} ci={ci} co={co} usdKrw={usdKrw} onOpen={setSel} />)}</div>}
+        {view === 'list' && <div className="space-y-3">
+          {displayed.map(h => <HotelCard key={h.key + ci + co} h={h} ci={ci} co={co} usdKrw={usdKrw} onOpen={setSel} />)}
+          {displayed.length === 0 && <HEmpty icon="🔎" text="조건에 맞는 호텔이 아직 없어요. 아래 '더 불러오기'를 누르거나 필터를 줄여보세요." />}
+        </div>}
         {view === 'list' && <div ref={sentinel} />}
         {st.loadingMore && <SkelRows n={2} />}
         {st.more && !st.loadingMore && <button onClick={() => fetchList(geo, sort, st.list.length, st.list)} className="w-full bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl py-3 text-[13.5px]">호텔 더 불러오기</button>}
+        <a href={airbnbUrl} target="_blank" rel="noopener" onClick={() => haptic()} className="block text-center font-bold rounded-2xl py-3 text-[13.5px]" style={{ background: '#ffe9ee', color: '#e0254f' }}>🏠 에어비앤비에서 같은 날짜 보기 ↗</a>
       </>}
 
       <SearchOverlay open={ovCity} onClose={() => setOvCity(false)} title="어느 도시로 가세요?" placeholder="도시 검색 (예: 뉴욕, ㅇㅅㅋ)"
@@ -436,6 +498,32 @@ export default function Hotels() {
         onPick={it => { setGeo(it.id); search(it.id, sort) }} />
       <RangeCalendar open={ovCal} onClose={() => setOvCal(false)} title="체크인 · 체크아웃" mode="range"
         initStart={ci} initEnd={co} onConfirm={(s, e) => { setCi(s); setCo(e) }} />
+      <Sheet open={ovFilter} onClose={() => setOvFilter(false)} title="필터">
+        <div className="px-5 pb-6 pt-1 space-y-4">
+          <div>
+            <div className="text-[13px] font-bold text-slate-700 mb-2">가격대 (1박 참고가)</div>
+            <div className="flex flex-wrap gap-1.5">
+              {PRICE_BUCKETS.map((b, i) => <button key={b[0]} onClick={() => { haptic(); setFlt(f => ({ ...f, bucket: f.bucket === i ? null : i })) }} className={'text-[13px] rounded-full px-3.5 py-2 font-bold border ' + (flt.bucket === i ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>{b[0]}</button>)}
+            </div>
+          </div>
+          <div>
+            <div className="text-[13px] font-bold text-slate-700 mb-2">평점</div>
+            <div className="flex flex-wrap gap-1.5">
+              {[[4.5, '4.5 이상'], [4, '4.0 이상'], [3.5, '3.5 이상']].map(([v, t]) => <button key={v} onClick={() => { haptic(); setFlt(f => ({ ...f, rating: f.rating === v ? null : v })) }} className={'text-[13px] rounded-full px-3.5 py-2 font-bold border ' + (flt.rating === v ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>⭐ {t}</button>)}
+            </div>
+          </div>
+          <div>
+            <div className="text-[13px] font-bold text-slate-700 mb-2">특징 (여러 개)</div>
+            <div className="flex flex-wrap gap-1.5">
+              {TAG_OPTIONS.map(t => <button key={t} onClick={() => { haptic(); toggleTag(t) }} className={'text-[13px] rounded-full px-3.5 py-2 font-bold border ' + (flt.tags.includes(t) ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>{t}</button>)}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <button onClick={() => { haptic(); setFlt({ bucket: null, rating: null, tags: [] }) }} className="bg-slate-100 text-slate-600 font-bold rounded-2xl py-3">초기화</button>
+            <button onClick={() => { haptic(12); setOvFilter(false) }} className="bg-brand-500 text-white font-bold rounded-2xl py-3">적용{fltCount ? ` (${fltCount})` : ''}</button>
+          </div>
+        </div>
+      </Sheet>
       <Sheet open={ovGuest} onClose={() => setOvGuest(false)} title="인원 · 객실">
         <div className="px-5 pb-6 pt-1 divide-y divide-slate-100">
           <StepRow label="객실" value={rooms} min={1} max={5} onChange={setRooms} />

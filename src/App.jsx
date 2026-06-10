@@ -506,7 +506,26 @@ function Flights() {
         </div>
       </Sheet>
 
-      {st.status === 'idle' && <p className="text-[12.5px] text-slate-400 px-1 leading-relaxed">출발·도착·월을 고르고 검색하면 <b className="text-slate-500">우리 앱 안에서</b> 최저가 항공권을 찾아요. 도착을 <b className="text-slate-500">🌍 어디든지</b>로 하면 어디가 싼지 한눈에! 표시가는 참고가고, 누르면 예약처에서 실시간 확정·결제돼요.</p>}
+      {st.status === 'idle' && <div>
+        <div className="flex items-baseline justify-between px-1 mb-2.5 mt-1">
+          <h2 className="text-[16px] font-extrabold text-slate-900">🔥 인기 노선, 바로 검색</h2>
+          <button onClick={() => { haptic(); setDest('-'); anywhereSearch() }} className="text-[12px] text-brand-600 font-bold">🌍 어디든지 ›</button>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[['FUK', '후쿠오카'], ['KIX', '오사카'], ['TYO', '도쿄'], ['OKA', '오키나와'], ['BKK', '방콕'], ['DAD', '다낭'], ['TPE', '타이베이'], ['CEB', '세부']].map(([c, n]) => {
+            const slug = DEST_PHOTO[c]
+            return (
+              <button key={c} onClick={() => { haptic(); routeSearch(c) }} className="relative h-[104px] rounded-2xl overflow-hidden text-left active:scale-[.98] transition">
+                <div className="absolute inset-0 bg-cover bg-center bg-slate-300" style={slug ? { backgroundImage: `url(${photoBySlug(slug)})` } : {}} />
+                <div className="absolute inset-0 p-3 flex flex-col justify-end" style={{ background: 'linear-gradient(180deg,rgba(15,23,42,.05),rgba(15,23,42,.72))' }}>
+                  <b className="text-white text-[15.5px]">{n}</b>
+                  <span className="text-slate-300 text-[10.5px]">{oName} 출발 최저가 ›</span>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>}
       {st.status === 'loading' && <div className="text-center text-slate-400 py-12"><div className="text-3xl mb-2 animate-pulse">✈️</div><div className="text-[13px]">최근 가격을 불러오는 중…</div></div>}
       {st.status === 'error' && <Empty icon="⚠️" text="조회 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요." />}
 
