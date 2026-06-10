@@ -52,6 +52,30 @@ const md = s => `${+s.slice(5, 7)}/${+s.slice(8, 10)}`
 
 const HEmpty = ({ icon, text }) => <div className="text-center text-slate-400 py-14"><div className="text-4xl mb-2">{icon}</div><div className="text-[13px] px-10 leading-relaxed">{text}</div></div>
 
+/* ── 날짜 기준 카드 가격: 보이는 카드만 rates 조회 (동시 3개 제한 + 세션 캐시) ── */
+const RQ = { running: 0, q: [] }
+function rqPump() {
+  while (RQ.running < 3 && RQ.q.length) {
+    const { fn, res, rej } = RQ.q.shift()
+    RQ.running++
+    fn().then(res, rej).finally(() => { RQ.running--; rqPump() })
+  }
+}
+const rqEnqueue = fn => new Promise((res, rej) => { RQ.q.push({ fn, res, rej }); rqPump() })
+const dmKey = (k, ci, co) => `dm_${k}_${ci}_${co}`
+function dmCached(k, ci, co) { try { const c = sessionStorage.getItem(dmKey(k, ci, co)); return c == null ? undefined : (c === '' ? null : +c) } catch (e) { return undefined } }
+async function dayMinOf(k, ci, co) {
+  const v = await rqEnqueue(async () => {
+    const r = await fetch(`${PROXY}/xotelo/rates?hotel_key=${k}&chk_in=${ci}&chk_out=${co}&currency=USD`)
+    const j = await r.json()
+    const rates = (j.result && j.result.rates) || []
+    if (!rates.length) return null
+    return Math.min(...rates.map(x => x.rate + (x.tax || 0)))
+  }).catch(() => null)
+  try { sessionStorage.setItem(dmKey(k, ci, co), v == null ? '' : String(v)) } catch (e) {}
+  return v
+}
+
 function useUsdKrw() {
   const [rate, setRate] = useState(1500)
   const [live, setLive] = useState(false)
@@ -144,9 +168,9 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
             const p = PROVIDERS[r.code]
             const href = p && p.url ? p.url(h.name, ci, co, adults, rooms) : h.taUrl
             return (
-              <a key={i} href={href} target="_blank" rel="noopener" onClick={() => haptic()} className={'flex items-center justify-between rounded-2xl px-3.5 py-3 ' + (lowest ? 'bg-brand-50 border border-brand-200' : 'bg-slate-50')}>
+              <a key={i} href={href} target="_blank" rel="noopener" onClick={() => haptic()} className={'flex items-center justify-between rounded-2xl px-3.5 py-3 ' + (lowest ? 'bg-brand-50 glow-lowest' : 'bg-slate-50')}>
                 <div className="min-w-0">
-                  <div className="text-[14px] font-bold text-slate-800">{provName(r.code)} {lowest && <span className="text-[10.5px] font-bold text-white bg-brand-500 rounded-full px-2 py-0.5 align-middle">💰 최저</span>}</div>
+                  <div className="text-[14px] font-bold text-slate-800">{provName(r.code)} {lowest && <span className="text-[10.5px] font-bold text-white bg-brand-500 rounded-full px-2 py-0.5 align-middle">🏆 전 예약처 최저</span>}</div>
                   <div className="text-[11px] text-slate-400 mt-0.5">{r.tax ? `객실 ${wonFmt(r.rate * usdKrw)} + 세금 ${wonFmt(r.tax * usdKrw)}` : '세금 정보 없음'}</div>
                 </div>
                 <div className="text-right shrink-0 pl-2">
@@ -164,10 +188,24 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
   )
 }
 
-function HotelCard({ h, usdKrw, onOpen }) {
+function HotelCard({ h, ci, co, usdKrw, onOpen }) {
   const tags = (h.mentions || []).map(m => MENTION_KO[m]).filter(Boolean).slice(0, 3)
+  const [dayMin, setDayMin] = useState(() => dmCached(h.key, ci, co))
+  const ref = useRef(null)
+  // 화면에 보일 때만 그 날짜의 예약처별 최저가를 가져옴 (큐 대기 → 카드 가격이 날짜 기준으로 업그레이드)
+  useEffect(() => {
+    if (dayMin !== undefined) return
+    const el = ref.current
+    if (!el) return
+    let dead = false
+    const io = new IntersectionObserver(es => {
+      if (es[0].isIntersecting) { io.disconnect(); dayMinOf(h.key, ci, co).then(v => { if (!dead) setDayMin(v) }) }
+    }, { rootMargin: '120px' })
+    io.observe(el)
+    return () => { dead = true; io.disconnect() }
+  }, [h.key, ci, co])
   return (
-    <div className="relative flex gap-3 bg-white rounded-2xl shadow-soft p-3 active:scale-[.99] transition cursor-pointer" onClick={() => { haptic(); onOpen(h) }}>
+    <div ref={ref} className="relative flex gap-3 bg-white rounded-2xl shadow-soft p-3 active:scale-[.99] transition cursor-pointer" onClick={() => { haptic(); onOpen(h) }}>
       <div className="w-[84px] h-[84px] rounded-2xl shrink-0 bg-slate-100 overflow-hidden flex items-center justify-center text-2xl">
         {h.image ? <img src={h.image} alt="" loading="lazy" className="w-full h-full object-cover fade-in" onError={e => { e.target.style.display = 'none' }} /> : '🏨'}
       </div>
@@ -175,7 +213,12 @@ function HotelCard({ h, usdKrw, onOpen }) {
         <div className="text-[14.5px] font-extrabold text-slate-900 leading-tight truncate">{h.name}</div>
         <div className="text-[12px] text-slate-400 mt-1">{h.rating ? <>★ <b className="text-slate-600">{h.rating}</b> ({(h.reviews || 0).toLocaleString('ko-KR')})</> : '평점 없음'}{h.type ? ` · ${h.type}` : ''}</div>
         {tags.length > 0 && <div className="flex flex-wrap gap-1 mt-1.5">{tags.map(t => <span key={t} className="text-[10.5px] font-bold text-slate-500 bg-slate-100 rounded-full px-2 py-0.5">{t}</span>)}</div>}
-        <div className="mt-1.5 text-[12px] text-slate-500">{h.priceMin != null ? <>1박 <b className="text-brand-600 text-[14px] font-black">{wonFmt(h.priceMin * usdKrw)}</b><span className="text-slate-400">부터 · 참고가</span></> : '가격은 비교에서 확인'}</div>
+        <div className="mt-1.5 text-[12px] text-slate-500">
+          {dayMin === undefined ? <span className="skel inline-block h-[14px] w-28 rounded-md align-middle" />
+            : dayMin != null ? <>1박 <b className="text-brand-600 text-[14px] font-black">{wonFmt(dayMin * usdKrw)}</b><span className="text-slate-400"> · 선택 날짜 · 세금포함</span></>
+            : h.priceMin != null ? <>1박 <b className="text-slate-600 text-[13px] font-bold">{wonFmt(h.priceMin * usdKrw)}</b><span className="text-slate-400">부터 · 예상가</span></>
+            : '가격은 비교에서 확인'}
+        </div>
       </div>
       <div className="self-center text-brand-500 font-bold text-[12px] shrink-0">비교 ›</div>
     </div>
@@ -282,7 +325,7 @@ export default function Hotels() {
             {[['popularity', '인기순'], ['best_value', '가성비순']].map(([v, t]) => <button key={v} onClick={() => { setSort(v); search(geo, v) }} className={'text-[12px] rounded-full px-3 py-1.5 font-bold ' + (sort === v ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>{t}</button>)}
           </div>
         </div>
-        <div className="space-y-3">{st.list.map(h => <HotelCard key={h.key} h={h} usdKrw={usdKrw} onOpen={setSel} />)}</div>
+        <div className="space-y-3">{st.list.map(h => <HotelCard key={h.key + ci + co} h={h} ci={ci} co={co} usdKrw={usdKrw} onOpen={setSel} />)}</div>
         <div ref={sentinel} />
         {st.loadingMore && <SkelRows n={2} />}
         {st.more && !st.loadingMore && <button onClick={() => fetchList(geo, sort, st.list.length, st.list)} className="w-full bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl py-3 text-[13.5px]">더 보기</button>}

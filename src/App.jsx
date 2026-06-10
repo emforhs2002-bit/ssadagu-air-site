@@ -328,15 +328,15 @@ function fmtISO(s) { if (!s) return { full: '-' }; const dt = new Date(s); if (i
 function offerLink(o) { const base = 'https://www.aviasales.com' + (o.link || ''); return base + (base.includes('?') ? '&' : '?') + 'marker=' + MARKER }
 const durStr = m => m ? `${Math.floor(m / 60)}시간 ${m % 60}분` : ''
 
-function FlightResult({ o }) {
+function FlightResult({ o, low }) {
   const dep = fmtISO(o.departure_at), ret = fmtISO(o.return_at)
   return (
-    <a href={offerLink(o)} target="_blank" rel="noopener" className="block bg-white rounded-2xl shadow-soft p-3.5 active:scale-[.99] transition">
+    <a href={offerLink(o)} target="_blank" rel="noopener" className={'block bg-white rounded-2xl shadow-soft p-3.5 active:scale-[.99] transition' + (low ? ' glow-lowest' : '')}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
           <img src={`https://pics.avs.io/60/60/${o.airline}.png`} alt="" className="w-8 h-8 object-contain rounded-md bg-slate-50" onError={e => { e.target.style.visibility = 'hidden' }} />
           <div className="min-w-0">
-            <div className="text-[14px] font-bold text-slate-800 truncate">{airlineName(o.airline)}</div>
+            <div className="text-[14px] font-bold text-slate-800 truncate">{airlineName(o.airline)} {low && <span className="text-[10px] font-bold text-white bg-brand-500 rounded-full px-2 py-0.5 align-middle">🏆 이 검색 최저</span>}</div>
             <div className="text-[11.5px] text-slate-400">{o.transfers === 0 ? '직항' : '경유 ' + o.transfers + '회'}{o.duration ? ' · ' + durStr(o.duration) : ''}</div>
           </div>
         </div>
@@ -508,8 +508,15 @@ function Flights() {
             <label className="ml-auto flex items-center gap-1.5 text-slate-600"><input type="checkbox" checked={directOnly} onChange={e => setDirectOnly(e.target.checked)} /> 직항만</label>
           </div>
           <div className="text-[12px] text-slate-500 px-1">{day ? <><b className="text-brand-600">{day.slice(5).replace('-', '/')}</b> 출발 · <button onClick={() => setDay(null)} className="text-brand-600 font-bold">전체</button></> : st.label} · 최저가 <b className="text-brand-600">{won(lowest)}</b> · {view.length}편</div>
-          <div className="bg-amber-50 text-amber-800 text-[11.5px] rounded-xl px-3 py-2">💡 표시가는 <b>참고가</b>예요. 카드를 누르면 <b>예약처에서 실시간 최저가 확인 후 결제</b>돼요.</div>
-          {view.length ? view.map((o, i) => <FlightResult key={i} o={o} />) : <Empty icon="🔎" text="직항만 조건에 맞는 게 없어요. 직항만을 꺼보세요." />}
+          <div className="bg-amber-50 text-amber-800 text-[11.5px] rounded-xl px-3 py-2">💡 여기 보이는 건 <b>최근 확인된 최저가 모음(참고가)</b>이에요 — 전체 시간표가 아니에요. 카드를 누르면 예약처에서 실시간 확정, 모든 항공편은 아래 <b>실시간 전체 보기</b>로.</div>
+          {view.length ? view.map((o, i) => <FlightResult key={i} o={o} low={o.price === lowest} />) : <Empty icon="🔎" text="직항만 조건에 맞는 게 없어요. 직항만을 꺼보세요." />}
+          {view.length > 0 && (() => {
+            const c = view[0]
+            const dd = (c.departure_at || '').slice(0, 10), rr = oneway ? null : (c.return_at || '').slice(0, 10)
+            if (!dd) return null
+            return <a href={aviaLink({ origin, dest, depart: dd, ret: rr, pax })} target="_blank" rel="noopener" onClick={() => haptic()}
+              className="block text-center border-2 border-brand-200 bg-white text-brand-700 font-bold rounded-2xl py-3.5 text-[14px]">🔎 이 날짜 전체 항공편 실시간 보기 →</a>
+          })()}
         </>
         : <Empty icon="🔎" text="이 달엔 캐시된 가격이 없어요. 다른 달·도시로 검색해 보세요." />)}
     </div>
