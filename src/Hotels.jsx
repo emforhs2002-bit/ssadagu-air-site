@@ -43,10 +43,10 @@ const HEmpty = ({ icon, text }) => <div className="text-center text-slate-400 py
 
 /* USD→KRW 환율 (frankfurter, 무료·키없음). 실패 시 보수적 고정값 폴백. */
 function useUsdKrw() {
-  const [rate, setRate] = useState(1400)
+  const [rate, setRate] = useState(1500)
   const [live, setLive] = useState(false)
   useEffect(() => {
-    fetch('https://api.frankfurter.app/latest?from=USD&to=KRW')
+    fetch('https://api.frankfurter.dev/v1/latest?base=USD&symbols=KRW')
       .then(r => r.json()).then(j => { if (j && j.rates && j.rates.KRW) { setRate(j.rates.KRW); setLive(true) } })
       .catch(() => {})
   }, [])
