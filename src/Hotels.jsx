@@ -95,10 +95,35 @@ function loadLeaflet() {
   return leafletPromise
 }
 
-function HotelMap({ hotels, usdKrw, onOpen }) {
+function HotelMap({ hotels, usdKrw, onOpen, canLoadMore, onLoadMore }) {
   const boxRef = useRef(null)
   const mapRef = useRef(null)
   const [failed, setFailed] = useState(false)
+  const [inView, setInView] = useState(0)
+  const userMoved = useRef(false)
+  // moveend 핸들러가 항상 최신 값을 보도록 ref 경유
+  const live = useRef({})
+  live.current = { hotels, usdKrw, onOpen, canLoadMore, onLoadMore }
+
+  const renderPins = (L, map) => {
+    const b = map.getBounds()
+    const { hotels: hs, usdKrw: fx, onOpen: open, canLoadMore: more, onLoadMore: loadMore } = live.current
+    map.markersLayer.clearLayers()
+    let n = 0
+    hs.forEach(h => {
+      if (!h.geo || h.geo.latitude == null || h.geo.longitude == null) return
+      if (!b.contains([h.geo.latitude, h.geo.longitude])) return
+      if (n >= 90) return
+      n++
+      const label = h.priceMin != null ? Math.round(h.priceMin * fx).toLocaleString('ko-KR') : (h.rating ? '★' + h.rating : '·')
+      const icon = L.divIcon({ className: '', html: `<div class="map-pin">${label}</div>`, iconSize: null })
+      L.marker([h.geo.latitude, h.geo.longitude], { icon }).on('click', () => { haptic(); open(h) }).addTo(map.markersLayer)
+    })
+    setInView(n)
+    // 이 영역에 핀이 적으면 다음 페이지 자동 로드 → 영역 채워짐 (이동하며 탐색)
+    if (n < 12 && more && loadMore) loadMore()
+  }
+
   useEffect(() => {
     let dead = false
     loadLeaflet().then(L => {
@@ -107,27 +132,32 @@ function HotelMap({ hotels, usdKrw, onOpen }) {
         const map = L.map(boxRef.current)
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map)
         map.markersLayer = L.layerGroup().addTo(map)
+        map.on('movestart', () => { if (!map.progMove) userMoved.current = true })
+        map.on('moveend', () => renderPins(L, map))
         mapRef.current = map
       }
       const map = mapRef.current
-      map.markersLayer.clearLayers()
-      const pts = []
-      hotels.forEach(h => {
-        if (!h.geo || h.geo.latitude == null || h.geo.longitude == null) return
-        const ll = [h.geo.latitude, h.geo.longitude]
-        pts.push(ll)
-        const label = h.priceMin != null ? '₩' + Math.round((h.priceMin * usdKrw) / 10000) + '만' : (h.rating ? '★' + h.rating : '🏨')
-        const icon = L.divIcon({ className: '', html: `<div class="map-pin">${label}</div>`, iconSize: null })
-        L.marker(ll, { icon }).on('click', () => { haptic(); onOpen(h) }).addTo(map.markersLayer)
-      })
-      if (pts.length) map.fitBounds(pts, { padding: [34, 34], maxZoom: 15 })
+      if (!userMoved.current) {
+        const pts = hotels.filter(h => h.geo && h.geo.latitude != null).map(h => [h.geo.latitude, h.geo.longitude])
+        if (pts.length) {
+          map.progMove = true
+          map.fitBounds(pts, { padding: [34, 34], maxZoom: 15 })
+          setTimeout(() => { map.progMove = false }, 500)
+        }
+      }
+      renderPins(L, map)
       setTimeout(() => map.invalidateSize(), 80)
     }).catch(() => setFailed(true))
     return () => { dead = true }
   }, [hotels, usdKrw])
   useEffect(() => () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null } }, [])
   if (failed) return <HEmpty icon="🗺️" text="지도를 불러오지 못했어요. 잠시 후 다시 시도해 주세요." />
-  return <div ref={boxRef} className="h-[460px] rounded-2xl overflow-hidden shadow-soft bg-slate-100 relative z-0" />
+  return (
+    <div className="relative">
+      <div ref={boxRef} className="h-[460px] rounded-2xl overflow-hidden shadow-soft bg-slate-100 relative z-0" />
+      <div className="absolute top-2.5 left-2.5 bg-white/95 rounded-full px-3 py-1.5 text-[11px] font-bold text-slate-600 shadow-soft pointer-events-none">📍 이 지역 {inView}곳{canLoadMore ? ' · 지도를 움직이면 더 찾아요' : ''}</div>
+    </div>
+  )
 }
 
 function useUsdKrw() {
@@ -389,8 +419,10 @@ export default function Hotels() {
           </div>
         </div>
         {view === 'map' && <>
-          <HotelMap hotels={st.list} usdKrw={usdKrw} onOpen={setSel} />
-          <div className="text-[11.5px] text-slate-400 px-1">📍 지도엔 불러온 <b className="text-slate-500">{st.list.length}곳</b>이 떠요 · 핀(1박 참고가)을 누르면 가격 비교 · 아래 버튼으로 더 추가</div>
+          <HotelMap hotels={st.list} usdKrw={usdKrw} onOpen={setSel}
+            canLoadMore={!!st.more && !st.loadingMore}
+            onLoadMore={() => { const s = stRef.current; if (s.status === 'ok' && s.more && !s.loadingMore) fetchList(geo, sort, s.list.length, s.list) }} />
+          <div className="text-[11.5px] text-slate-400 px-1">핀의 숫자는 <b className="text-slate-500">1박 참고가(원)</b> · 핀을 누르면 예약처별 가격 비교가 열려요</div>
         </>}
         {view === 'list' && <div className="space-y-3">{st.list.map(h => <HotelCard key={h.key + ci + co} h={h} ci={ci} co={co} usdKrw={usdKrw} onOpen={setSel} />)}</div>}
         {view === 'list' && <div ref={sentinel} />}

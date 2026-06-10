@@ -20,6 +20,20 @@
         appId: "fe0d7053-8086-4ea5-ad28-2ecdc264dc23",
         serviceWorkerPath: "sw.js",
         serviceWorkerParam: { scope: "/ssadagu-air-site/" },
+        promptOptions: {
+          slidedown: {
+            prompts: [{
+              type: "push",
+              autoPrompt: true,
+              text: {
+                actionMessage: "새 특가가 뜨면 바로 알려드릴게요 🔔 (언제든 끌 수 있어요)",
+                acceptButton: "알림 받기",
+                cancelButton: "나중에",
+              },
+              delay: { pageViews: 1, timeDelay: 8 },
+            }],
+          },
+        },
       });
     });
   </script>
