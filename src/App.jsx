@@ -43,6 +43,9 @@ const GEO = {
 }
 const REGION = { '동남아': ['베트남', '태국', '필리핀', '싱가포르'] }
 const destOf = d => (d.route || '').split('-')[1] || ''
+const ORIGIN_NAME = { ICN: '인천', GMP: '김포', PUS: '부산' }
+const originOf = d => ORIGIN_NAME[(d.route || '').split('-')[0]] || ''
+const durOf = d => { const m = +d.duration; return m > 0 ? `${Math.floor(m / 60)}시간 ${m % 60 ? m % 60 + '분' : ''}`.trim() : '' }
 function byGeo(deals, q) {
   const codes = new Set(); const countries = []
   for (const [r, cs] of Object.entries(REGION)) if (q.includes(r) || r.includes(q)) countries.push(...cs)
@@ -102,9 +105,9 @@ function DealCard({ d, saved, onSave, onOpen, mine }) {
         <div className="text-[16px] font-extrabold text-slate-900 leading-tight">{d.badge} {d.city}</div>
         <div className="text-[12px] text-slate-400 mt-1 flex items-center gap-1.5">
           {logo && <img src={logo} alt="" className="w-4 h-4 object-contain rounded-sm" onError={e => { e.target.style.display = 'none' }} />}
-          {d.airline} · {d.transfers === 0 ? '직항' : '경유 ' + d.transfers}
+          {d.airline} · {d.transfers === 0 ? '직항' : '경유 ' + d.transfers}{durOf(d) ? ' · ' + durOf(d) : ''}
         </div>
-        <div className="text-[12px] text-slate-500 mt-1.5">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-700'}>{dep.md}({dep.dow})</b> · <b className={ret.weekend ? 'text-rose-500' : 'text-slate-700'}>{ret.md}({ret.dow})</b></div>
+        <div className="text-[12px] text-slate-500 mt-1.5">🛫 {originOf(d)} <b className={dep.weekend ? 'text-rose-500' : 'text-slate-700'}>{dep.md}({dep.dow})</b> · <b className={ret.weekend ? 'text-rose-500' : 'text-slate-700'}>{ret.md}({ret.dow})</b></div>
         <div className="flex flex-wrap gap-1.5 mt-2">
           {mine && <span className="text-[10.5px] font-bold text-rose-600 bg-rose-50 rounded-full px-2 py-0.5">🔔 내 조건</span>}
           {d.discount_rate > 0 && <span className="text-[10.5px] font-bold text-rose-500 bg-rose-50 rounded-full px-2 py-0.5">평소 대비 -{d.discount_rate}%</span>}
@@ -138,7 +141,7 @@ function DealSheet({ d, onClose, onPlan }) {
           <button onClick={doShare} className="absolute top-3 right-14 text-white text-[13px] font-bold bg-black/25 rounded-full px-3 py-1.5">공유 ↗</button>
           <button onClick={onClose} className="absolute top-3 right-4 text-white text-xl bg-black/25 rounded-full w-8 h-8">✕</button>
           <div className="absolute bottom-3 left-5 right-5 text-white">
-            <div className="text-[12px] opacity-90 flex items-center gap-1.5">{logo && <img src={logo} alt="" className="w-4 h-4 object-contain rounded-sm bg-white/80 p-px" onError={e => { e.target.style.display = 'none' }} />}{d.airline} · {d.transfers === 0 ? '직항' : '경유 ' + d.transfers}</div>
+            <div className="text-[12px] opacity-90 flex items-center gap-1.5">{logo && <img src={logo} alt="" className="w-4 h-4 object-contain rounded-sm bg-white/80 p-px" onError={e => { e.target.style.display = 'none' }} />}{originOf(d)} 출발 · {d.airline} · {d.transfers === 0 ? '직항' : '경유 ' + d.transfers}{durOf(d) ? ' · ' + durOf(d) : ''}</div>
             <div className="text-2xl font-extrabold leading-tight mt-0.5">{d.badge} {d.city}</div>
           </div>
         </div>
@@ -788,9 +791,12 @@ function Home({ deals, onGo, onDeal, onDealFilter }) {
                   {d.discount_rate > 0 && <span className="absolute top-3 left-3 bg-rose-500 text-white text-[11.5px] font-extrabold rounded-lg px-2.5 py-1">평소 대비 -{d.discount_rate}%</span>}
                   <span className="absolute left-3.5 bottom-3 text-white text-[18px] font-extrabold" style={{ textShadow: '0 2px 10px rgba(0,0,0,.6)' }}>{d.city}</span>
                 </div>
-                <div className="px-4 py-3 flex items-center justify-between gap-2">
-                  <span className="text-[12px] text-slate-500 truncate">{d.airline} · {d.transfers === 0 ? '직항' : '경유'}</span>
-                  <span className="text-[16px] font-black text-brand-600 shrink-0">{won(d.price)} <span className="text-[10px] text-slate-400 font-semibold">왕복</span></span>
+                <div className="px-4 py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[12.5px] text-slate-700 font-bold truncate">🛫 {(() => { const dep = fmtDate(d.departure_time), ret = fmtDate(d.return_time); return <><b className={dep.weekend ? 'text-rose-500' : ''}>{dep.md}({dep.dow})</b> ~ <b className={ret.weekend ? 'text-rose-500' : ''}>{ret.md}({ret.dow})</b></> })()}</span>
+                    <span className="text-[16px] font-black text-brand-600 shrink-0">{won(d.price)} <span className="text-[10px] text-slate-400 font-semibold">왕복</span></span>
+                  </div>
+                  <div className="text-[11.5px] text-slate-400 mt-1 truncate">{originOf(d)} 출발 · {d.airline} · {d.transfers === 0 ? '직항' : '경유 ' + d.transfers}{durOf(d) ? ' · ' + durOf(d) : ''}</div>
                 </div>
               </div>
             )
