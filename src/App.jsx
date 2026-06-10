@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { DESTINATIONS } from './destinations'
 import { COUNTRY_INFO, VISA_NOTE } from './planner'
-import Hotels from './Hotels'
+import { vt, haptic, shareIt, useCountUp, Sheet, SearchOverlay, StepRow, MadLib, SkelRows } from './ui'
+import { HOLIDAYS } from './holidays'
+const Hotels = lazy(() => import('./Hotels'))
 
 /* ───────── helpers ───────── */
 const DAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -119,15 +121,21 @@ function DealCard({ d, saved, onSave, onOpen, mine }) {
 
 /* ───────── detail sheet (간결) ───────── */
 function DealSheet({ d, onClose, onPlan }) {
-  if (!d) return null
   const dep = fmtDate(d.departure_time), ret = fmtDate(d.return_time)
   const pcv = priceCheckView(d.price_check), photo = photoOf(d), logo = logoOf(d)
+  const priceAnim = useCountUp(d.price)
+  const doShare = () => shareIt({
+    title: `${d.city} 특가 항공권`,
+    text: `🔥 ${d.city} 왕복 ${won(d.price)} (${d.airline}, ${dep.full} 출발${d.discount_rate > 0 ? ` · 평소 대비 -${d.discount_rate}%` : ''}) — 싸다구항공이 직접 확인한 특가`,
+    url: 'https://emforhs2002-bit.github.io/ssadagu-air-site/',
+  })
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/40 fade-in" onClick={onClose} />
       <div className="absolute bottom-0 inset-x-0 max-w-md mx-auto bg-white rounded-t-3xl sheet-up max-h-[92vh] overflow-y-auto no-scrollbar">
         <div className="relative h-44 bg-cover bg-center bg-slate-200" style={photo ? { backgroundImage: `linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55)),url(${photo})` } : {}}>
           <button onClick={onClose} className="absolute top-3 left-4 text-white/90 text-[13px] font-bold bg-black/25 rounded-full px-3 py-1.5">← 뒤로</button>
+          <button onClick={doShare} className="absolute top-3 right-14 text-white text-[13px] font-bold bg-black/25 rounded-full px-3 py-1.5">공유 ↗</button>
           <button onClick={onClose} className="absolute top-3 right-4 text-white text-xl bg-black/25 rounded-full w-8 h-8">✕</button>
           <div className="absolute bottom-3 left-5 right-5 text-white">
             <div className="text-[12px] opacity-90 flex items-center gap-1.5">{logo && <img src={logo} alt="" className="w-4 h-4 object-contain rounded-sm bg-white/80 p-px" onError={e => { e.target.style.display = 'none' }} />}{d.airline} · {d.transfers === 0 ? '직항' : '경유 ' + d.transfers}</div>
@@ -137,7 +145,7 @@ function DealSheet({ d, onClose, onPlan }) {
         <div className="px-5 pt-4 pb-8 space-y-4 text-[13.5px]">
           <div className="flex items-end justify-between">
             <div className="text-slate-600 text-[13px]">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-800'}>{dep.full}</b><br />🛬 <b className={ret.weekend ? 'text-rose-500' : 'text-slate-800'}>{ret.full}</b></div>
-            <div className="text-right"><div className="text-[28px] font-black text-brand-600 leading-none">{won(d.price)}</div>{d.discount_rate > 0 ? <div className="text-[11px] font-bold text-rose-500 mt-1">왕복 · 평소 대비 -{d.discount_rate}%</div> : <div className="text-[11px] text-slate-400 mt-1">왕복</div>}</div>
+            <div className="text-right"><div className="text-[28px] font-black text-brand-600 leading-none">{won(priceAnim)}</div>{d.discount_rate > 0 ? <div className="text-[11px] font-bold text-rose-500 mt-1">왕복 · 평소 대비 -{d.discount_rate}%</div> : <div className="text-[11px] text-slate-400 mt-1">왕복</div>}</div>
           </div>
           {pcv && <div className={'rounded-2xl p-3 ' + (pcv.warn ? 'bg-amber-50' : 'bg-brand-50')}>
             <div className={'font-bold ' + (pcv.warn ? 'text-amber-700' : 'text-brand-700')}>{pcv.card}</div>
@@ -159,14 +167,23 @@ function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onSearch, onRefresh,
   const [cat, setCat] = useState('all')
   const [pick, setPick] = useState(null)
   const [flash, setFlash] = useState(false)
+  const [pull, setPull] = useState(0)
+  const touchY = useRef(null)
   const doRefresh = () => { Promise.resolve(onRefresh && onRefresh()).then(() => { setFlash(true); setTimeout(() => setFlash(false), 1600) }) }
+  // 당겨서 새로고침 (스크롤 최상단에서 아래로)
+  const tStart = e => { touchY.current = window.scrollY <= 0 ? e.touches[0].clientY : null }
+  const tMove = e => { if (touchY.current == null) return; const d = e.touches[0].clientY - touchY.current; if (d > 0 && window.scrollY <= 0) setPull(Math.min(90, d * 0.45)) }
+  const tEnd = () => { if (pull > 60) { haptic(12); doRefresh() } setPull(0); touchY.current = null }
   const base = pick ? deals.filter(d => destOf(d) === pick) : filterCat(deals, cat)
   const list = [...base].sort((a, b) => (matchPrefs(b, prefs) - matchPrefs(a, prefs)) || (b.discount_rate - a.discount_rate))
   const mineCount = hasPrefs(prefs) ? list.filter(d => matchPrefs(d, prefs)).length : 0
   const byCity = {}; deals.forEach(d => { const c = destOf(d); if (!byCity[c] || d.price < byCity[c].price) byCity[c] = d })
   const circles = Object.values(byCity).sort((a, b) => a.price - b.price)
   return (
-    <div>
+    <div onTouchStart={tStart} onTouchMove={tMove} onTouchEnd={tEnd}>
+      {pull > 0 && <div className="flex items-center justify-center overflow-hidden" style={{ height: pull }}>
+        <span className={'text-[12px] font-bold ' + (pull > 60 ? 'text-brand-600' : 'text-slate-400')}>{pull > 60 ? '↓ 놓으면 새로고침' : '↓ 당겨서 새로고침'}</span>
+      </div>}
       {/* hero */}
       <div className="relative h-[330px] bg-cover bg-center bg-slate-300" style={{ backgroundImage: `linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,0) 26%,rgba(0,0,0,.62)),url(${photoBySlug('hero')})` }}>
         <div className="absolute top-5 left-5 right-5 flex items-center justify-between text-white" style={{ textShadow: '0 1px 8px rgba(0,0,0,.45)' }}>
@@ -189,7 +206,7 @@ function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onSearch, onRefresh,
         {/* circles */}
         {circles.length > 0 && <>
           <div className="flex items-baseline justify-between mt-6 mb-3"><h2 className="text-[16.5px] font-extrabold text-slate-900">🔥 지금 뜬 핫딜</h2>{pick && <button onClick={() => setPick(null)} className="text-[12.5px] text-brand-600 font-bold">전체 ›</button>}</div>
-          <div className="flex gap-3.5 overflow-x-auto no-scrollbar pb-1">
+          <div className="flex gap-3.5 overflow-x-auto no-scrollbar pb-1 snap-x-row">
             {circles.map(d => { const c = destOf(d), ph = photoOf(d); return (
               <button key={d.id} onClick={() => { setPick(pick === c ? null : c); setCat('all') }} className="shrink-0 w-[72px] text-center">
                 <div className={'w-[68px] h-[68px] rounded-full bg-cover bg-center mx-auto bg-slate-200 ' + (pick === c ? 'ring-[3px] ring-brand-500' : '')} style={ph ? { backgroundImage: `url(${ph})` } : {}} />
@@ -358,11 +375,11 @@ function PriceCalendar({ y, m, cal, day, onPick }) {
       <div className="grid grid-cols-7 gap-1">
         {cells.map((d, i) => {
           if (!d) return <div key={i} />
-          const key = `${y}-${pad2(m + 1)}-${pad2(d)}`, p = cal[key], past = new Date(y, m, d) < today, sel = day === key
+          const key = `${y}-${pad2(m + 1)}-${pad2(d)}`, p = cal[key], past = new Date(y, m, d) < today, sel = day === key, hol = HOLIDAYS[key]
           return (
-            <button key={i} disabled={!p || past} onClick={() => onPick(sel ? null : key)}
+            <button key={i} disabled={!p || past} onClick={() => onPick(sel ? null : key)} title={hol || ''}
               className={'aspect-square rounded-lg flex flex-col items-center justify-center leading-none ' + (sel ? 'bg-brand-500 text-white' : (p && !past) ? (p === min ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700') : 'text-slate-200')}>
-              <span className="text-[11px] font-bold">{d}</span>
+              <span className={'text-[11px] font-bold' + (hol && !sel && !past ? ' text-rose-500' : '')}>{d}{hol ? '·' : ''}</span>
               {p && !past && <span className="text-[8px] font-bold mt-0.5">{Math.round(p / 10000)}만</span>}
             </button>
           )
@@ -381,6 +398,10 @@ function Flights() {
   const [day, setDay] = useState(null)
   const [sort, setSort] = useState('price'), [directOnly, setDirectOnly] = useState(false)
   const [st, setSt] = useState({ status: 'idle' })
+  const [ovFrom, setOvFrom] = useState(false)
+  const [ovTo, setOvTo] = useState(false)
+  const [ovMonth, setOvMonth] = useState(false)
+  const [ovPax, setOvPax] = useState(false)
   const anywhere = dest === '-'
   const routeSearch = async (d) => {
     setDest(d); setDay(null); setSt({ status: 'loading' })
@@ -410,28 +431,54 @@ function Flights() {
   const view = results.filter(o => !directOnly || o.transfers === 0).sort((a, b) => sort === 'duration' ? ((a.duration || 9e9) - (b.duration || 9e9)) : (a.price - b.price))
   const lowest = view.length ? view.reduce((m, o) => Math.min(m, o.price), Infinity) : 0
 
+  const oName = (ORIGINS.find(([c]) => c === origin) || [])[1] || origin
   return (
     <div className="px-4 pt-2 pb-4 space-y-3">
-      <div className="bg-white rounded-2xl shadow-soft p-4 space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          <Pick label="출발" value={origin} onChange={setOrigin} options={ORIGINS.map(([c, n]) => [c, `${n}(${c})`])} />
-          <Pick label="도착" value={dest} onChange={setDest} options={DESTOPTS} />
-        </div>
-        {!anywhere && <div>
-          <label className="text-[12px] text-slate-500">출발 월</label>
-          <div className="flex gap-1.5 overflow-x-auto no-scrollbar mt-1">
-            {months.map((mo, i) => <button key={mo.value} onClick={() => setMi(i)} className={'shrink-0 text-[13px] rounded-xl px-3.5 py-2 font-bold ' + (mi === i ? 'bg-brand-500 text-white' : 'bg-slate-50 text-slate-500 border border-slate-200')}>{mo.label}</button>)}
-          </div>
-        </div>}
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <label className="flex items-center gap-2 text-[13px] text-slate-600"><input type="checkbox" checked={oneway} onChange={e => setOneway(e.target.checked)} /> 편도</label>
-          <div className="flex items-center gap-3 text-[13px] text-slate-600">
-            <span className="flex items-center gap-1">인원<select value={pax} onChange={e => setPax(+e.target.value)} className="bg-white border border-slate-200 rounded-lg px-2 py-1">{[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}</select></span>
-            <select value={cabin} onChange={e => setCabin(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-2 py-1">{[['Y', '일반석'], ['C', '비즈니스']].map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select>
-          </div>
-        </div>
-        <button onClick={search} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">{anywhere ? '🌍 어디가 싼지 보기' : '항공권 검색'}</button>
+      {/* 문장형 검색 (Mad Libs) */}
+      <div className="bg-white rounded-3xl shadow-soft p-5">
+        <MadLib parts={[
+          { t: oName, on: () => setOvFrom(true) }, '에서 ',
+          { t: anywhere ? '🌍 어디든지' : cityName(dest), on: () => setOvTo(true) }, ', ',
+          { t: months[mi].label, on: () => setOvMonth(true) }, '에 ',
+          { t: `${pax}명${oneway ? ' · 편도' : ''}`, on: () => setOvPax(true) }, ' 떠나요',
+        ]} />
+        <button onClick={search} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5 mt-4">{anywhere ? '🌍 어디가 싼지 보기' : '최저가 검색 ✈️'}</button>
       </div>
+
+      <SearchOverlay open={ovFrom} onClose={() => setOvFrom(false)} title="어디서 출발하세요?" placeholder="출발 공항"
+        recentKey="fromAp" groups={[{ title: '출발 공항', items: ORIGINS.map(([c, n]) => ({ id: c, label: n, sub: c, icon: '🛫' })) }]}
+        onPick={it => setOrigin(it.id)} />
+      <SearchOverlay open={ovTo} onClose={() => setOvTo(false)} title="어디로 가세요?" placeholder="도시 검색 (예: 오사카, ㅇㅅㅋ)"
+        recentKey="toAp" voice
+        groups={[
+          { title: '모르겠어요', items: [{ id: '-', label: '어디든지', sub: '가장 싼 도시부터 보기', icon: '🌍' }] },
+          { title: '도시', items: CITIES.map(([c, n]) => ({ id: c, label: n, sub: c, icon: '🏙️' })) },
+        ]}
+        onPick={it => setDest(it.id)} />
+      <Sheet open={ovMonth} onClose={() => setOvMonth(false)} title="언제 떠나세요?">
+        <div className="grid grid-cols-4 gap-2 px-5 pb-6 pt-2">
+          {months.map((mo, i) => <button key={mo.value} onClick={() => { haptic(); setMi(i); setOvMonth(false) }}
+            className={'rounded-2xl py-3 text-[14px] font-bold ' + (mi === i ? 'bg-brand-500 text-white' : 'bg-slate-50 text-slate-600')}>{mo.label}</button>)}
+        </div>
+      </Sheet>
+      <Sheet open={ovPax} onClose={() => setOvPax(false)} title="인원 · 옵션">
+        <div className="px-5 pb-6 pt-1 divide-y divide-slate-100">
+          <StepRow label="인원" sub="성인 기준" value={pax} min={1} max={6} onChange={setPax} />
+          <div className="py-3 flex items-center justify-between">
+            <div className="text-[14.5px] font-bold text-slate-800">여정</div>
+            <div className="flex gap-1.5">
+              {[[false, '왕복'], [true, '편도']].map(([v, t]) => <button key={t} onClick={() => { haptic(); setOneway(v) }} className={'text-[13px] rounded-full px-3.5 py-1.5 font-bold ' + (oneway === v ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500')}>{t}</button>)}
+            </div>
+          </div>
+          <div className="py-3 flex items-center justify-between">
+            <div className="text-[14.5px] font-bold text-slate-800">좌석</div>
+            <div className="flex gap-1.5">
+              {[['Y', '일반석'], ['C', '비즈니스']].map(([v, t]) => <button key={v} onClick={() => { haptic(); setCabin(v) }} className={'text-[13px] rounded-full px-3.5 py-1.5 font-bold ' + (cabin === v ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500')}>{t}</button>)}
+            </div>
+          </div>
+          <div className="pt-3"><button onClick={() => setOvPax(false)} className="w-full bg-brand-500 text-white font-bold rounded-2xl py-3">완료</button></div>
+        </div>
+      </Sheet>
 
       {st.status === 'idle' && <p className="text-[12.5px] text-slate-400 px-1 leading-relaxed">출발·도착·월을 고르고 검색하면 <b className="text-slate-500">우리 앱 안에서</b> 최저가 항공권을 찾아요. 도착을 <b className="text-slate-500">🌍 어디든지</b>로 하면 어디가 싼지 한눈에! 표시가는 참고가고, 누르면 예약처에서 실시간 확정·결제돼요.</p>}
       {st.status === 'loading' && <div className="text-center text-slate-400 py-12"><div className="text-3xl mb-2 animate-pulse">✈️</div><div className="text-[13px]">최근 가격을 불러오는 중…</div></div>}
@@ -698,6 +745,23 @@ function Planner({ seed, clearSeed }) {
 /* ───────── shell ───────── */
 const TABS = [['hot', '🔥', '핫딜'], ['flights', '✈️', '항공편'], ['hotels', '🏨', '호텔'], ['planner', '🗺️', '플래너'], ['my', '👤', '마이']]
 const TAB_TITLE = { flights: '최저가 항공권 검색', hotels: '호텔 최저가 비교', planner: '여행플래너', my: '마이' }
+
+/* 홈화면 설치 유도 (안드로이드=네이티브 프롬프트, iOS=가이드 시트) */
+function useInstall() {
+  const [evt, setEvt] = useState(null)
+  const [mode, setMode] = useState(null)
+  useEffect(() => {
+    if (localStorage.getItem('installHide')) return
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone
+    if (standalone) return
+    const h = e => { e.preventDefault(); setEvt(e); setMode('android') }
+    window.addEventListener('beforeinstallprompt', h)
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) setMode('ios')
+    return () => window.removeEventListener('beforeinstallprompt', h)
+  }, [])
+  const dismiss = () => { localStorage.setItem('installHide', '1'); setMode(null) }
+  return { mode, evt, dismiss }
+}
 export default function App() {
   const [tab, setTab] = useState('hot')
   const [deals, setDeals] = useState(null)
@@ -708,20 +772,42 @@ export default function App() {
   const [prefs, savePrefs] = useAlertPrefs()
   const loadDeals = () => fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => { setDeals(d.deals || []); const t = new Date(); setUpdatedAt(`${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`) }).catch(() => setDeals([]))
   useEffect(() => { loadDeals() }, [])
+  const inst = useInstall()
+  const [iosGuide, setIosGuide] = useState(false)
+  // 앱 아이콘 배지: 설치된 PWA에 현재 핫딜 수
+  useEffect(() => { try { if (deals && navigator.setAppBadge) navigator.setAppBadge(deals.length) } catch (e) {} }, [deals])
+  // 상태바 색 동기화
+  useEffect(() => { const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', tab === 'hot' ? '#14b8a6' : '#eefbf8') }, [tab])
+  const switchTab = k => { haptic(); vt(() => setTab(k)) }
   const p = { savedIds, onSave: toggleSave, onOpen: setSel }
   return (
     <div className="max-w-md mx-auto min-h-full flex flex-col bg-[#eefbf8]">
       <main className="flex-1 pb-20">
-        {deals === null && <Empty icon="⏳" text="불러오는 중…" />}
+        {deals === null && <div className="px-4 pt-8"><SkelRows n={5} /></div>}
         {deals && tab !== 'hot' && <div className="px-5 pt-7 pb-1"><h1 className="text-[22px] font-extrabold text-slate-900">{TAB_TITLE[tab]}</h1></div>}
         {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} onSearch={() => setTab('flights')} onRefresh={loadDeals} updatedAt={updatedAt} /> : <Empty icon="🔎" text="핫딜이 아직 없어요." />)}
         {deals && tab === 'flights' && <Flights deals={deals} onOpen={setSel} />}
-        {deals && tab === 'hotels' && <Hotels />}
+        {deals && tab === 'hotels' && <Suspense fallback={<div className="px-4 pt-2"><SkelRows n={4} /></div>}><Hotels /></Suspense>}
         {deals && tab === 'planner' && <Planner seed={planSeed} clearSeed={() => setPlanSeed(null)} />}
         {deals && tab === 'my' && <My prefs={prefs} onSavePrefs={savePrefs} />}
       </main>
+      {inst.mode && <div className="fixed bottom-[70px] inset-x-0 max-w-md mx-auto px-3 z-40">
+        <div className="bg-slate-900/95 text-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-soft fade-in">
+          <span className="text-xl">📲</span>
+          <div className="flex-1 text-[12.5px]"><b>홈 화면에 추가</b>하면 앱처럼 빨라요</div>
+          <button onClick={() => { if (inst.mode === 'android' && inst.evt) { inst.evt.prompt(); inst.dismiss() } else setIosGuide(true) }} className="bg-brand-500 text-white text-[12.5px] font-bold rounded-full px-3.5 py-1.5">추가</button>
+          <button onClick={inst.dismiss} className="text-white/50 text-[14px] px-1">✕</button>
+        </div>
+      </div>}
+      {iosGuide && <Sheet open onClose={() => { setIosGuide(false); inst.dismiss() }} title="홈 화면에 추가하기">
+        <div className="px-5 pb-8 pt-2 space-y-3.5 text-[14px] text-slate-700">
+          <div className="flex gap-3 items-center"><span className="w-7 h-7 shrink-0 rounded-full bg-brand-50 text-brand-600 font-bold flex items-center justify-center">1</span><span>사파리 하단의 <b>공유 버튼</b>을 눌러요</span></div>
+          <div className="flex gap-3 items-center"><span className="w-7 h-7 shrink-0 rounded-full bg-brand-50 text-brand-600 font-bold flex items-center justify-center">2</span><span>아래로 내려 <b>'홈 화면에 추가'</b>를 선택해요</span></div>
+          <div className="flex gap-3 items-center"><span className="w-7 h-7 shrink-0 rounded-full bg-brand-50 text-brand-600 font-bold flex items-center justify-center">3</span><span>이제 앱처럼 열려요. 곧 <b>특가 알림</b>도 받을 수 있어요 🔔</span></div>
+        </div>
+      </Sheet>}
       <nav className="fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white border-t border-slate-100 grid grid-cols-5 pb-[env(safe-area-inset-bottom)] z-40">
-        {TABS.map(([k, ic, label]) => <button key={k} onClick={() => setTab(k)} className={'py-2.5 flex flex-col items-center gap-0.5 text-[10.5px] ' + (tab === k ? 'text-brand-600 font-bold' : 'text-slate-400')}><span className="text-lg leading-none">{ic}</span>{label}</button>)}
+        {TABS.map(([k, ic, label]) => <button key={k} onClick={() => switchTab(k)} className={'py-2.5 flex flex-col items-center gap-0.5 text-[10.5px] ' + (tab === k ? 'text-brand-600 font-bold' : 'text-slate-400')}><span className="text-lg leading-none">{ic}</span>{label}</button>)}
       </nav>
       {sel && <DealSheet d={sel} onClose={() => setSel(null)} onPlan={d => { setSel(null); setPlanSeed(seedFromDeal(d)); setTab('planner') }} />}
     </div>
