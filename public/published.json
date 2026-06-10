@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-10T11:32:37+00:00",
+  "updated_at": "2026-06-10T15:49:49+00:00",
   "note": null,
   "deals": [
     {
@@ -41,48 +41,6 @@
         "refund": "특가운임 변경제한 가능"
       },
       "affiliate_url": "https://www.aviasales.com/search/ICN2407FUK28071?t=BX17848776001784883300000095ICNFUK17852328001785238500000095FUKICN_3839f3565e2b4ea1c32b00185181cc1d_8501&search_date=03062026&expected_price_uuid=019e8f25-3848-8030-2e52-3ed6e9c76cf6&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=176870&marker=737258",
-      "source": "Travelpayouts 자동발견",
-      "status": "published"
-    },
-    {
-      "id": "ICN-KIX-2026-06-10",
-      "route": "ICN-KIX",
-      "city": "오사카",
-      "badge": "🔥",
-      "price": 183396,
-      "normal_price": 260000,
-      "discount_rate": 29,
-      "airline": "티웨이",
-      "carrier_type": "LCC",
-      "departure_time": "2026-06-10 15:55",
-      "return_time": "2026-06-17 19:30",
-      "duration": "4시간 5분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 183396,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 252296
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "B",
-      "inspection": {
-        "checked_at": "6/9(화) 10:38",
-        "price_ok": false,
-        "link_ok": false,
-        "refund": "특가운임 변경제한 가능"
-      },
-      "affiliate_url": "https://www.aviasales.com/search/ICN1006KIX17061?t=TW17811069001781114700000130ICNKIX17817246001781731500000115KIXICN_5c1a9eeab3f04c6ddb6d699c3c9cb349_8784&search_date=08062026&expected_price_uuid=019ea708-b5f4-8030-a87e-2cea337e9bee&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=183396&marker=737258",
       "source": "Travelpayouts 자동발견",
       "status": "published"
     },
