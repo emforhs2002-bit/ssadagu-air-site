@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { DESTINATIONS } from './destinations'
 import { COUNTRY_INFO, VISA_NOTE } from './planner'
+import Hotels from './Hotels'
 
 /* ───────── helpers ───────── */
 const DAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -695,8 +696,8 @@ function Planner({ seed, clearSeed }) {
 }
 
 /* ───────── shell ───────── */
-const TABS = [['hot', '🔥', '핫딜'], ['flights', '✈️', '항공편'], ['planner', '🗺️', '여행플래너'], ['my', '👤', '마이']]
-const TAB_TITLE = { flights: '최저가 항공권 검색', planner: '여행플래너', my: '마이' }
+const TABS = [['hot', '🔥', '핫딜'], ['flights', '✈️', '항공편'], ['hotels', '🏨', '호텔'], ['planner', '🗺️', '플래너'], ['my', '👤', '마이']]
+const TAB_TITLE = { flights: '최저가 항공권 검색', hotels: '호텔 최저가 비교', planner: '여행플래너', my: '마이' }
 export default function App() {
   const [tab, setTab] = useState('hot')
   const [deals, setDeals] = useState(null)
@@ -715,10 +716,11 @@ export default function App() {
         {deals && tab !== 'hot' && <div className="px-5 pt-7 pb-1"><h1 className="text-[22px] font-extrabold text-slate-900">{TAB_TITLE[tab]}</h1></div>}
         {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} onSearch={() => setTab('flights')} onRefresh={loadDeals} updatedAt={updatedAt} /> : <Empty icon="🔎" text="핫딜이 아직 없어요." />)}
         {deals && tab === 'flights' && <Flights deals={deals} onOpen={setSel} />}
+        {deals && tab === 'hotels' && <Hotels />}
         {deals && tab === 'planner' && <Planner seed={planSeed} clearSeed={() => setPlanSeed(null)} />}
         {deals && tab === 'my' && <My prefs={prefs} onSavePrefs={savePrefs} />}
       </main>
-      <nav className="fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white border-t border-slate-100 grid grid-cols-4 pb-[env(safe-area-inset-bottom)] z-40">
+      <nav className="fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white border-t border-slate-100 grid grid-cols-5 pb-[env(safe-area-inset-bottom)] z-40">
         {TABS.map(([k, ic, label]) => <button key={k} onClick={() => setTab(k)} className={'py-2.5 flex flex-col items-center gap-0.5 text-[10.5px] ' + (tab === k ? 'text-brand-600 font-bold' : 'text-slate-400')}><span className="text-lg leading-none">{ic}</span>{label}</button>)}
       </nav>
       {sel && <DealSheet d={sel} onClose={() => setSel(null)} onPlan={d => { setSel(null); setPlanSeed(seedFromDeal(d)); setTab('planner') }} />}
