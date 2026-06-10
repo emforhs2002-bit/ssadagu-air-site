@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { DESTINATIONS } from './destinations'
+import { COUNTRY_INFO, VISA_NOTE } from './planner'
 
 /* ───────── helpers ───────── */
 const DAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -116,7 +117,7 @@ function DealCard({ d, saved, onSave, onOpen, mine }) {
 }
 
 /* ───────── detail sheet (간결) ───────── */
-function DealSheet({ d, onClose }) {
+function DealSheet({ d, onClose, onPlan }) {
   if (!d) return null
   const dep = fmtDate(d.departure_time), ret = fmtDate(d.return_time)
   const pcv = priceCheckView(d.price_check), photo = photoOf(d), logo = logoOf(d)
@@ -144,6 +145,7 @@ function DealSheet({ d, onClose }) {
           </div>}
           <a href={d.affiliate_url} target="_blank" rel="noopener" className="block text-center bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">예약처에서 확인하기 →</a>
           <div className="text-center text-[11px] text-slate-400">가격·환불은 예약처에서 최종 확인</div>
+          {onPlan && <button onClick={() => onPlan(d)} className="w-full border-2 border-brand-200 text-brand-700 font-bold rounded-2xl py-3">🗺️ 이 여행으로 플랜 짜기</button>}
           <div className="border-t border-slate-100 pt-3"><div className="text-[12px] text-slate-400 mb-2">가격이 다르거나 마감됐나요?</div><div className="grid grid-cols-3 gap-2 text-[12.5px]">{[['price', '가격이 달라요'], ['soldout', '마감됐어요'], ['link', '링크 이상해요']].map(([k, t]) => <button key={k} onClick={() => report(d.id, k)} className="bg-slate-100 text-slate-600 rounded-xl py-2">{t}</button>)}</div></div>
         </div>
       </div>
@@ -508,13 +510,189 @@ function My({ prefs, onSavePrefs }) {
   )
 }
 
-/* ───────── 🗺️ 여행 플래너 (준비 중) ───────── */
-const Planner = () => <div className="px-6 pt-16 text-center">
-  <div className="text-5xl mb-3">🗺️</div>
-  <div className="text-lg font-extrabold mb-1">여행 플래너</div>
-  <div className="inline-block text-[11px] font-bold text-brand-700 bg-brand-100 rounded-full px-2.5 py-1 mb-4">준비 중</div>
-  <div className="text-[13.5px] text-slate-500 leading-relaxed">항공권을 예약하면, 도착·숙소 위치에 맞춰<br />일자별 동선까지 짜드릴게요. 곧 만나요!</div>
-</div>
+/* ───────── 🗺️ 여행 플래너 (예약 후 · 템플릿 + 목적지 DB, LLM 생성 없음) ─────────
+   정직 원칙: 구체적 장소를 지어내지 않는다. 준비 정보는 검증 가능한 사실,
+   일자별 일정은 사용자가 채우는 뼈대 + 테마 힌트만. localStorage에 영속. */
+const PLAN_THEME_ICON = { '맛집': '🍜', '쇼핑': '🛍️', '휴양': '🏖️', '바다': '🌊', '자연': '🌿', '도시': '🏙️', '온천': '♨️' }
+const SLOTS = [['am', '오전'], ['pm', '오후'], ['eve', '저녁']]
+const PREP_KEYS = ['passport', 'booking', 'esim', 'insurance', 'money', 'adapter', 'weather', 'meds']
+function tripDays(start, end) { const a = new Date(start), b = new Date(end); if (isNaN(a) || isNaN(b)) return 0; const n = Math.round((b - a) / 86400000) + 1; return n > 0 ? n : 0 }
+function loadPlans() { try { return JSON.parse(localStorage.getItem('plans') || '[]') } catch { return [] } }
+const mdSlash = s => (s || '').slice(5).replace('-', '/')
+function seedFromDeal(d) {
+  const dest = DESTINATIONS.find(x => x.codes.includes(destOf(d)))
+  const toYmd = s => { const dt = parseDt(s); return dt ? `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}-${pad2(dt.getDate())}` : '' }
+  return { destName: dest ? dest.name : (d.city || ''), start: toYmd(d.departure_time), end: toYmd(d.return_time) }
+}
+
+function InterestCard({ icon, title, k }) {
+  const [on, setOn] = useState(() => localStorage.getItem('int_' + k) === '1')
+  const toggle = () => { const n = !on; setOn(n); localStorage.setItem('int_' + k, n ? '1' : '0') }
+  return (
+    <button onClick={toggle} className="w-full bg-white rounded-2xl shadow-soft p-3 text-left flex items-center gap-2.5 active:scale-[.99]">
+      <span className="text-xl">{icon}</span>
+      <div className="flex-1 min-w-0"><div className="text-[13px] font-bold text-slate-700">{title}</div><div className="text-[11px] text-slate-400">곧 검수한 특가로 연결할게요</div></div>
+      <span className={'text-[11px] font-bold rounded-full px-2 py-1 shrink-0 ' + (on ? 'bg-brand-500 text-white' : 'bg-slate-100 text-slate-500')}>{on ? '🔔 등록됨' : '관심 등록'}</span>
+    </button>
+  )
+}
+
+function PlanDetail({ plan, onChange, onBack, onDelete }) {
+  const info = COUNTRY_INFO[plan.country]
+  const m = plan.start ? new Date(plan.start).getMonth() + 1 : null
+  const goodSeason = !!(m && plan.months && plan.months.includes(m))
+  const slug = plan.codes && plan.codes.length ? DEST_PHOTO[plan.codes[0]] : null, photo = slug ? photoBySlug(slug) : null
+  const PREP = [
+    ['passport', '여권 유효기간 6개월 이상'],
+    ['booking', '항공권·숙소 예약 확인서 저장'],
+    ['esim', 'eSIM / 유심 데이터'],
+    ['insurance', '여행자보험 가입'],
+    ['money', '환전 · 해외결제 카드'],
+    ['adapter', info ? `콘센트 어댑터 (${info.plug.split(' · ')[0]})` : '콘센트 어댑터'],
+    ['weather', '목적지 날씨 확인 · 옷차림'],
+    ['meds', '상비약 · 비상약'],
+  ]
+  const doneN = PREP.filter(([k]) => plan.checks[k]).length
+  const days = []
+  for (let i = 0; i < plan.days; i++) {
+    if (i === 0) days.push({ i, label: '도착', tip: '공항 → eSIM 개통 → 환전·교통카드 → 체크인 → 첫 끼' })
+    else if (i === plan.days - 1 && plan.days > 1) days.push({ i, label: '출국', tip: '체크아웃(짐 보관) → 마지막 일정 → 공항 2~3시간 전 도착' })
+    else days.push({ i, label: '자유 일정' })
+  }
+  const setNote = (key, v) => onChange({ notes: { ...plan.notes, [key]: v } })
+  const toggleCheck = k => onChange({ checks: { ...plan.checks, [k]: !plan.checks[k] } })
+  return (
+    <div className="px-4 pb-6 pt-1 space-y-4">
+      <button onClick={onBack} className="text-[13px] text-brand-600 font-bold">← 내 여행</button>
+      <div className="relative rounded-3xl overflow-hidden h-36 bg-slate-200 bg-cover bg-center" style={photo ? { backgroundImage: `linear-gradient(180deg,rgba(0,0,0,.1),rgba(0,0,0,.55)),url(${photo})` } : {}}>
+        <div className="absolute bottom-3 left-4 right-4 text-white" style={{ textShadow: '0 1px 8px rgba(0,0,0,.4)' }}>
+          <div className="text-2xl font-extrabold">📍 {plan.destName}</div>
+          <div className="text-[12.5px] opacity-90 mt-0.5">{plan.country}{plan.start ? ` · ${mdSlash(plan.start)} ~ ${mdSlash(plan.end)}` : ''} · {plan.days}일</div>
+        </div>
+      </div>
+      <div className={'rounded-2xl p-3 text-[12.5px] ' + (goodSeason ? 'bg-brand-50 text-brand-700' : 'bg-slate-100 text-slate-600')}>
+        {goodSeason ? '🌤️ 여행하기 좋은 시즌이에요.' : '🗓️ 가는 시기의 날씨를 한 번 확인해보세요.'}
+        {plan.caution && plan.caution.length > 0 && <span className="text-amber-700"> · ⚠️ {plan.caution.join(' · ')}</span>}
+      </div>
+      {info && <div className="bg-white rounded-2xl shadow-soft p-4">
+        <div className="text-[13px] font-bold text-slate-700 mb-2">ℹ️ {plan.country} 기본 정보</div>
+        <div className="grid grid-cols-2 gap-y-2 text-[12.5px]">
+          <div><span className="text-slate-400">통화 </span><b className="text-slate-700">{info.currency}</b></div>
+          <div><span className="text-slate-400">시차 </span><b className="text-slate-700">{info.tz}</b></div>
+          <div><span className="text-slate-400">전원 </span><b className="text-slate-700">{info.plug}</b></div>
+          <div><span className="text-slate-400">데이터 </span><b className="text-slate-700">{info.data}</b></div>
+          <div className="col-span-2"><span className="text-slate-400">교통 </span><b className="text-slate-700">{info.transit}</b></div>
+        </div>
+        <div className="text-[12px] text-slate-500 mt-2">💡 {info.tip}</div>
+        <div className="text-[11px] text-slate-400 mt-2 border-t border-slate-100 pt-2">{VISA_NOTE}</div>
+      </div>}
+      <div className="bg-white rounded-2xl shadow-soft p-4">
+        <div className="flex items-center justify-between mb-1"><div className="text-[13px] font-bold text-slate-700">✅ 출발 전 준비물</div><div className="text-[12px] font-bold text-brand-600">{doneN}/{PREP.length}</div></div>
+        <div className="space-y-0.5">
+          {PREP.map(([k, label]) => <button key={k} onClick={() => toggleCheck(k)} className="w-full flex items-center gap-2.5 py-1.5 text-left">
+            <span className={'w-5 h-5 rounded-md flex items-center justify-center text-[12px] shrink-0 ' + (plan.checks[k] ? 'bg-brand-500 text-white' : 'bg-slate-100 text-slate-300')}>✓</span>
+            <span className={'text-[13px] ' + (plan.checks[k] ? 'text-slate-400 line-through' : 'text-slate-700')}>{label}</span>
+          </button>)}
+        </div>
+      </div>
+      <div>
+        <div className="text-[13px] font-bold text-slate-700 mb-1">🗓️ 일자별 일정</div>
+        {plan.themes && plan.themes.length > 0 && <div className="text-[12px] text-slate-500 mb-2">이 도시 분위기 {plan.themes.map(t => (PLAN_THEME_ICON[t] || '') + t).join(' · ')} — 참고해서 채워보세요</div>}
+        <div className="space-y-3">
+          {days.map(day => <div key={day.i} className="bg-white rounded-2xl shadow-soft p-4">
+            <div className="text-[14px] font-extrabold text-slate-800 mb-1">{day.i + 1}일차 <span className="text-[12px] font-medium text-slate-400">· {day.label}</span></div>
+            {day.tip && <div className="text-[12px] text-amber-700 bg-amber-50 rounded-xl px-3 py-2 mb-2">{day.tip}</div>}
+            <div className="space-y-2 mt-1">
+              {SLOTS.map(([sk, sl]) => <div key={sk} className="flex gap-2 items-start">
+                <span className="text-[11px] font-bold text-brand-600 bg-brand-50 rounded-full px-2 py-1 mt-0.5 shrink-0 w-11 text-center">{sl}</span>
+                <textarea value={plan.notes[`${day.i}:${sk}`] || ''} onChange={e => setNote(`${day.i}:${sk}`, e.target.value)} rows={1} placeholder="가고 싶은 곳, 먹고 싶은 것…" className="flex-1 text-[13px] bg-slate-50 rounded-xl px-3 py-2 resize-none border border-transparent focus:border-brand-300 focus:bg-white outline-none" />
+              </div>)}
+            </div>
+          </div>)}
+        </div>
+      </div>
+      <div>
+        <div className="text-[13px] font-bold text-slate-700 mb-2">🧳 현지 준비물</div>
+        <div className="space-y-2">
+          <InterestCard icon="📶" title="eSIM · 데이터" k="esim" />
+          <InterestCard icon="🛡️" title="여행자보험" k="insurance" />
+          <InterestCard icon="🚌" title="공항 교통 · 교통패스" k="transit" />
+        </div>
+      </div>
+      <button onClick={onDelete} className="w-full text-[12.5px] text-slate-400 py-2">이 여행 삭제</button>
+    </div>
+  )
+}
+
+function Planner({ seed, clearSeed }) {
+  const [plans, setPlans] = useState(loadPlans)
+  const [mode, setMode] = useState('list')   // 'list' | 'new' | <planId>
+  const [destName, setDestName] = useState(DESTINATIONS[0].name)
+  const [start, setStart] = useState('')
+  const [end, setEnd] = useState('')
+  useEffect(() => {
+    if (seed) { setDestName(seed.destName || DESTINATIONS[0].name); setStart(seed.start || ''); setEnd(seed.end || ''); setMode('new'); clearSeed && clearSeed() }
+  }, [seed])
+  const persist = list => { setPlans(list); localStorage.setItem('plans', JSON.stringify(list)) }
+  const create = () => {
+    const d = DESTINATIONS.find(x => x.name === destName) || {}
+    const days = tripDays(start, end) || 3
+    const plan = { id: 'p' + Date.now(), destName, country: d.country || '', codes: d.codes || [], themes: d.themes || [], caution: d.caution || [], months: d.months || [], start, end, days, notes: {}, checks: {}, createdAt: new Date().toISOString() }
+    persist([plan, ...plans]); setMode(plan.id); setStart(''); setEnd('')
+  }
+  const update = (id, patch) => persist(plans.map(p => p.id === id ? { ...p, ...patch } : p))
+  const remove = id => { persist(plans.filter(p => p.id !== id)); setMode('list') }
+
+  if (mode !== 'list' && mode !== 'new') {
+    const plan = plans.find(p => p.id === mode)
+    if (!plan) return <Empty icon="🗺️" text="플랜을 찾을 수 없어요." />
+    return <PlanDetail plan={plan} onChange={patch => update(plan.id, patch)} onBack={() => setMode('list')} onDelete={() => remove(plan.id)} />
+  }
+  if (mode === 'new') {
+    const nights = tripDays(start, end)
+    const valid = !!(start && end && nights > 0)
+    const options = DESTINATIONS.map(d => d.name)
+    if (!options.includes(destName)) options.unshift(destName)
+    return (
+      <div className="px-4 pt-2 pb-6 space-y-4">
+        <button onClick={() => setMode('list')} className="text-[13px] text-brand-600 font-bold">← 내 여행</button>
+        <div className="bg-white rounded-2xl shadow-soft p-4 space-y-4">
+          <div><label className="text-[12px] text-slate-500">어디로 가세요?</label>
+            <select value={destName} onChange={e => setDestName(e.target.value)} className="w-full mt-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-[14px]">{options.map(n => <option key={n} value={n}>{n}</option>)}</select></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><label className="text-[12px] text-slate-500">출발일</label><input type="date" value={start} onChange={e => setStart(e.target.value)} className="w-full mt-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-[14px]" /></div>
+            <div><label className="text-[12px] text-slate-500">귀국일</label><input type="date" value={end} onChange={e => setEnd(e.target.value)} className="w-full mt-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-[14px]" /></div>
+          </div>
+          {valid && <div className="text-[12.5px] text-brand-600 font-bold">{nights - 1}박 {nights}일 일정으로 만들어드릴게요</div>}
+          <button onClick={create} disabled={!valid} className={'w-full font-bold rounded-2xl py-3.5 ' + (valid ? 'bg-brand-500 hover:bg-brand-600 text-white' : 'bg-slate-100 text-slate-400')}>여행 플랜 만들기 🗺️</button>
+        </div>
+        <p className="text-[12px] text-slate-400 px-1 leading-relaxed">목적지·날짜를 고르면 <b className="text-slate-500">준비물 체크리스트 · 현지 기본 정보 · 일자별 빈 일정표</b>를 만들어드려요. 일정은 직접 채우는 방식이라, 없는 정보를 지어내지 않아요.</p>
+      </div>
+    )
+  }
+  return (
+    <div className="px-4 pt-2 pb-6 space-y-3">
+      <button onClick={() => { setStart(''); setEnd(''); setMode('new') }} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">+ 새 여행 플랜 만들기</button>
+      {plans.length === 0
+        ? <div className="text-center text-slate-400 py-16"><div className="text-4xl mb-2">🗺️</div><div className="text-[13px] px-8 leading-relaxed">아직 만든 여행 플랜이 없어요.<br />항공권을 예약했다면, 여기서 준비물과 일정을 정리해보세요.</div></div>
+        : plans.map(p => {
+          const done = PREP_KEYS.filter(k => p.checks && p.checks[k]).length
+          const slug = p.codes && p.codes.length ? DEST_PHOTO[p.codes[0]] : null, photo = slug ? photoBySlug(slug) : null
+          return (
+            <button key={p.id} onClick={() => setMode(p.id)} className="w-full flex gap-3 bg-white rounded-2xl shadow-soft p-3 text-left active:scale-[.99]">
+              {photo ? <div className="w-16 h-16 rounded-xl bg-cover bg-center shrink-0 bg-slate-100" style={{ backgroundImage: `url(${photo})` }} /> : <div className="w-16 h-16 rounded-xl shrink-0 bg-brand-50 flex items-center justify-center text-2xl">🗺️</div>}
+              <div className="flex-1 min-w-0">
+                <div className="text-[15px] font-extrabold text-slate-800">📍 {p.destName}</div>
+                <div className="text-[12px] text-slate-400 mt-0.5">{p.start ? `${mdSlash(p.start)} ~ ${mdSlash(p.end)}` : ''} · {p.days}일</div>
+                <div className="text-[11.5px] text-brand-600 font-bold mt-1.5">준비물 {done}/{PREP_KEYS.length}</div>
+              </div>
+              <span className="text-slate-300 text-xl self-center">›</span>
+            </button>
+          )
+        })}
+    </div>
+  )
+}
 
 /* ───────── shell ───────── */
 const TABS = [['hot', '🔥', '핫딜'], ['flights', '✈️', '항공편'], ['planner', '🗺️', '여행플래너'], ['my', '👤', '마이']]
@@ -524,6 +702,7 @@ export default function App() {
   const [deals, setDeals] = useState(null)
   const [updatedAt, setUpdatedAt] = useState('')
   const [sel, setSel] = useState(null)
+  const [planSeed, setPlanSeed] = useState(null)
   const [savedIds, toggleSave] = useSaved()
   const [prefs, savePrefs] = useAlertPrefs()
   const loadDeals = () => fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => { setDeals(d.deals || []); const t = new Date(); setUpdatedAt(`${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`) }).catch(() => setDeals([]))
@@ -536,13 +715,13 @@ export default function App() {
         {deals && tab !== 'hot' && <div className="px-5 pt-7 pb-1"><h1 className="text-[22px] font-extrabold text-slate-900">{TAB_TITLE[tab]}</h1></div>}
         {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} onSearch={() => setTab('flights')} onRefresh={loadDeals} updatedAt={updatedAt} /> : <Empty icon="🔎" text="핫딜이 아직 없어요." />)}
         {deals && tab === 'flights' && <Flights deals={deals} onOpen={setSel} />}
-        {deals && tab === 'planner' && <Planner />}
+        {deals && tab === 'planner' && <Planner seed={planSeed} clearSeed={() => setPlanSeed(null)} />}
         {deals && tab === 'my' && <My prefs={prefs} onSavePrefs={savePrefs} />}
       </main>
       <nav className="fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white border-t border-slate-100 grid grid-cols-4 pb-[env(safe-area-inset-bottom)] z-40">
         {TABS.map(([k, ic, label]) => <button key={k} onClick={() => setTab(k)} className={'py-2.5 flex flex-col items-center gap-0.5 text-[10.5px] ' + (tab === k ? 'text-brand-600 font-bold' : 'text-slate-400')}><span className="text-lg leading-none">{ic}</span>{label}</button>)}
       </nav>
-      {sel && <DealSheet d={sel} onClose={() => setSel(null)} />}
+      {sel && <DealSheet d={sel} onClose={() => setSel(null)} onPlan={d => { setSel(null); setPlanSeed(seedFromDeal(d)); setTab('planner') }} />}
     </div>
   )
 }
