@@ -744,12 +744,6 @@ function homeDestGroups(deals) {
     { title: '지금 딜 있는 도시', items: Object.entries(cities).map(([code, name]) => ({ id: 'c:' + code, label: name, sub: code, icon: '🏙️' })) },
   ]
 }
-function insTime(d) {
-  const t = d.inspection && (d.inspection.checked_at || d.inspection.time)
-  if (!t) return '검수 완료'
-  const dt = parseDt(String(t).replace('T', ' ').slice(0, 16))
-  return dt ? `${dt.getMonth() + 1}/${dt.getDate()} ${pad2(dt.getHours())}:${pad2(dt.getMinutes())} 직접 확인` : '검수 완료'
-}
 function Home({ deals, onGo, onDeal, onDealFilter }) {
   const [ov, setOv] = useState(false)
   const wk = upcomingWeekends(todayStr())[0]
@@ -757,13 +751,12 @@ function Home({ deals, onGo, onDeal, onDealFilter }) {
   return (
     <div>
       <div className="relative h-[248px] bg-cover bg-center bg-slate-300" style={{ backgroundImage: `linear-gradient(180deg,rgba(15,23,42,.4),rgba(15,23,42,.04) 38%,rgba(15,23,42,.82)),url(${photoBySlug('hero')})` }}>
-        <div className="absolute top-5 left-5 right-5 flex items-center justify-between">
+        <div className="absolute top-5 left-5 right-5">
           <span className="text-white font-extrabold text-[16px]" style={{ textShadow: '0 1px 8px rgba(0,0,0,.5)' }}>✈️ 싸다구항공</span>
-          <span className="text-[11px] font-bold text-white bg-white/25 rounded-full px-3 py-1">🛡️ 검수된 특가만</span>
         </div>
         <div className="absolute left-5 right-5 bottom-12 text-white">
-          <h1 className="text-[23px] font-extrabold leading-[1.3]" style={{ textShadow: '0 2px 14px rgba(0,0,0,.45)' }}>발품은 우리가 팔게.<br />넌 떠나기만 해.</h1>
-          <p className="text-[12.5px] mt-1.5 opacity-95" style={{ textShadow: '0 1px 8px rgba(0,0,0,.5)' }}>6개 사이트 안 뒤져도, 사람이 확인한 특가만</p>
+          <h1 className="text-[23px] font-extrabold leading-[1.3]" style={{ textShadow: '0 2px 14px rgba(0,0,0,.45)' }}>발품은 우리가 팔게<br />넌 떠나기만 해.</h1>
+          <p className="text-[14px] font-bold mt-1.5" style={{ textShadow: '0 1px 8px rgba(0,0,0,.5)' }}>어딜봐도 싸다구.</p>
         </div>
       </div>
       <div className="bg-[#f2faf8] rounded-t-3xl -mt-7 relative px-4 pb-5">
@@ -796,7 +789,7 @@ function Home({ deals, onGo, onDeal, onDealFilter }) {
                   <span className="absolute left-3.5 bottom-3 text-white text-[18px] font-extrabold" style={{ textShadow: '0 2px 10px rgba(0,0,0,.6)' }}>{d.city}</span>
                 </div>
                 <div className="px-4 py-3 flex items-center justify-between gap-2">
-                  <span className="text-[10.5px] font-bold text-brand-700 bg-brand-50 rounded-full px-2.5 py-1 truncate">🛡️ {insTime(d)}</span>
+                  <span className="text-[12px] text-slate-500 truncate">{d.airline} · {d.transfers === 0 ? '직항' : '경유'}</span>
                   <span className="text-[16px] font-black text-brand-600 shrink-0">{won(d.price)} <span className="text-[10px] text-slate-400 font-semibold">왕복</span></span>
                 </div>
               </div>

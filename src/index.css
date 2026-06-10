@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 html, body, #root { height: 100%; }
+html, body {
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  letter-spacing: -0.01em;
+}
 body {
   background: #eefbf8;
   -webkit-tap-highlight-color: transparent;
