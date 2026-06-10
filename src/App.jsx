@@ -45,11 +45,12 @@ const REGION = { '동남아': ['베트남', '태국', '필리핀', '싱가포르
 const destOf = d => (d.route || '').split('-')[1] || ''
 const ORIGIN_NAME = { ICN: '인천', GMP: '김포', PUS: '부산' }
 const originOf = d => ORIGIN_NAME[(d.route || '').split('-')[0]] || ''
+// 엔진 duration은 왕복 합산 비행시간 — '직항 9시간 30분' 오해 방지 위해 '왕복' 명시
 const durOf = d => {
   if (!d.duration) return ''
   const m = +d.duration
-  if (m > 0) return `${Math.floor(m / 60)}시간 ${m % 60 ? m % 60 + '분' : ''}`.trim()
-  return typeof d.duration === 'string' ? d.duration : ''
+  if (m > 0) return `왕복 ${Math.floor(m / 60)}시간 ${m % 60 ? m % 60 + '분' : ''}`.trim()
+  return typeof d.duration === 'string' ? '왕복 ' + d.duration : ''
 }
 function byGeo(deals, q) {
   const codes = new Set(); const countries = []
