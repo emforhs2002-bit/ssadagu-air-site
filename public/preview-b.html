@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>싸다구항공 — 홈 시안 B (포토 감성형)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family:"Pretendard Variable",Pretendard,-apple-system,sans-serif; background:#eceff1; display:flex; justify-content:center; }
+  .phone { width:100%; max-width:430px; min-height:100vh; background:#f2faf8; position:relative; padding-bottom:76px; }
+  .tag { position:fixed; top:10px; left:50%; transform:translateX(-50%); z-index:99; background:#111827cc; color:#fff; font-size:11px; padding:6px 12px; border-radius:999px; backdrop-filter:blur(4px); }
+  .tag a { color:#5eead4; text-decoration:none; font-weight:700; }
+
+  .hero { height:248px; background:linear-gradient(180deg,#0f172a55 0%,#0f172a08 35%,#0f172acc 100%),url(dest/hero.jpg) center/cover; position:relative; }
+  .hero-top { position:absolute; top:46px; left:18px; right:18px; display:flex; justify-content:space-between; align-items:center; }
+  .logo { color:#fff; font-weight:800; font-size:16px; text-shadow:0 1px 8px #0008; }
+  .pill { background:#ffffff30; backdrop-filter:blur(6px); color:#fff; font-size:11px; font-weight:700; padding:4px 11px; border-radius:999px; }
+  .hero-tx { position:absolute; left:20px; right:20px; bottom:54px; color:#fff; }
+  .hero-tx h1 { font-size:23px; font-weight:800; line-height:1.3; letter-spacing:-.4px; text-shadow:0 2px 14px #0006; }
+  .hero-tx p { font-size:12.5px; margin-top:6px; opacity:.94; text-shadow:0 1px 8px #0008; }
+
+  .sheet { background:#f2faf8; border-radius:24px 24px 0 0; margin-top:-26px; position:relative; padding-top:2px; }
+  .search { background:#fff; margin:-26px 16px 0; position:relative; border-radius:16px; padding:13px 15px; display:flex; align-items:center; gap:10px; box-shadow:0 8px 24px #0f766e1f; }
+  .search .ic { font-size:16px; }
+  .search input { border:0; outline:0; flex:1; font-size:15px; font-family:inherit; }
+  .search input::placeholder { color:#94a3b8; }
+
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); padding:18px 10px 2px; }
+  .gi { text-align:center; padding:6px 2px 10px; text-decoration:none; }
+  .gi .bub { width:52px; height:52px; margin:0 auto 7px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; background:#fff; box-shadow:0 3px 12px #0f766e14; }
+  .gi span { font-size:12px; font-weight:700; color:#134e4a; }
+
+  .banner { margin:10px 16px 0; background:#fff; border-left:4px solid #f59e0b; border-radius:14px; padding:13px 15px; display:flex; gap:11px; align-items:center; box-shadow:0 2px 10px #0f172a08; }
+  .banner .em { font-size:23px; }
+  .banner b { font-size:13.5px; color:#92400e; display:block; }
+  .banner p { font-size:11.5px; color:#a16207; margin-top:2px; }
+
+  .sec { display:flex; align-items:baseline; justify-content:space-between; margin:20px 18px 11px; }
+  .sec h2 { font-size:17.5px; font-weight:800; color:#0f172a; letter-spacing:-.3px; }
+  .sec a { font-size:12px; color:#0d9488; font-weight:700; text-decoration:none; }
+
+  .deal { margin:0 16px 13px; background:#fff; border-radius:18px; overflow:hidden; box-shadow:0 4px 16px #0f172a0e; display:block; text-decoration:none; }
+  .deal .ph { height:148px; background-size:cover; background-position:center; position:relative; }
+  .deal .off { position:absolute; top:11px; left:11px; background:#f43f5e; color:#fff; font-size:11.5px; font-weight:800; padding:4px 9px; border-radius:8px; }
+  .deal .ct { position:absolute; left:13px; bottom:11px; color:#fff; font-size:18px; font-weight:800; text-shadow:0 2px 10px #000a; }
+  .deal .bd { padding:11px 14px 13px; display:flex; align-items:center; justify-content:space-between; }
+  .deal .vf { font-size:11px; color:#0f766e; font-weight:700; background:#e2f7f1; padding:4px 9px; border-radius:999px; }
+  .deal .vf small { color:#64748b; font-weight:600; }
+  .deal .pr { font-size:18px; font-weight:900; color:#0d9488; }
+  .deal .pr small { font-size:10.5px; color:#94a3b8; font-weight:600; }
+
+  .duo { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin:4px 16px 0; }
+  .mini { border-radius:16px; overflow:hidden; position:relative; height:96px; display:block; text-decoration:none; }
+  .mini img { width:100%; height:100%; object-fit:cover; display:block; }
+  .mini .ov { position:absolute; inset:0; background:linear-gradient(180deg,#0f172a10,#0f172abf); display:flex; flex-direction:column; justify-content:flex-end; padding:10px 12px; }
+  .mini b { color:#fff; font-size:13.5px; }
+  .mini p { color:#cbd5e1; font-size:10.5px; margin-top:2px; }
+
+  .nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:#fffffff2; backdrop-filter:blur(10px); border-top:1px solid #e2e8f0; display:grid; grid-template-columns:repeat(4,1fr); padding:8px 0 max(10px,env(safe-area-inset-bottom)); }
+  .nav div { text-align:center; font-size:10.5px; color:#94a3b8; font-weight:600; }
+  .nav div.on { color:#0d9488; }
+  .nav .i { font-size:21px; display:block; margin-bottom:2px; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="tag">시안 B · 포토 감성형 — <a href="preview-a.html">A안 보기 →</a></div>
+
+  <div class="hero">
+    <div class="hero-top">
+      <span class="logo">✈️ 싸다구항공</span>
+      <span class="pill">🛡️ 검수된 특가만</span>
+    </div>
+    <div class="hero-tx">
+      <h1>발품은 우리가 팔게.<br>넌 떠나기만 해.</h1>
+      <p>6개 사이트 안 뒤져도, 사람이 확인한 특가만</p>
+    </div>
+  </div>
+
+  <div class="sheet">
+    <div class="search"><span class="ic">🔍</span><input placeholder="어디로 떠나세요? 도시 · 호텔 · 항공권"></div>
+
+    <div class="grid">
+      <a class="gi" href="#"><div class="bub">🔥</div><span>핫딜</span></a>
+      <a class="gi" href="#"><div class="bub">✈️</div><span>항공편</span></a>
+      <a class="gi" href="#"><div class="bub">🏨</div><span>호텔</span></a>
+      <a class="gi" href="#"><div class="bub">🗺️</div><span>플래너</span></a>
+    </div>
+
+    <div class="banner">
+      <span class="em">🗓️</span>
+      <div><b>10/3~11 황금연휴 · 연차 3개로 9일</b><p>지금 제일 싸게 갈 수 있는 곳 보기 ›</p></div>
+    </div>
+
+    <div class="sec"><h2>🔥 지금 뜬 핫딜</h2><a href="#">전체 ›</a></div>
+
+    <a class="deal" href="#">
+      <div class="ph" style="background-image:url(dest/cebu.jpg)"><span class="off">평소 대비 -43%</span><span class="ct">세부</span></div>
+      <div class="bd"><span class="vf">🛡️ 6/10 14:00 직접 확인 <small>· 진에어 직항</small></span><span class="pr">243,000원 <small>왕복</small></span></div>
+    </a>
+    <a class="deal" href="#">
+      <div class="ph" style="background-image:url(dest/danang.jpg)"><span class="off">평소 대비 -35%</span><span class="ct">다낭</span></div>
+      <div class="bd"><span class="vf">🛡️ 6/10 11:30 직접 확인 <small>· 비엣젯</small></span><span class="pr">273,000원 <small>왕복</small></span></div>
+    </a>
+
+    <div class="duo">
+      <a class="mini" href="#"><img src="dest/bangkok.jpg" alt=""><div class="ov"><b>🏨 호텔 최저가 비교</b><p>부킹·아고다·트립 한 번에</p></div></a>
+      <a class="mini" href="#"><img src="dest/tokyo.jpg" alt=""><div class="ov"><b>✈️ 항공권 검색</b><p>어디든지 · 날짜별 최저가</p></div></a>
+    </div>
+  </div>
+
+  <div class="nav">
+    <div class="on"><span class="i">🏠</span>홈</div>
+    <div><span class="i">🔥</span>핫딜</div>
+    <div><span class="i">🔔</span>알림</div>
+    <div><span class="i">👤</span>마이</div>
+  </div>
+</div>
+</body>
+</html>

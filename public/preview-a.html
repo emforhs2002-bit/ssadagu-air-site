@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>싸다구항공 — 홈 시안 A (트립닷컴형)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family:"Pretendard Variable",Pretendard,-apple-system,sans-serif; background:#eceff1; display:flex; justify-content:center; }
+  .phone { width:100%; max-width:430px; min-height:100vh; background:#f7f9fa; position:relative; padding-bottom:76px; }
+  .tag { position:fixed; top:10px; left:50%; transform:translateX(-50%); z-index:99; background:#111827cc; color:#fff; font-size:11px; padding:6px 12px; border-radius:999px; backdrop-filter:blur(4px); }
+  .tag a { color:#5eead4; text-decoration:none; font-weight:700; }
+
+  .hd { background:linear-gradient(160deg,#0d9488 0%,#14b8a6 60%,#2dd4bf 100%); padding:54px 16px 18px; border-radius:0 0 22px 22px; }
+  .hd-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .logo { color:#fff; font-weight:800; font-size:17px; letter-spacing:-.3px; }
+  .pill { background:#ffffff2e; color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; }
+  .search { background:#fff; border-radius:14px; padding:13px 14px; display:flex; align-items:center; gap:9px; box-shadow:0 6px 18px #0d948826; }
+  .search .ic { font-size:16px; }
+  .search input { border:0; outline:0; flex:1; font-size:15px; font-family:inherit; }
+  .search input::placeholder { color:#94a3b8; }
+  .chips { display:flex; gap:7px; margin-top:11px; overflow-x:auto; scrollbar-width:none; }
+  .chips::-webkit-scrollbar { display:none; }
+  .chip { flex-shrink:0; background:#ffffff24; color:#fff; font-size:12.5px; font-weight:600; padding:6px 13px; border-radius:999px; }
+
+  .grid { background:#fff; margin:14px 14px 0; border-radius:18px; padding:16px 8px 6px; display:grid; grid-template-columns:repeat(4,1fr); box-shadow:0 2px 10px #0f172a08; }
+  .gi { text-align:center; padding:6px 2px 14px; text-decoration:none; }
+  .gi .bub { width:50px; height:50px; margin:0 auto 7px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:24px; }
+  .gi span { font-size:12px; font-weight:600; color:#334155; display:block; }
+  .gi small { font-size:9.5px; color:#f43f5e; font-weight:800; }
+  .b1{background:#fff1ec} .b2{background:#e8f2fe} .b3{background:#efeafd} .b4{background:#e2f7f1} .b5{background:#fef3df} .b6{background:#fde8ef} .b7{background:#e9f7e6} .b8{background:#f1f5f9}
+
+  .banner { margin:12px 14px 0; background:linear-gradient(105deg,#7c3aed,#a855f7); border-radius:16px; padding:15px 16px; display:flex; align-items:center; gap:12px; color:#fff; }
+  .banner b { font-size:14.5px; display:block; }
+  .banner p { font-size:12px; opacity:.92; margin-top:3px; }
+  .banner .em { font-size:26px; }
+
+  .trust { margin:12px 14px 0; display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+  .tcard { background:#fff; border-radius:14px; padding:12px 13px; box-shadow:0 2px 10px #0f172a08; }
+  .tcard b { font-size:13px; color:#0f766e; }
+  .tcard p { font-size:11px; color:#64748b; margin-top:3px; line-height:1.45; }
+
+  .sec { display:flex; align-items:baseline; justify-content:space-between; margin:20px 16px 10px; }
+  .sec h2 { font-size:17px; font-weight:800; color:#0f172a; letter-spacing:-.3px; }
+  .sec a { font-size:12px; color:#0d9488; font-weight:700; text-decoration:none; }
+  .rail { display:flex; gap:11px; overflow-x:auto; padding:2px 14px 6px; scrollbar-width:none; }
+  .rail::-webkit-scrollbar { display:none; }
+  .deal { flex-shrink:0; width:158px; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 3px 12px #0f172a0d; text-decoration:none; }
+  .deal .ph { height:106px; background-size:cover; background-position:center; position:relative; }
+  .deal .off { position:absolute; top:8px; left:8px; background:#f43f5e; color:#fff; font-size:10.5px; font-weight:800; padding:3px 7px; border-radius:7px; }
+  .deal .ok { position:absolute; bottom:8px; left:8px; background:#0f172acc; color:#5eead4; font-size:10px; font-weight:700; padding:3px 7px; border-radius:7px; }
+  .deal .bd { padding:10px 11px 12px; }
+  .deal .ct { font-size:13.5px; font-weight:700; color:#0f172a; }
+  .deal .pr { font-size:15px; font-weight:900; color:#0d9488; margin-top:3px; }
+  .deal .pr small { font-size:10px; color:#94a3b8; font-weight:600; }
+
+  .hotelp { margin:6px 14px 0; border-radius:18px; overflow:hidden; position:relative; display:block; text-decoration:none; }
+  .hotelp img { width:100%; height:128px; object-fit:cover; display:block; }
+  .hotelp .ov { position:absolute; inset:0; background:linear-gradient(90deg,#0f172ae6 30%,#0f172a30); display:flex; flex-direction:column; justify-content:center; padding:0 18px; }
+  .hotelp b { color:#fff; font-size:15.5px; }
+  .hotelp p { color:#cbd5e1; font-size:11.5px; margin-top:4px; }
+  .hotelp .go { margin-top:9px; background:#14b8a6; color:#fff; font-size:11.5px; font-weight:800; padding:6px 12px; border-radius:999px; width:fit-content; }
+
+  .nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:#fffffff2; backdrop-filter:blur(10px); border-top:1px solid #e2e8f0; display:grid; grid-template-columns:repeat(4,1fr); padding:8px 0 max(10px,env(safe-area-inset-bottom)); }
+  .nav div { text-align:center; font-size:10.5px; color:#94a3b8; font-weight:600; }
+  .nav div.on { color:#0d9488; }
+  .nav .i { font-size:21px; display:block; margin-bottom:2px; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="tag">시안 A · 트립닷컴형 — <a href="preview-b.html">B안 보기 →</a></div>
+
+  <div class="hd">
+    <div class="hd-top">
+      <span class="logo">✈️ 싸다구항공</span>
+      <span class="pill">🛡️ 검수된 특가만</span>
+    </div>
+    <div class="search"><span class="ic">🔍</span><input placeholder="어디로 떠나세요? 도시 · 호텔 · 항공권"></div>
+    <div class="chips">
+      <span class="chip">후쿠오카</span><span class="chip">오사카</span><span class="chip">다낭</span><span class="chip">방콕</span><span class="chip">뉴욕</span><span class="chip">괌</span><span class="chip">세부</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <a class="gi" href="#"><div class="bub b1">🔥</div><span>핫딜</span></a>
+    <a class="gi" href="#"><div class="bub b2">✈️</div><span>항공편</span></a>
+    <a class="gi" href="#"><div class="bub b3">🏨</div><span>호텔</span></a>
+    <a class="gi" href="#"><div class="bub b4">🗺️</div><span>플래너</span></a>
+    <a class="gi" href="#"><div class="bub b5">🔔</div><span>특가 알림</span></a>
+    <a class="gi" href="#"><div class="bub b6">📅</div><span>연휴 달력</span></a>
+    <a class="gi" href="#"><div class="bub b7">📶</div><span>eSIM <small>곧</small></span></a>
+    <a class="gi" href="#"><div class="bub b8">👤</div><span>마이</span></a>
+  </div>
+
+  <div class="banner">
+    <span class="em">🗓️</span>
+    <div><b>10/3~11 황금연휴 — 연차 3개로 9일</b><p>지금 제일 싸게 갈 수 있는 곳 보러 가기 ›</p></div>
+  </div>
+
+  <div class="trust">
+    <div class="tcard"><b>🛡️ 사람이 직접 확인</b><p>가격·날짜를 운영자가 클릭해 확인한 특가만 올려요</p></div>
+    <div class="tcard"><b>💰 수수료 0원</b><p>우린 안 팔아요 — 제일 싼 예약처로 연결만 해요</p></div>
+  </div>
+
+  <div class="sec"><h2>🔥 지금 뜬 핫딜</h2><a href="#">전체 보기 ›</a></div>
+  <div class="rail">
+    <a class="deal" href="#"><div class="ph" style="background-image:url(dest/cebu.jpg)"><span class="off">-43%</span><span class="ok">🛡️ 검수됨</span></div><div class="bd"><div class="ct">세부</div><div class="pr">243,000원 <small>왕복</small></div></div></a>
+    <a class="deal" href="#"><div class="ph" style="background-image:url(dest/danang.jpg)"><span class="off">-35%</span><span class="ok">🛡️ 검수됨</span></div><div class="bd"><div class="ct">다낭</div><div class="pr">273,000원 <small>왕복</small></div></div></a>
+    <a class="deal" href="#"><div class="ph" style="background-image:url(dest/osaka.jpg)"><span class="off">-33%</span><span class="ok">🛡️ 검수됨</span></div><div class="bd"><div class="ct">오사카</div><div class="pr">183,000원 <small>왕복</small></div></div></a>
+    <a class="deal" href="#"><div class="ph" style="background-image:url(dest/fukuoka.jpg)"><span class="off">-28%</span><span class="ok">🛡️ 검수됨</span></div><div class="bd"><div class="ct">후쿠오카</div><div class="pr">176,000원 <small>왕복</small></div></div></a>
+  </div>
+
+  <div class="sec"><h2>🏨 호텔, 어디가 진짜 싼지</h2></div>
+  <a class="hotelp" href="#">
+    <img src="dest/bangkok.jpg" alt="">
+    <div class="ov"><b>부킹 · 아고다 · 트립닷컴 한 번에 비교</b><p>전 세계 호텔 — 세금 포함 총액으로 정직하게</p><span class="go">최저가 비교하기</span></div>
+  </a>
+
+  <div class="nav">
+    <div class="on"><span class="i">🏠</span>홈</div>
+    <div><span class="i">🔥</span>핫딜</div>
+    <div><span class="i">🔔</span>알림</div>
+    <div><span class="i">👤</span>마이</div>
+  </div>
+</div>
+</body>
+</html>
