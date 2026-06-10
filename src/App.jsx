@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { DESTINATIONS } from './destinations'
 import { COUNTRY_INFO, VISA_NOTE } from './planner'
 import { vt, haptic, shareIt, useCountUp, Sheet, SearchOverlay, StepRow, MadLib, SkelRows } from './ui'
-import { HOLIDAYS } from './holidays'
+import { HOLIDAYS, upcomingWeekends } from './holidays'
 const Hotels = lazy(() => import('./Hotels'))
 
 /* ───────── helpers ───────── */
@@ -163,9 +163,11 @@ function DealSheet({ d, onClose, onPlan }) {
 }
 
 /* ───────── 🔥 핫딜 (본체 · 포토 히어로) ───────── */
-function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onSearch, onRefresh, updatedAt }) {
+function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onRefresh, updatedAt, ext }) {
   const [cat, setCat] = useState('all')
   const [pick, setPick] = useState(null)
+  // 홈 검색에서 넘어온 필터(나라/도시) 적용
+  useEffect(() => { if (!ext) return; setCat(ext.cat || 'all'); setPick(ext.pick || null) }, [ext && ext.ts])
   const [flash, setFlash] = useState(false)
   const [pull, setPull] = useState(0)
   const touchY = useRef(null)
@@ -184,25 +186,7 @@ function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onSearch, onRefresh,
       {pull > 0 && <div className="flex items-center justify-center overflow-hidden" style={{ height: pull }}>
         <span className={'text-[12px] font-bold ' + (pull > 60 ? 'text-brand-600' : 'text-slate-400')}>{pull > 60 ? '↓ 놓으면 새로고침' : '↓ 당겨서 새로고침'}</span>
       </div>}
-      {/* hero */}
-      <div className="relative h-[330px] bg-cover bg-center bg-slate-300" style={{ backgroundImage: `linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,0) 26%,rgba(0,0,0,.62)),url(${photoBySlug('hero')})` }}>
-        <div className="absolute top-5 left-5 right-5 flex items-center justify-between text-white" style={{ textShadow: '0 1px 8px rgba(0,0,0,.45)' }}>
-          <span className="font-extrabold text-[15px]">✈️ 싸다구항공</span>
-        </div>
-        <div className="absolute left-5 right-5 bottom-24 text-white">
-          <span className="inline-block text-[11.5px] font-bold border border-white/60 rounded-full px-3 py-1 mb-3">🔥 핫딜 리스트</span>
-          <h1 className="text-[25px] font-extrabold leading-[1.32]" style={{ textShadow: '0 2px 14px rgba(0,0,0,.35)' }}>발품은 우리가 팔게.<br />넌 떠나기만 해.</h1>
-          <p className="text-[12.5px] text-white/90 mt-2" style={{ textShadow: '0 1px 10px rgba(0,0,0,.4)' }}>6개 사이트 안 뒤져도, 안심 특가만 골라드려요</p>
-        </div>
-      </div>
-      {/* sheet */}
-      <div className="bg-[#eefbf8] rounded-t-[26px] -mt-6 relative px-4 pb-4">
-        {/* floating search card → 어디 갈까 */}
-        <div onClick={onSearch} className="bg-white rounded-2xl shadow-soft -mt-10 relative px-4 py-0.5 active:scale-[.99] transition cursor-pointer">
-          <div className="flex items-center gap-2.5 py-3.5 text-[14.5px]"><span>🔍</span><span className="text-slate-400">어디로 떠나세요?</span></div>
-          <div className="flex border-t border-slate-100 text-[14px]"><div className="flex-1 flex items-center gap-2 py-3.5"><span>📅</span><span className="text-slate-400">언제든</span></div><div className="flex-1 flex items-center gap-2 py-3.5 border-l border-slate-100 pl-3"><span>👤</span><span className="text-slate-400">1명</span></div></div>
-          <div className="bg-brand-500 text-white text-center font-bold rounded-xl py-3.5 my-2">안심 특가 찾기</div>
-        </div>
+      <div className="px-4 pb-4">
         {/* circles */}
         {circles.length > 0 && <>
           <div className="flex items-baseline justify-between mt-6 mb-3"><h2 className="text-[16.5px] font-extrabold text-slate-900">🔥 지금 뜬 핫딜</h2>{pick && <button onClick={() => setPick(null)} className="text-[12.5px] text-brand-600 font-bold">전체 ›</button>}</div>
@@ -559,7 +543,6 @@ function AlertSetup({ prefs, onSave }) {
 function My({ prefs, onSavePrefs }) {
   return (
     <div className="px-4 pb-4 pt-2 space-y-4">
-      <AlertSetup prefs={prefs} onSave={onSavePrefs} />
       <Section title="관심 공항"><div className="flex gap-2 flex-wrap">{['인천(ICN)', '김포(GMP)'].map(a => <span key={a} className="text-[13px] bg-brand-50 text-brand-700 rounded-full px-3 py-1.5">{a}</span>)}</div></Section>
       <Section title="이런 특가는 숨기기"><Toggle label="경유 항공권 숨기기" k="no_transfer" /><Toggle label="새벽 출발/도착 숨기기" k="no_dawn" /><Toggle label="수하물 별도(LCC) 숨기기" k="no_lcc" /></Section>
       <div className="text-center text-[11px] text-slate-400 pt-2">싸다구항공 · 결제·환불은 판매처 직접, 우린 안심 특가만 골라드려요</div>
@@ -751,9 +734,113 @@ function Planner({ seed, clearSeed }) {
   )
 }
 
+/* ───────── 🏠 홈 (B안: 포토 감성 + 서비스 그리드 + 핫딜 검색) ───────── */
+function homeDestGroups(deals) {
+  const cities = {}
+  deals.forEach(d => { const c = destOf(d); if (c && !cities[c]) cities[c] = d.city })
+  return [
+    { title: '바로 보기', items: [{ id: 'all', label: '전체 핫딜', sub: '지금 뜬 특가 전부', icon: '🔥' }] },
+    { title: '나라 · 지역', items: [...Object.keys(REGION), ...Object.keys(GEO)].map(g => ({ id: 'g:' + g, label: g, icon: '🌏' })) },
+    { title: '지금 딜 있는 도시', items: Object.entries(cities).map(([code, name]) => ({ id: 'c:' + code, label: name, sub: code, icon: '🏙️' })) },
+  ]
+}
+function insTime(d) {
+  const t = d.inspection && (d.inspection.checked_at || d.inspection.time)
+  if (!t) return '검수 완료'
+  const dt = parseDt(String(t).replace('T', ' ').slice(0, 16))
+  return dt ? `${dt.getMonth() + 1}/${dt.getDate()} ${pad2(dt.getHours())}:${pad2(dt.getMinutes())} 직접 확인` : '검수 완료'
+}
+function Home({ deals, onGo, onDeal, onDealFilter }) {
+  const [ov, setOv] = useState(false)
+  const wk = upcomingWeekends(todayStr())[0]
+  const top = [...deals].sort((a, b) => (b.discount_rate || 0) - (a.discount_rate || 0)).slice(0, 2)
+  return (
+    <div>
+      <div className="relative h-[248px] bg-cover bg-center bg-slate-300" style={{ backgroundImage: `linear-gradient(180deg,rgba(15,23,42,.4),rgba(15,23,42,.04) 38%,rgba(15,23,42,.82)),url(${photoBySlug('hero')})` }}>
+        <div className="absolute top-5 left-5 right-5 flex items-center justify-between">
+          <span className="text-white font-extrabold text-[16px]" style={{ textShadow: '0 1px 8px rgba(0,0,0,.5)' }}>✈️ 싸다구항공</span>
+          <span className="text-[11px] font-bold text-white bg-white/25 rounded-full px-3 py-1">🛡️ 검수된 특가만</span>
+        </div>
+        <div className="absolute left-5 right-5 bottom-12 text-white">
+          <h1 className="text-[23px] font-extrabold leading-[1.3]" style={{ textShadow: '0 2px 14px rgba(0,0,0,.45)' }}>발품은 우리가 팔게.<br />넌 떠나기만 해.</h1>
+          <p className="text-[12.5px] mt-1.5 opacity-95" style={{ textShadow: '0 1px 8px rgba(0,0,0,.5)' }}>6개 사이트 안 뒤져도, 사람이 확인한 특가만</p>
+        </div>
+      </div>
+      <div className="bg-[#f2faf8] rounded-t-3xl -mt-7 relative px-4 pb-5">
+        <button onClick={() => { haptic(); setOv(true) }} className="w-full bg-white rounded-2xl shadow-soft -mt-6 relative px-4 py-4 flex items-center gap-2.5 text-left active:scale-[.99] transition">
+          <span>🔍</span><span className="text-slate-400 text-[14.5px]">어디로 떠나세요? 도시 · 나라 · 전체</span>
+        </button>
+        <div className="grid grid-cols-4 pt-5 pb-1">
+          {[['hot', '🔥', '핫딜'], ['flights', '✈️', '항공편'], ['hotels', '🏨', '호텔'], ['planner', '🗺️', '플래너']].map(([k, ic, t]) => (
+            <button key={k} onClick={() => onGo(k)} className="text-center py-1.5 active:scale-95 transition">
+              <span className="w-[52px] h-[52px] mx-auto rounded-full bg-white shadow-soft flex items-center justify-center text-[24px]">{ic}</span>
+              <span className="block text-[12px] font-bold text-slate-700 mt-1.5">{t}</span>
+            </button>
+          ))}
+        </div>
+        {wk && <button onClick={() => onGo('flights')} className="w-full bg-white rounded-2xl shadow-soft px-4 py-3 mt-3 flex items-center gap-3 text-left border-l-4 border-amber-400" style={{ borderRadius: '0 16px 16px 0' }}>
+          <span className="text-[22px]">🗓️</span>
+          <span className="flex-1"><b className="block text-[13.5px] text-amber-800">{wk.label}{wk.leave ? ' (연차 ' + wk.leave + '개)' : ''}</b><span className="text-[11.5px] text-amber-600">지금 제일 싸게 갈 수 있는 곳 보기 ›</span></span>
+        </button>}
+        <div className="flex items-baseline justify-between mt-6 mb-3">
+          <h2 className="text-[17px] font-extrabold text-slate-900">🔥 지금 뜬 핫딜</h2>
+          <button onClick={() => onDealFilter({})} className="text-[12px] text-brand-600 font-bold">전체 ›</button>
+        </div>
+        <div className="space-y-3.5">
+          {top.map(d => {
+            const ph = photoOf(d)
+            return (
+              <div key={d.id} onClick={() => { haptic(); onDeal(d) }} className="bg-white rounded-3xl shadow-soft overflow-hidden cursor-pointer active:scale-[.99] transition">
+                <div className="relative h-[148px] bg-cover bg-center bg-slate-200" style={ph ? { backgroundImage: `url(${ph})` } : {}}>
+                  {d.discount_rate > 0 && <span className="absolute top-3 left-3 bg-rose-500 text-white text-[11.5px] font-extrabold rounded-lg px-2.5 py-1">평소 대비 -{d.discount_rate}%</span>}
+                  <span className="absolute left-3.5 bottom-3 text-white text-[18px] font-extrabold" style={{ textShadow: '0 2px 10px rgba(0,0,0,.6)' }}>{d.city}</span>
+                </div>
+                <div className="px-4 py-3 flex items-center justify-between gap-2">
+                  <span className="text-[10.5px] font-bold text-brand-700 bg-brand-50 rounded-full px-2.5 py-1 truncate">🛡️ {insTime(d)}</span>
+                  <span className="text-[16px] font-black text-brand-600 shrink-0">{won(d.price)} <span className="text-[10px] text-slate-400 font-semibold">왕복</span></span>
+                </div>
+              </div>
+            )
+          })}
+          {top.length === 0 && <Empty icon="🔎" text="지금 게시된 핫딜이 없어요. 알림을 걸어두면 뜨자마자 알려드릴게요." />}
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <button onClick={() => onGo('hotels')} className="relative h-[96px] rounded-2xl overflow-hidden text-left active:scale-[.98] transition">
+            <div className="absolute inset-0 bg-cover bg-center bg-slate-300" style={{ backgroundImage: `url(${photoBySlug('bangkok')})` }} />
+            <div className="absolute inset-0 p-3 flex flex-col justify-end" style={{ background: 'linear-gradient(180deg,rgba(15,23,42,.1),rgba(15,23,42,.75))' }}>
+              <b className="text-white text-[13.5px]">🏨 호텔 최저가 비교</b><span className="text-slate-300 text-[10.5px]">부킹·아고다·트립 한 번에</span>
+            </div>
+          </button>
+          <button onClick={() => onGo('flights')} className="relative h-[96px] rounded-2xl overflow-hidden text-left active:scale-[.98] transition">
+            <div className="absolute inset-0 bg-cover bg-center bg-slate-300" style={{ backgroundImage: `url(${photoBySlug('tokyo')})` }} />
+            <div className="absolute inset-0 p-3 flex flex-col justify-end" style={{ background: 'linear-gradient(180deg,rgba(15,23,42,.1),rgba(15,23,42,.75))' }}>
+              <b className="text-white text-[13.5px]">✈️ 항공권 검색</b><span className="text-slate-300 text-[10.5px]">어디든지 · 날짜별 최저가</span>
+            </div>
+          </button>
+        </div>
+        <SearchOverlay open={ov} onClose={() => setOv(false)} title="어디 핫딜을 볼까요?" placeholder="도시·나라 (예: 오사카, 일본, ㅇㅅㅋ)" recentKey="homeDest" voice
+          groups={homeDestGroups(deals)}
+          onPick={it => { if (it.id === 'all') onDealFilter({}); else if (it.id.startsWith('g:')) onDealFilter({ cat: it.id.slice(2) }); else onDealFilter({ pick: it.id.slice(2) }) }} />
+      </div>
+    </div>
+  )
+}
+
+/* ───────── 🔔 알림 ───────── */
+function Alerts({ prefs, onSavePrefs }) {
+  return (
+    <div className="px-4 pb-4 pt-2 space-y-4">
+      <AlertSetup prefs={prefs} onSave={onSavePrefs} />
+      <Section title="🔜 푸시 알림 준비 중">
+        <p className="text-[12.5px] text-slate-500 leading-relaxed">조건에 맞는 새 특가가 뜨면 폰으로 바로 알려드리는 푸시 알림을 만들고 있어요. 지금은 조건을 저장해두면 핫딜 목록에서 <b className="text-rose-500">내 조건 딜을 먼저</b> 보여드려요.</p>
+      </Section>
+    </div>
+  )
+}
+
 /* ───────── shell ───────── */
-const TABS = [['hot', '🔥', '핫딜'], ['flights', '✈️', '항공편'], ['hotels', '🏨', '호텔'], ['planner', '🗺️', '플래너'], ['my', '👤', '마이']]
-const TAB_TITLE = { flights: '최저가 항공권 검색', hotels: '호텔 최저가 비교', planner: '여행플래너', my: '마이' }
+const TABS = [['home', '🏠', '홈'], ['hot', '🔥', '핫딜'], ['alerts', '🔔', '알림'], ['my', '👤', '마이']]
+const TAB_TITLE = { hot: '🔥 핫딜', alerts: '특가 알림', flights: '최저가 항공권 검색', hotels: '호텔 최저가 비교', planner: '여행플래너', my: '마이' }
 
 /* 홈화면 설치 유도 (안드로이드=네이티브 프롬프트, iOS=가이드 시트) */
 function useInstall() {
@@ -772,11 +859,12 @@ function useInstall() {
   return { mode, evt, dismiss }
 }
 export default function App() {
-  const [tab, setTab] = useState('hot')
+  const [tab, setTab] = useState('home')
   const [deals, setDeals] = useState(null)
   const [updatedAt, setUpdatedAt] = useState('')
   const [sel, setSel] = useState(null)
   const [planSeed, setPlanSeed] = useState(null)
+  const [hotExt, setHotExt] = useState(null)
   const [savedIds, toggleSave] = useSaved()
   const [prefs, savePrefs] = useAlertPrefs()
   const loadDeals = () => fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => { setDeals(d.deals || []); const t = new Date(); setUpdatedAt(`${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`) }).catch(() => setDeals([]))
@@ -786,15 +874,20 @@ export default function App() {
   // 앱 아이콘 배지: 설치된 PWA에 현재 핫딜 수
   useEffect(() => { try { if (deals && navigator.setAppBadge) navigator.setAppBadge(deals.length) } catch (e) {} }, [deals])
   // 상태바 색 동기화
-  useEffect(() => { const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', tab === 'hot' ? '#14b8a6' : '#eefbf8') }, [tab])
+  useEffect(() => { const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', tab === 'home' ? '#14b8a6' : '#eefbf8') }, [tab])
   const switchTab = k => { haptic(); vt(() => setTab(k)) }
   const p = { savedIds, onSave: toggleSave, onOpen: setSel }
   return (
     <div className="max-w-md mx-auto min-h-full flex flex-col bg-[#eefbf8]">
       <main className="flex-1 pb-20">
         {deals === null && <div className="px-4 pt-8"><SkelRows n={5} /></div>}
-        {deals && tab !== 'hot' && <div className="px-5 pt-7 pb-1"><h1 className="text-[22px] font-extrabold text-slate-900">{TAB_TITLE[tab]}</h1></div>}
-        {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} onSearch={() => setTab('flights')} onRefresh={loadDeals} updatedAt={updatedAt} /> : <Empty icon="🔎" text="핫딜이 아직 없어요." />)}
+        {deals && tab !== 'home' && <div className="px-5 pt-7 pb-1 flex items-center gap-1.5">
+          {!TABS.some(t => t[0] === tab) && <button onClick={() => switchTab('home')} className="text-[22px] text-slate-500 -ml-2 pr-1">←</button>}
+          <h1 className="text-[22px] font-extrabold text-slate-900">{TAB_TITLE[tab]}</h1>
+        </div>}
+        {deals && tab === 'home' && <Home deals={deals} onGo={switchTab} onDeal={setSel} onDealFilter={f => { setHotExt({ ...f, ts: Date.now() }); switchTab('hot') }} />}
+        {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} ext={hotExt} onRefresh={loadDeals} updatedAt={updatedAt} /> : <Empty icon="🔎" text="핫딜이 아직 없어요. 알림을 걸어두면 뜨자마자 알려드릴게요." />)}
+        {deals && tab === 'alerts' && <Alerts prefs={prefs} onSavePrefs={savePrefs} />}
         {deals && tab === 'flights' && <Flights deals={deals} onOpen={setSel} />}
         {deals && tab === 'hotels' && <Suspense fallback={<div className="px-4 pt-2"><SkelRows n={4} /></div>}><Hotels /></Suspense>}
         {deals && tab === 'planner' && <Planner seed={planSeed} clearSeed={() => setPlanSeed(null)} />}
@@ -815,7 +908,7 @@ export default function App() {
           <div className="flex gap-3 items-center"><span className="w-7 h-7 shrink-0 rounded-full bg-brand-50 text-brand-600 font-bold flex items-center justify-center">3</span><span>이제 앱처럼 열려요. 곧 <b>특가 알림</b>도 받을 수 있어요 🔔</span></div>
         </div>
       </Sheet>}
-      <nav className="fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white border-t border-slate-100 grid grid-cols-5 pb-[env(safe-area-inset-bottom)] z-40">
+      <nav className="fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white border-t border-slate-100 grid grid-cols-4 pb-[env(safe-area-inset-bottom)] z-40">
         {TABS.map(([k, ic, label]) => <button key={k} onClick={() => switchTab(k)} className={'py-2.5 flex flex-col items-center gap-0.5 text-[10.5px] ' + (tab === k ? 'text-brand-600 font-bold' : 'text-slate-400')}><span className="text-lg leading-none">{ic}</span>{label}</button>)}
       </nav>
       {sel && <DealSheet d={sel} onClose={() => setSel(null)} onPlan={d => { setSel(null); setPlanSeed(seedFromDeal(d)); setTab('planner') }} />}
