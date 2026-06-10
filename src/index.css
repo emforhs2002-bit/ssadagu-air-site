@@ -26,6 +26,14 @@ body {
   50%      { box-shadow: 0 0 0 2px rgba(20,184,166,.45), 0 0 5px rgba(20,184,166,.12); }
 }
 .glow-lowest { animation: glowPulse 1.6s ease-in-out infinite; border-radius: 1rem; }
+/* 호텔 지도 가격 핀 */
+.map-pin {
+  background: #fff; border: 1.5px solid #14b8a6; color: #0f766e;
+  font-weight: 800; font-size: 12px; padding: 4px 9px; border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(15,23,42,.22); white-space: nowrap; width: max-content;
+  transform: translate(-50%, -100%); cursor: pointer;
+}
+.map-pin:hover { background: #14b8a6; color: #fff; }
 .skel {
   background: linear-gradient(90deg, #eef2f6 25%, #f8fafc 50%, #eef2f6 75%);
   background-size: 200% 100%;

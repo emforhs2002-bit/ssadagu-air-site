@@ -76,6 +76,60 @@ async function dayMinOf(k, ci, co) {
   return v
 }
 
+/* ── 지도 보기: Leaflet+OpenStreetMap (무료·키 없음), 지도 열 때만 동적 로드 ── */
+let leafletPromise = null
+function loadLeaflet() {
+  if (window.L) return Promise.resolve(window.L)
+  if (leafletPromise) return leafletPromise
+  leafletPromise = new Promise((resolve, reject) => {
+    const css = document.createElement('link')
+    css.rel = 'stylesheet'
+    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+    document.head.appendChild(css)
+    const s = document.createElement('script')
+    s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+    s.onload = () => resolve(window.L)
+    s.onerror = reject
+    document.head.appendChild(s)
+  })
+  return leafletPromise
+}
+
+function HotelMap({ hotels, usdKrw, onOpen }) {
+  const boxRef = useRef(null)
+  const mapRef = useRef(null)
+  const [failed, setFailed] = useState(false)
+  useEffect(() => {
+    let dead = false
+    loadLeaflet().then(L => {
+      if (dead || !boxRef.current) return
+      if (!mapRef.current) {
+        const map = L.map(boxRef.current)
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map)
+        map.markersLayer = L.layerGroup().addTo(map)
+        mapRef.current = map
+      }
+      const map = mapRef.current
+      map.markersLayer.clearLayers()
+      const pts = []
+      hotels.forEach(h => {
+        if (!h.geo || h.geo.latitude == null || h.geo.longitude == null) return
+        const ll = [h.geo.latitude, h.geo.longitude]
+        pts.push(ll)
+        const label = h.priceMin != null ? '₩' + Math.round((h.priceMin * usdKrw) / 10000) + '만' : (h.rating ? '★' + h.rating : '🏨')
+        const icon = L.divIcon({ className: '', html: `<div class="map-pin">${label}</div>`, iconSize: null })
+        L.marker(ll, { icon }).on('click', () => { haptic(); onOpen(h) }).addTo(map.markersLayer)
+      })
+      if (pts.length) map.fitBounds(pts, { padding: [34, 34], maxZoom: 15 })
+      setTimeout(() => map.invalidateSize(), 80)
+    }).catch(() => setFailed(true))
+    return () => { dead = true }
+  }, [hotels, usdKrw])
+  useEffect(() => () => { if (mapRef.current) { mapRef.current.remove(); mapRef.current = null } }, [])
+  if (failed) return <HEmpty icon="🗺️" text="지도를 불러오지 못했어요. 잠시 후 다시 시도해 주세요." />
+  return <div ref={boxRef} className="h-[460px] rounded-2xl overflow-hidden shadow-soft bg-slate-100 relative z-0" />
+}
+
 function useUsdKrw() {
   const [rate, setRate] = useState(1500)
   const [live, setLive] = useState(false)
@@ -236,6 +290,7 @@ export default function Hotels() {
   const [adults, setAdults] = useState(2)
   const [children, setChildren] = useState(0)
   const [sort, setSort] = useState('popularity')
+  const [view, setView] = useState('list')
   const [st, setSt] = useState({ status: 'idle' })
   const [sel, setSel] = useState(null)
   const [ovCity, setOvCity] = useState(false)
@@ -327,13 +382,20 @@ export default function Hotels() {
         <div className="flex items-center justify-between px-1">
           <div className="text-[12px] text-slate-400">{CITY_OF[geo]} 숙소 <b className="text-slate-500">{(st.total || 0).toLocaleString('ko-KR')}곳</b></div>
           <div className="flex gap-1.5">
-            {[['popularity', '인기순'], ['best_value', '가성비순']].map(([v, t]) => <button key={v} onClick={() => { setSort(v); search(geo, v) }} className={'text-[12px] rounded-full px-3 py-1.5 font-bold ' + (sort === v ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>{t}</button>)}
+            <div className="flex bg-white border border-slate-200 rounded-full p-0.5">
+              {[['list', '목록'], ['map', '🗺️ 지도']].map(([v, t]) => <button key={v} onClick={() => { haptic(); setView(v) }} className={'text-[12px] rounded-full px-3 py-1 font-bold ' + (view === v ? 'bg-brand-500 text-white' : 'text-slate-500')}>{t}</button>)}
+            </div>
+            {view === 'list' && [['popularity', '인기순'], ['best_value', '가성비순']].map(([v, t]) => <button key={v} onClick={() => { setSort(v); search(geo, v) }} className={'text-[12px] rounded-full px-3 py-1.5 font-bold ' + (sort === v ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>{t}</button>)}
           </div>
         </div>
-        <div className="space-y-3">{st.list.map(h => <HotelCard key={h.key + ci + co} h={h} ci={ci} co={co} usdKrw={usdKrw} onOpen={setSel} />)}</div>
-        <div ref={sentinel} />
+        {view === 'map' && <>
+          <HotelMap hotels={st.list} usdKrw={usdKrw} onOpen={setSel} />
+          <div className="text-[11.5px] text-slate-400 px-1">📍 지도엔 불러온 <b className="text-slate-500">{st.list.length}곳</b>이 떠요 · 핀(1박 참고가)을 누르면 가격 비교 · 아래 버튼으로 더 추가</div>
+        </>}
+        {view === 'list' && <div className="space-y-3">{st.list.map(h => <HotelCard key={h.key + ci + co} h={h} ci={ci} co={co} usdKrw={usdKrw} onOpen={setSel} />)}</div>}
+        {view === 'list' && <div ref={sentinel} />}
         {st.loadingMore && <SkelRows n={2} />}
-        {st.more && !st.loadingMore && <button onClick={() => fetchList(geo, sort, st.list.length, st.list)} className="w-full bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl py-3 text-[13.5px]">더 보기</button>}
+        {st.more && !st.loadingMore && <button onClick={() => fetchList(geo, sort, st.list.length, st.list)} className="w-full bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl py-3 text-[13.5px]">호텔 더 불러오기</button>}
       </>}
 
       <SearchOverlay open={ovCity} onClose={() => setOvCity(false)} title="어느 도시로 가세요?" placeholder="도시 검색 (예: 뉴욕, ㅇㅅㅋ)"
