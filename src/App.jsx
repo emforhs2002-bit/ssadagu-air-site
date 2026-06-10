@@ -308,6 +308,7 @@ function Where({ deals, onOpen }) {
 const MARKER = '737258'
 const ORIGINS = [['ICN', '인천'], ['GMP', '김포'], ['PUS', '부산']]
 const CITIES = [['FUK', '후쿠오카'], ['KIX', '오사카'], ['TYO', '도쿄'], ['OKA', '오키나와'], ['CTS', '삿포로'], ['TPE', '타이베이'], ['KHH', '가오슝'], ['DAD', '다낭'], ['NHA', '나트랑'], ['HAN', '하노이'], ['SGN', '호치민'], ['BKK', '방콕'], ['HKT', '푸켓'], ['CEB', '세부'], ['MNL', '마닐라'], ['BKI', '코타키나발루'], ['HKG', '홍콩'], ['SIN', '싱가포르'], ['GUM', '괌']]
+const CITIES_US = [['NYC', '뉴욕'], ['LAX', '로스앤젤레스'], ['SFO', '샌프란시스코'], ['LAS', '라스베가스'], ['HNL', '호놀룰루(하와이)'], ['SEA', '시애틀'], ['ORD', '시카고'], ['BOS', '보스턴'], ['MIA', '마이애미']]
 const pad2 = n => String(n).padStart(2, '0')
 const ymd = (y, m, d) => `${y}-${pad2(m + 1)}-${pad2(d)}`  // m: 0-based
 const todayStr = () => { const d = new Date(); return ymd(d.getFullYear(), d.getMonth(), d.getDate()) }
@@ -321,7 +322,7 @@ const Pick = ({ label, value, onChange, options }) => <div><label className="tex
 const inputCls = 'w-full mt-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-[14px]'
 
 const PROXY = 'https://curly-meadow-ab36ssadagu-proxy.emforhs2002.workers.dev'
-const IATA_NAME = { KE: '대한항공', OZ: '아시아나항공', '7C': '제주항공', LJ: '진에어', TW: '티웨이항공', BX: '에어부산', RS: '에어서울', ZE: '이스타항공', YP: '에어프레미아', '5J': '세부퍼시픽', VJ: '비엣젯', VN: '베트남항공', MM: '피치항공', AK: '에어아시아', FD: '타이에어아시아', TR: '스쿠트', PR: '필리핀항공', CX: '캐세이퍼시픽', UO: '홍콩익스프레스', SQ: '싱가포르항공', TG: '타이항공', NH: 'ANA', JL: '일본항공', JX: '스타럭스', CI: '중화항공', BR: '에바항공', UA: '유나이티드', MH: '말레이시아항공' }
+const IATA_NAME = { KE: '대한항공', OZ: '아시아나항공', '7C': '제주항공', LJ: '진에어', TW: '티웨이항공', BX: '에어부산', RS: '에어서울', ZE: '이스타항공', YP: '에어프레미아', '5J': '세부퍼시픽', VJ: '비엣젯', VN: '베트남항공', MM: '피치항공', AK: '에어아시아', FD: '타이에어아시아', TR: '스쿠트', PR: '필리핀항공', CX: '캐세이퍼시픽', UO: '홍콩익스프레스', SQ: '싱가포르항공', TG: '타이항공', NH: 'ANA', JL: '일본항공', JX: '스타럭스', CI: '중화항공', BR: '에바항공', UA: '유나이티드', MH: '말레이시아항공', DL: '델타항공', AA: '아메리칸항공', HA: '하와이안항공', AS: '알래스카항공', B6: '제트블루', AC: '에어캐나다', WS: '웨스트젯' }
 const airlineName = c => IATA_NAME[c] || c
 function fmtISO(s) { if (!s) return { full: '-' }; const dt = new Date(s); if (isNaN(dt)) return { full: s }; const w = dt.getDay(); return { md: `${dt.getMonth() + 1}/${dt.getDate()}`, dow: DAYS[w], time: `${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`, weekend: w === 0 || w === 6 } }
 function offerLink(o) { const base = 'https://www.aviasales.com' + (o.link || ''); return base + (base.includes('?') ? '&' : '?') + 'marker=' + MARKER }
@@ -352,7 +353,7 @@ function FlightResult({ o }) {
   )
 }
 
-const CITY_NAME = Object.fromEntries(CITIES)
+const CITY_NAME = Object.fromEntries([...CITIES, ...CITIES_US])
 const cityName = c => CITY_NAME[c] || c
 function monthsList() {
   const out = [], now = new Date()
@@ -452,7 +453,8 @@ function Flights() {
         recentKey="toAp" voice
         groups={[
           { title: '모르겠어요', items: [{ id: '-', label: '어디든지', sub: '가장 싼 도시부터 보기', icon: '🌍' }] },
-          { title: '도시', items: CITIES.map(([c, n]) => ({ id: c, label: n, sub: c, icon: '🏙️' })) },
+          { title: '아시아 · 괌', items: CITIES.map(([c, n]) => ({ id: c, label: n, sub: c, icon: '🏙️' })) },
+          { title: '🇺🇸 미주', items: CITIES_US.map(([c, n]) => ({ id: c, label: n, sub: c, icon: '🗽' })) },
         ]}
         onPick={it => setDest(it.id)} />
       <Sheet open={ovMonth} onClose={() => setOvMonth(false)} title="언제 떠나세요?">

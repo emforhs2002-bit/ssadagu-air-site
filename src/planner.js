@@ -11,6 +11,8 @@ export const COUNTRY_INFO = {
   '필리핀':     { currency: '페소 (PHP)',     plug: 'A타입 · 220V',                    tz: '한국보다 1시간 느림', data: 'eSIM / 현지 유심',    transit: '그랩 · 지프니',                    tip: '달러를 지참해 현지에서 환전하는 편이 유리해요.' },
   '말레이시아': { currency: '링깃 (MYR)',     plug: 'BF 3핀 · 240V (어댑터 필요)',     tz: '한국보다 1시간 느림', data: 'eSIM',               transit: '그랩 · LRT',                       tip: '그랩이 가장 편한 이동 수단이에요.' },
   '괌':         { currency: '미국달러 (USD)', plug: 'A타입 · 110V',                    tz: '한국보다 1시간 빠름', data: 'eSIM / 현지 유심',    transit: '렌터카 · 셔틀버스',                tip: '팁 문화가 있고, 렌터카가 편리해요.' },
+  '미국':       { currency: '미국달러 (USD)', plug: 'A타입 · 120V',                    tz: '도시마다 달라요 (하와이 -19h · LA -17h · 뉴욕 -14h)', data: 'eSIM / 현지 유심', transit: '우버·리프트 · 도시별 지하철', tip: '식당·택시 팁 15~20%가 기본이에요. 출발 전 ESTA(전자여행허가) 신청이 꼭 필요해요.' },
+  '싱가포르':   { currency: '싱가포르달러 (SGD)', plug: 'BF 3핀 · 230V (어댑터 필요)', tz: '한국보다 1시간 느림', data: 'eSIM',               transit: 'MRT · 그랩',                       tip: '껌 반입 금지 등 벌금 규정이 엄격해요.' },
 }
 
 export const VISA_NOTE = '비자·무비자 체류 기간은 정책에 따라 바뀔 수 있어요. 출발 전 외교부 해외안전여행·항공사에서 꼭 확인하세요.'

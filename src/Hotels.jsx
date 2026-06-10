@@ -8,16 +8,28 @@ import { Sheet, SearchOverlay, RangeCalendar, StepRow, MadLib, SkelRows, haptic,
 const PROXY = 'https://curly-meadow-ab36ssadagu-proxy.emforhs2002.workers.dev'
 const ALLIANCE = 'Allianceid=8617491&SID=318432318'
 
-// 도시 → TripAdvisor location_key (2026-06-10 전수 실검증)
+// 도시 → TripAdvisor location_key (2026-06-10 전수 실검증, 미국 13곳 포함)
 const HOTEL_CITIES = [
   ['g298566', '오사카', '일본'], ['g298184', '도쿄', '일본'], ['g298207', '후쿠오카', '일본'], ['g298560', '삿포로', '일본'], ['g298223', '오키나와', '일본'],
   ['g293913', '타이베이', '대만'], ['g297908', '가오슝', '대만'], ['g294217', '홍콩', '홍콩'],
   ['g298085', '다낭', '베트남'], ['g293928', '나트랑', '베트남'], ['g293924', '하노이', '베트남'], ['g293925', '호치민', '베트남'],
   ['g293916', '방콕', '태국'], ['g293920', '푸켓', '태국'], ['g294261', '세부', '필리핀'], ['g298573', '마닐라', '필리핀'],
   ['g298307', '코타키나발루', '말레이시아'], ['g60668', '괌', '괌'], ['g294265', '싱가포르', '싱가포르'],
+  ['g60763', '뉴욕', '미국'], ['g32655', '로스앤젤레스', '미국'], ['g60982', '호놀룰루(하와이)', '미국'], ['g29220', '마우이(하와이)', '미국'],
+  ['g45963', '라스베가스', '미국'], ['g60713', '샌프란시스코', '미국'], ['g60750', '샌디에이고', '미국'], ['g60878', '시애틀', '미국'],
+  ['g35805', '시카고', '미국'], ['g60745', '보스턴', '미국'], ['g28970', '워싱턴 DC', '미국'], ['g34515', '올랜도', '미국'], ['g34438', '마이애미', '미국'],
 ]
 const CITY_OF = Object.fromEntries(HOTEL_CITIES.map(([k, n]) => [k, n]))
 const GEO_OF = Object.fromEntries(HOTEL_CITIES.map(([k, n]) => [n, k]))
+// 검색 오버레이용 지역 그룹
+const HOTEL_REGIONS = [
+  ['🇯🇵 일본', ['일본']], ['🇹🇼 대만 · 홍콩', ['대만', '홍콩']],
+  ['🌴 동남아', ['베트남', '태국', '필리핀', '말레이시아', '싱가포르']], ['🏝️ 괌', ['괌']],
+  ['🇺🇸 미국', ['미국']],
+]
+const CITY_GROUPS = HOTEL_REGIONS.map(([title, cs]) => ({
+  title, items: HOTEL_CITIES.filter(c => cs.includes(c[2])).map(([k, n, c]) => ({ id: k, label: n, sub: c, icon: '🏙️' })),
+}))
 
 const enc = encodeURIComponent
 const PROVIDERS = {
@@ -276,9 +288,9 @@ export default function Hotels() {
         {st.more && !st.loadingMore && <button onClick={() => fetchList(geo, sort, st.list.length, st.list)} className="w-full bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl py-3 text-[13.5px]">더 보기</button>}
       </>}
 
-      <SearchOverlay open={ovCity} onClose={() => setOvCity(false)} title="어느 도시로 가세요?" placeholder="도시 검색 (예: 오사카, ㅇㅅㅋ)"
+      <SearchOverlay open={ovCity} onClose={() => setOvCity(false)} title="어느 도시로 가세요?" placeholder="도시 검색 (예: 뉴욕, ㅇㅅㅋ)"
         recentKey="hotelCity" voice
-        groups={[{ title: '인기 여행지', items: HOTEL_CITIES.map(([k, n, c]) => ({ id: k, label: n, sub: c, icon: '🏙️' })) }]}
+        groups={CITY_GROUPS}
         onPick={it => { setGeo(it.id); search(it.id, sort) }} />
       <RangeCalendar open={ovCal} onClose={() => setOvCal(false)} title="체크인 · 체크아웃" mode="range"
         initStart={ci} initEnd={co} onConfirm={(s, e) => { setCi(s); setCo(e) }} />
