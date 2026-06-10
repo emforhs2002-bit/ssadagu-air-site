@@ -80,7 +80,23 @@ function useSaved() {
   const toggle = id => setIds(p => { const n = p.includes(id) ? p.filter(x => x !== id) : [...p, id]; localStorage.setItem('saved', JSON.stringify(n)); return n })
   return [ids, toggle]
 }
-function report(id, kind) { const l = JSON.parse(localStorage.getItem('reports') || '[]'); l.push({ id, kind, at: new Date().toISOString() }); localStorage.setItem('reports', JSON.stringify(l)); alert('알려줘서 고마워요! 🙏 확인하고 바로 정리할게요.') }
+function report(id, kind) {
+  const l = JSON.parse(localStorage.getItem('reports') || '[]'); l.push({ id, kind, at: new Date().toISOString() }); localStorage.setItem('reports', JSON.stringify(l))
+  try { fetch(PROXY + '/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, kind }) }).catch(() => {}) } catch (e) {}
+  alert('알려줘서 고마워요! 🙏 확인하고 바로 정리할게요.')
+}
+// 클릭 계측 (실패해도 무시 — KV 바인딩 전엔 503 폴백)
+function track(type, id) { try { fetch(PROXY + '/click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, id }), keepalive: true }).catch(() => {}) } catch (e) {} }
+// 검수 여부: 운영자 검수(inspection 보유) vs 엔진 자동 발견
+const isAuto = d => d.source === 'auto' || !d.inspection
+const insTime = d => {
+  const t = d.inspection && (d.inspection.checked_at || d.inspection.time)
+  if (!t) return null
+  const x = parseDt(String(t).replace('T', ' ').slice(0, 16))
+  return x ? `${x.getMonth() + 1}/${x.getDate()} ${pad2(x.getHours())}:${pad2(x.getMinutes())}` : null
+}
+const SITE_URL = 'https://emforhs2002-bit.github.io/ssadagu-air-site/'
+const mapsUrl = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q)
 
 /* 🔔 핫딜 알림 조건(개인화) — 지금은 조건 저장 + 인앱 매칭(앱 열면 내 조건 딜 먼저).
    진짜 푸시(새 딜 뜨면 알림)는 OneSignal 웹푸시+이메일이 다음 단계. 조건이 공통 뿌리. */
@@ -116,6 +132,7 @@ function DealCard({ d, saved, onSave, onOpen, mine }) {
         <div className="text-[12px] text-slate-500 mt-1.5">🛫 {originOf(d)} <b className={dep.weekend ? 'text-rose-500' : 'text-slate-700'}>{dep.md}({dep.dow})</b> · <b className={ret.weekend ? 'text-rose-500' : 'text-slate-700'}>{ret.md}({ret.dow})</b></div>
         <div className="flex flex-wrap gap-1.5 mt-2">
           {mine && <span className="text-[10.5px] font-bold text-rose-600 bg-rose-50 rounded-full px-2 py-0.5">🔔 내 조건</span>}
+          {isAuto(d) ? <span className="text-[10.5px] font-bold text-amber-700 bg-amber-50 rounded-full px-2 py-0.5">🤖 자동 발견</span> : <span className="text-[10.5px] font-bold text-brand-700 bg-brand-50 rounded-full px-2 py-0.5">🛡️ 검수</span>}
           {d.discount_rate > 0 && <span className="text-[10.5px] font-bold text-rose-500 bg-rose-50 rounded-full px-2 py-0.5">평소 대비 -{d.discount_rate}%</span>}
           {pcv && <span className={'text-[10.5px] font-bold rounded-full px-2 py-0.5 ' + (pcv.warn ? 'text-amber-700 bg-amber-50' : 'text-brand-700 bg-brand-50')}>{pcv.card}</span>}
         </div>
@@ -135,8 +152,8 @@ function DealSheet({ d, onClose, onPlan }) {
   const priceAnim = useCountUp(d.price)
   const doShare = () => shareIt({
     title: `${d.city} 특가 항공권`,
-    text: `🔥 ${d.city} 왕복 ${won(d.price)} (${d.airline}, ${dep.full} 출발${d.discount_rate > 0 ? ` · 평소 대비 -${d.discount_rate}%` : ''}) — 싸다구항공이 직접 확인한 특가`,
-    url: 'https://emforhs2002-bit.github.io/ssadagu-air-site/',
+    text: `🔥 ${d.city} 왕복 ${won(d.price)} (${d.airline}, ${dep.full} 출발${d.discount_rate > 0 ? ` · 평소 대비 -${d.discount_rate}%` : ''}) — 어딜봐도 싸다구`,
+    url: SITE_URL + '#deal=' + encodeURIComponent(d.id),
   })
   return (
     <div className="fixed inset-0 z-50">
@@ -156,14 +173,28 @@ function DealSheet({ d, onClose, onPlan }) {
             <div className="text-slate-600 text-[13px]">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-800'}>{dep.full}</b><br />🛬 <b className={ret.weekend ? 'text-rose-500' : 'text-slate-800'}>{ret.full}</b></div>
             <div className="text-right"><div className="text-[28px] font-black text-brand-600 leading-none">{won(priceAnim)}</div>{d.discount_rate > 0 ? <div className="text-[11px] font-bold text-rose-500 mt-1">왕복 · 평소 대비 -{d.discount_rate}%</div> : <div className="text-[11px] text-slate-400 mt-1">왕복</div>}</div>
           </div>
+          {isAuto(d)
+            ? <div className="bg-amber-50 rounded-2xl p-3 text-[12.5px] text-amber-800"><b>🤖 자동 발견 · 검수 전</b> — 엔진이 방금 찾은 특가예요. 예약처에서 가격·조건을 꼭 확인하세요.</div>
+            : <div className="bg-brand-50 rounded-2xl p-3 text-[12.5px]">
+              <div className="font-bold text-brand-700">🛡️ 운영자가 직접 확인한 특가</div>
+              <div className="text-slate-600 mt-1 space-y-0.5">
+                {insTime(d) && <div>· {insTime(d)} 가격·링크 확인</div>}
+                {d.booking_grade && d.booking_grade !== '검수 전' && <div>· 예약처: {safeBooking(d.booking_grade).t}</div>}
+                {d.baggage_note && <div>· 수하물: {d.baggage_note}</div>}
+                {d.inspection && d.inspection.refund && <div>· 환불: {d.inspection.refund}</div>}
+              </div>
+            </div>}
           {pcv && <div className={'rounded-2xl p-3 ' + (pcv.warn ? 'bg-amber-50' : 'bg-brand-50')}>
             <div className={'font-bold ' + (pcv.warn ? 'text-amber-700' : 'text-brand-700')}>{pcv.card}</div>
             <div className="text-slate-600 text-[12.5px] mt-1">{pcv.line}</div>
             {d.price_check.memo && <div className="text-[12px] text-slate-400 mt-1">메모: {d.price_check.memo}</div>}
           </div>}
-          <a href={d.affiliate_url} target="_blank" rel="noopener" className="block text-center bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">예약처에서 확인하기 →</a>
+          <a href={d.affiliate_url} target="_blank" rel="noopener" onClick={() => { haptic(); track('deal', d.id) }} className="block text-center bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">예약처에서 확인하기 →</a>
           <div className="text-center text-[11px] text-slate-400">가격·환불은 예약처에서 최종 확인</div>
-          {onPlan && <button onClick={() => onPlan(d)} className="w-full border-2 border-brand-200 text-brand-700 font-bold rounded-2xl py-3">🗺️ 이 여행으로 플랜 짜기</button>}
+          <div className="grid grid-cols-2 gap-2">
+            <a href={mapsUrl(d.city + ' 여행')} target="_blank" rel="noopener" className="text-center bg-slate-100 text-slate-700 font-bold rounded-2xl py-3 text-[13px]">🗺️ {d.city} 지도</a>
+            {onPlan ? <button onClick={() => onPlan(d)} className="border-2 border-brand-200 text-brand-700 font-bold rounded-2xl py-3 text-[13px]">플랜 짜기</button> : <span />}
+          </div>
           <div className="border-t border-slate-100 pt-3"><div className="text-[12px] text-slate-400 mb-2">가격이 다르거나 마감됐나요?</div><div className="grid grid-cols-3 gap-2 text-[12.5px]">{[['price', '가격이 달라요'], ['soldout', '마감됐어요'], ['link', '링크 이상해요']].map(([k, t]) => <button key={k} onClick={() => report(d.id, k)} className="bg-slate-100 text-slate-600 rounded-xl py-2">{t}</button>)}</div></div>
         </div>
       </div>
@@ -500,7 +531,7 @@ function Flights() {
             <button onClick={() => setSort('duration')} className={'rounded-full px-3 py-1.5 font-bold ' + (sort === 'duration' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>빠른순</button>
             <label className="ml-auto flex items-center gap-1.5 text-slate-600"><input type="checkbox" checked={directOnly} onChange={e => setDirectOnly(e.target.checked)} /> 직항만</label>
           </div>
-          <div className="text-[12px] text-slate-500 px-1">{day ? <><b className="text-brand-600">{day.slice(5).replace('-', '/')}</b> 출발 · <button onClick={() => setDay(null)} className="text-brand-600 font-bold">전체</button></> : st.label} · 최저가 <b className="text-brand-600">{won(lowest)}</b> · {view.length}편</div>
+          <div className="text-[12px] text-slate-500 px-1">{day ? <><b className="text-brand-600">{day.slice(5).replace('-', '/')}</b> 출발 · <button onClick={() => setDay(null)} className="text-brand-600 font-bold">전체</button></> : st.label} · 최저가 <b className="text-brand-600">{won(lowest)}</b> · {view.length}편 · <a href={mapsUrl(cityName(dest) + ' 관광')} target="_blank" rel="noopener" className="text-brand-600 font-bold">🗺️ {cityName(dest)} 지도</a></div>
           <div className="bg-amber-50 text-amber-800 text-[11.5px] rounded-xl px-3 py-2">💡 여기 보이는 건 <b>최근 확인된 최저가 모음(참고가)</b>이에요 — 전체 시간표가 아니에요. 카드를 누르면 예약처에서 실시간 확정, 모든 항공편은 아래 <b>실시간 전체 보기</b>로.</div>
           {view.length ? view.map((o, i) => <FlightResult key={i} o={o} low={o.price === lowest} />) : <Empty icon="🔎" text="직항만 조건에 맞는 게 없어요. 직항만을 꺼보세요." />}
           {view.length > 0 && (() => {
@@ -802,7 +833,7 @@ function Home({ deals, onGo, onDeal, onDealFilter }) {
                     <span className="text-[12.5px] text-slate-700 font-bold truncate">🛫 {(() => { const dep = fmtDate(d.departure_time), ret = fmtDate(d.return_time); return <><b className={dep.weekend ? 'text-rose-500' : ''}>{dep.md}({dep.dow})</b> ~ <b className={ret.weekend ? 'text-rose-500' : ''}>{ret.md}({ret.dow})</b></> })()}</span>
                     <span className="text-[16px] font-black text-brand-600 shrink-0">{won(d.price)} <span className="text-[10px] text-slate-400 font-semibold">왕복</span></span>
                   </div>
-                  <div className="text-[11.5px] text-slate-400 mt-1 truncate">{originOf(d)} 출발 · {d.airline} · {d.transfers === 0 ? '직항' : '경유 ' + d.transfers}{durOf(d) ? ' · ' + durOf(d) : ''}</div>
+                  <div className="text-[11.5px] text-slate-400 mt-1 truncate">{originOf(d)} 출발 · {d.airline} · {d.transfers === 0 ? '직항' : '경유 ' + d.transfers}{durOf(d) ? ' · ' + durOf(d) : ''}{isAuto(d) ? ' · 검수 전' : ''}</div>
                 </div>
               </div>
             )
@@ -832,13 +863,30 @@ function Home({ deals, onGo, onDeal, onDealFilter }) {
 }
 
 /* ───────── 🔔 알림 ───────── */
+function enablePush(prefs) {
+  haptic(12)
+  try {
+    window.OneSignalDeferred = window.OneSignalDeferred || []
+    window.OneSignalDeferred.push(async OneSignal => {
+      await OneSignal.Notifications.requestPermission()
+      try {
+        await OneSignal.User.addTags({
+          regions: ((prefs && prefs.regions) || []).join(',') || 'all',
+          budget: String((prefs && prefs.budgetMax) || 0),
+          direct: prefs && prefs.directOnly ? '1' : '0',
+        })
+      } catch (e) {}
+    })
+  } catch (e) { alert('푸시 설정 중 문제가 있었어요. 잠시 후 다시 시도해주세요.') }
+}
 function Alerts({ prefs, onSavePrefs }) {
   return (
     <div className="px-4 pb-4 pt-2 space-y-4">
-      <AlertSetup prefs={prefs} onSave={onSavePrefs} />
-      <Section title="🔜 푸시 알림 준비 중">
-        <p className="text-[12.5px] text-slate-500 leading-relaxed">조건에 맞는 새 특가가 뜨면 폰으로 바로 알려드리는 푸시 알림을 만들고 있어요. 지금은 조건을 저장해두면 핫딜 목록에서 <b className="text-rose-500">내 조건 딜을 먼저</b> 보여드려요.</p>
+      <Section title="📲 푸시 알림">
+        <p className="text-[12.5px] text-slate-500 leading-relaxed mb-3">새 특가가 뜨면 폰으로 바로 알려드려요. 아이폰은 <b className="text-slate-600">홈 화면에 추가한 뒤</b> 켤 수 있어요.</p>
+        <button onClick={() => enablePush(prefs)} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3">🔔 푸시 알림 켜기</button>
       </Section>
+      <AlertSetup prefs={prefs} onSave={onSavePrefs} />
     </div>
   )
 }
@@ -874,6 +922,15 @@ export default function App() {
   const [prefs, savePrefs] = useAlertPrefs()
   const loadDeals = () => fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => { setDeals(d.deals || []); const t = new Date(); setUpdatedAt(`${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`) }).catch(() => setDeals([]))
   useEffect(() => { loadDeals() }, [])
+  // 공유 딥링크: #deal=id 로 들어오면 해당 딜 상세 자동 오픈
+  useEffect(() => {
+    if (!deals || !deals.length) return
+    const m = location.hash.match(/^#deal=(.+)$/)
+    if (m) {
+      const d = deals.find(x => String(x.id) === decodeURIComponent(m[1]))
+      if (d) { setSel(d); history.replaceState(null, '', location.pathname + location.search) }
+    }
+  }, [deals])
   const inst = useInstall()
   const [iosGuide, setIosGuide] = useState(false)
   // 앱 아이콘 배지: 설치된 PWA에 현재 핫딜 수

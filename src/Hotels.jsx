@@ -168,7 +168,7 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
             const p = PROVIDERS[r.code]
             const href = p && p.url ? p.url(h.name, ci, co, adults, rooms) : h.taUrl
             return (
-              <a key={i} href={href} target="_blank" rel="noopener" onClick={() => haptic()} className={'flex items-center justify-between rounded-2xl px-3.5 py-3 ' + (lowest ? 'bg-brand-50 glow-lowest' : 'bg-slate-50')}>
+              <a key={i} href={href} target="_blank" rel="noopener" onClick={() => { haptic(); try { fetch(`${PROXY}/click`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'hotel', id: h.key + ':' + r.code }), keepalive: true }).catch(() => {}) } catch (e) {} }} className={'flex items-center justify-between rounded-2xl px-3.5 py-3 ' + (lowest ? 'bg-brand-50 glow-lowest' : 'bg-slate-50')}>
                 <div className="min-w-0">
                   <div className="text-[14px] font-bold text-slate-800">{provName(r.code)} {lowest && <span className="text-[10.5px] font-bold text-white bg-brand-500 rounded-full px-2 py-0.5 align-middle">🏆 전 예약처 최저</span>}</div>
                   <div className="text-[11px] text-slate-400 mt-0.5">{r.tax ? `객실 ${wonFmt(r.rate * usdKrw)} + 세금 ${wonFmt(r.tax * usdKrw)}` : '세금 정보 없음'}</div>
@@ -182,7 +182,10 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
           })}
         </div>}
         <div className="bg-amber-50 text-amber-800 text-[11.5px] rounded-xl px-3 py-2">💡 환율 적용 <b>참고가</b>예요. 누르면 그 예약처에서 실제가·환불조건을 확인하고 결제해요. 우린 호텔을 팔지 않고 수수료도 안 붙여요.</div>
-        <a href={h.taUrl} target="_blank" rel="noopener" className="block text-center text-[12.5px] text-slate-500 underline">트립어드바이저에서 리뷰·전체 비교 보기</a>
+        <div className="grid grid-cols-2 gap-2">
+          <a href={'https://www.google.com/maps/search/?api=1&query=' + (h.geo && h.geo.latitude ? h.geo.latitude + ',' + h.geo.longitude : enc(h.name))} target="_blank" rel="noopener" onClick={() => haptic()} className="text-center bg-slate-100 text-slate-700 font-bold rounded-2xl py-3 text-[13px]">🗺️ 구글 지도</a>
+          <a href={h.taUrl} target="_blank" rel="noopener" className="text-center bg-slate-100 text-slate-700 font-bold rounded-2xl py-3 text-[13px]">⭐ 리뷰 보기</a>
+        </div>
       </div>
     </Sheet>
   )
@@ -216,7 +219,7 @@ function HotelCard({ h, ci, co, usdKrw, onOpen }) {
         <div className="mt-1.5 text-[12px] text-slate-500">
           {dayMin === undefined ? <span className="skel inline-block h-[14px] w-28 rounded-md align-middle" />
             : dayMin != null ? <>1박 <b className="text-brand-600 text-[14px] font-black">{wonFmt(dayMin * usdKrw)}</b><span className="text-slate-400"> · 선택 날짜 · 세금포함</span></>
-            : h.priceMin != null ? <>1박 <b className="text-slate-600 text-[13px] font-bold">{wonFmt(h.priceMin * usdKrw)}</b><span className="text-slate-400">부터 · 예상가</span></>
+            : h.priceMin != null ? <>1박 <b className="text-slate-600 text-[13px] font-bold">{wonFmt(h.priceMin * usdKrw)}</b><span className="text-slate-400">부터 · 참고가</span></>
             : '가격은 비교에서 확인'}
         </div>
       </div>
@@ -254,7 +257,9 @@ export default function Hotels() {
       const items = raw.map(x => ({
         key: x.key, name: x.name, type: x.accommodation_type === 'Hotel' ? '' : x.accommodation_type,
         rating: x.review_summary && x.review_summary.rating, reviews: x.review_summary && x.review_summary.count,
-        priceMin: x.price_ranges && x.price_ranges.minimum, image: x.image, mentions: x.mentions,
+        priceMin: x.price_ranges && x.price_ranges.minimum,
+        image: x.image && x.image.replace('/photo-o/', '/photo-l/'),  // 원본 대신 550px 변형 (데이터 절약)
+        mentions: x.mentions,
         geo: x.geo, taUrl: x.url, cityName: CITY_OF[g],
       }))
       const seen = new Set(prev.map(p => p.key))
