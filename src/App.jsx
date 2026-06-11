@@ -1021,7 +1021,8 @@ function enablePush(prefs) {
   try {
     window.OneSignalDeferred = window.OneSignalDeferred || []
     window.OneSignalDeferred.push(async OneSignal => {
-      await OneSignal.Notifications.requestPermission()
+      try { await OneSignal.Notifications.requestPermission() } catch (e) {}
+      try { await OneSignal.User.PushSubscription.optIn() } catch (e) {}  // 권한만이 아니라 실제 구독 생성
       try { await OneSignal.User.addTags(prefTags(prefs)) } catch (e) {}
     })
   } catch (e) { alert('푸시 설정 중 문제가 있었어요. 잠시 후 다시 시도해주세요.') }
