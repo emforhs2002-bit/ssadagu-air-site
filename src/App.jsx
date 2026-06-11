@@ -346,17 +346,35 @@ function parseWhere(t) {
 }
 function Where({ deals, onOpen }) {
   const [who, setWho] = useState(null), [when, setWhen] = useState(null), [budgetMax, setB] = useState(null), [moods, setMoods] = useState([]), [flightMax, setF] = useState(null), [results, setResults] = useState(null)
-  const [q, setQ] = useState('')
+  const [q, setQ] = useState(''), [thinking, setThinking] = useState(false)
   const toggleMood = m => setMoods(p => p.includes(m) ? p.filter(x => x !== m) : [...p, m])
   function recommend(cond) {
     const c = cond || { who, budgetMax: budgetMax ?? 9e12, moods, flightMax: flightMax ?? 9999 }
     const ranked = [...DESTINATIONS].map(d => ({ d, s: scoreDest(d, c) })).sort((a, b) => b.s - a.s).slice(0, 3)
     setResults(ranked.map(({ d }) => ({ d, deal: deals.filter(x => d.codes.includes((x.route || '').split('-')[1])).sort((a, b) => a.price - b.price)[0], why: whyReasons(d, c) })))
   }
-  function runFreeText() {
+  async function runFreeText() {
     const t = q.trim(); if (!t) return
     haptic()
-    const f = parseWhere(t)
+    let f = parseWhere(t)  // 규칙 기본값(즉시·무료)
+    setThinking(true)
+    try {  // LLM 보강(무료티어). 실패·미배포 시 규칙 그대로 — 안전.
+      const r = await fetch(PROXY + '/gemini-dest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: t }) })
+      if (r.ok) {
+        const s = (await r.json()).slots
+        if (s) {
+          const moods = Array.isArray(s.moods) ? s.moods.filter(m => Q_MOOD.includes(m)) : []
+          f = {
+            who: Q_WHO.includes(s.who) ? s.who : f.who,
+            budgetMax: [200000, 300000, 400000].includes(s.budget) ? s.budget : f.budgetMax,
+            moods: moods.length ? moods : f.moods,
+            flightMax: s.flightShort ? 180 : f.flightMax,
+            when: f.when,
+          }
+        }
+      }
+    } catch (e) {}
+    setThinking(false)
     setWho(f.who); setB(f.budgetMax); setMoods(f.moods); setF(f.flightMax); setWhen(f.when)
     recommend({ who: f.who, budgetMax: f.budgetMax ?? 9e12, moods: f.moods, flightMax: f.flightMax ?? 9999 })
   }
@@ -387,7 +405,7 @@ function Where({ deals, onOpen }) {
       <div className="bg-white rounded-3xl shadow-soft p-4 mb-4">
         <div className="text-[13.5px] font-bold text-slate-700 mb-1.5">✨ 그냥 말로 적어보세요</div>
         <textarea value={q} onChange={e => setQ(e.target.value)} rows={2} placeholder="예: 6월에 가족이랑 바다 보러 가까운 데 30만원대" className="w-full border border-slate-200 rounded-2xl px-3 py-2.5 text-[14px] resize-none focus:outline-none focus:border-brand-400" />
-        <button onClick={runFreeText} className="w-full bg-brand-500 text-white font-bold rounded-2xl py-3 mt-2">✨ 이렇게 찾아줘</button>
+        <button onClick={() => runFreeText()} disabled={thinking} className="w-full bg-brand-500 text-white font-bold rounded-2xl py-3 mt-2 disabled:opacity-60">{thinking ? '찾는 중…' : '✨ 이렇게 찾아줘'}</button>
         <div className="text-[11px] text-slate-400 mt-2 text-center">가격·정보는 지어내지 않아요 — 조건만 읽어서 검수된 여행지를 골라드려요</div>
       </div>
       <p className="text-[13px] text-slate-500 mb-4">또는 직접 골라보세요 👇</p>
