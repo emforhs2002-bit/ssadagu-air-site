@@ -586,7 +586,13 @@ function AlertSetup({ prefs, onSave }) {
   const [budgetMax, setBudget] = useState(prefs?.budgetMax || 0)
   const [directOnly, setDirect] = useState(prefs?.directOnly || false)
   const toggleR = r => setRegions(p => p.includes(r) ? p.filter(x => x !== r) : [...p, r])
-  const save = () => { onSave({ regions, budgetMax, directOnly }); alert('알림 조건을 저장했어요! 🔔\n지금은 앱을 열면 내 조건에 맞는 안심 특가를 먼저 보여드려요.\n곧 새 딜이 뜨면 알려주는 푸시·이메일 알림도 추가돼요.') }
+  const save = () => {
+    const p = { regions, budgetMax, directOnly }
+    onSave(p)
+    // 이미 푸시를 켠 사용자면 새 조건을 OneSignal 태그에 즉시 반영
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') syncPushTags(p)
+    alert('알림 조건을 저장했어요! 🔔\n새 특가가 뜨면 조건에 맞을 때 푸시로 알려드려요.\n(푸시 알림을 켜두면 폰으로 바로 받아요.)')
+  }
   return (
     <Section title="🔔 내 특가 알림 조건">
       <div className="text-[12px] text-slate-500 mb-3">조건을 저장하면 핫딜 탭에서 <b className="text-rose-500">내 조건에 맞는 안심 특가를 먼저</b> 보여드려요.</div>
@@ -882,19 +888,32 @@ function Home({ deals, onGo, onDeal, onDealFilter }) {
 }
 
 /* ───────── 🔔 알림 ───────── */
+// 알림 조건 → OneSignal 태그 (서버 push_alerts.py 의 LABEL_TAG 와 키 일치 필수)
+const REGION_TAG = { '일본': 'r_jp', '동남아': 'r_sea', '대만': 'r_tw', '베트남': 'r_vn', '태국': 'r_th', '괌': 'r_gum' }
+function prefTags(prefs) {
+  const regions = (prefs && prefs.regions) || []
+  const t = { r_jp: '0', r_sea: '0', r_tw: '0', r_vn: '0', r_th: '0', r_gum: '0' }
+  regions.forEach(r => { if (REGION_TAG[r]) t[REGION_TAG[r]] = '1' })
+  t.r_all = regions.length ? '0' : '1'   // 지역 미선택 = 전체 받기
+  t.bmax = String(prefs && prefs.budgetMax ? prefs.budgetMax : 99999999)  // 0(상관없음)=무제한
+  t.direct = prefs && prefs.directOnly ? '1' : '0'
+  return t
+}
+function syncPushTags(prefs) {  // 권한 요청 없이 태그만 갱신 (조건 저장 시)
+  try {
+    window.OneSignalDeferred = window.OneSignalDeferred || []
+    window.OneSignalDeferred.push(async OneSignal => {
+      try { await OneSignal.User.addTags(prefTags(prefs)) } catch (e) {}
+    })
+  } catch (e) {}
+}
 function enablePush(prefs) {
   haptic(12)
   try {
     window.OneSignalDeferred = window.OneSignalDeferred || []
     window.OneSignalDeferred.push(async OneSignal => {
       await OneSignal.Notifications.requestPermission()
-      try {
-        await OneSignal.User.addTags({
-          regions: ((prefs && prefs.regions) || []).join(',') || 'all',
-          budget: String((prefs && prefs.budgetMax) || 0),
-          direct: prefs && prefs.directOnly ? '1' : '0',
-        })
-      } catch (e) {}
+      try { await OneSignal.User.addTags(prefTags(prefs)) } catch (e) {}
     })
   } catch (e) { alert('푸시 설정 중 문제가 있었어요. 잠시 후 다시 시도해주세요.') }
 }
