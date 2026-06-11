@@ -414,6 +414,10 @@ function PriceCalendar({ y, m, cal, day, onPick }) {
   )
 }
 
+const F_PRICE = [[0, '전체'], [200000, '20만↓'], [300000, '30만↓'], [400000, '40만↓'], [500000, '50만↓']]
+const TIME_SLOTS = [['', '시간 전체'], ['dawn', '새벽 0–6시'], ['morning', '오전 6–12시'], ['afternoon', '오후 12–18시'], ['evening', '저녁 18–24시']]
+const slotOf = at => { const h = +(at || '').slice(11, 13); return h < 6 ? 'dawn' : h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening' }
+const fchip = on => 'text-[12.5px] rounded-full px-3.5 py-1.5 font-bold border ' + (on ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')
 function Flights() {
   const months = monthsList()
   const [origin, setOrigin] = useState('ICN'), [dest, setDest] = useState('FUK')
@@ -422,6 +426,8 @@ function Flights() {
   const [pax, setPax] = useState(1), [cabin, setCabin] = useState('Y')
   const [day, setDay] = useState(null)
   const [sort, setSort] = useState('price'), [directOnly, setDirectOnly] = useState(false)
+  const [ovFilter, setOvFilter] = useState(false)
+  const [fPrice, setFPrice] = useState(0), [fTime, setFTime] = useState(''), [fAir, setFAir] = useState([])
   const [st, setSt] = useState({ status: 'idle' })
   const [ovFrom, setOvFrom] = useState(false)
   const [ovTo, setOvTo] = useState(false)
@@ -453,7 +459,14 @@ function Flights() {
   const search = () => anywhere ? anywhereSearch() : routeSearch(dest)
   const DESTOPTS = [['-', '🌍 어디든지'], ...CITIES.map(([c, n]) => [c, `${n}(${c})`])]
   const results = st.status === 'route' ? (day ? st.data.filter(o => (o.departure_at || '').slice(0, 10) === day) : st.data) : []
-  const view = results.filter(o => !directOnly || o.transfers === 0).sort((a, b) => sort === 'duration' ? ((a.duration || 9e9) - (b.duration || 9e9)) : (a.price - b.price))
+  const view = results
+    .filter(o => (!directOnly || o.transfers === 0)
+      && (!fPrice || o.price <= fPrice)
+      && (!fTime || slotOf(o.departure_at) === fTime)
+      && (!fAir.length || fAir.includes(o.airline)))
+    .sort((a, b) => sort === 'duration' ? ((a.duration || 9e9) - (b.duration || 9e9)) : (a.price - b.price))
+  const airOpts = [...new Set(results.map(o => o.airline).filter(Boolean))]
+  const fltCount = (fPrice ? 1 : 0) + (fTime ? 1 : 0) + (fAir.length ? 1 : 0)
   const lowest = view.length ? view.reduce((m, o) => Math.min(m, o.price), Infinity) : 0
 
   const oName = (ORIGINS.find(([c]) => c === origin) || [])[1] || origin
@@ -545,14 +558,15 @@ function Flights() {
       {st.status === 'route' && (st.data.length
         ? <>
           <PriceCalendar y={st.y} m={st.m} cal={st.cal} day={day} onPick={setDay} />
-          <div className="flex items-center gap-1.5 text-[12.5px]">
-            <button onClick={() => setSort('price')} className={'rounded-full px-3 py-1.5 font-bold ' + (sort === 'price' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>최저가순</button>
-            <button onClick={() => setSort('duration')} className={'rounded-full px-3 py-1.5 font-bold ' + (sort === 'duration' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>빠른순</button>
-            <label className="ml-auto flex items-center gap-1.5 text-slate-600"><input type="checkbox" checked={directOnly} onChange={e => setDirectOnly(e.target.checked)} /> 직항만</label>
+          <div className="flex items-center gap-1.5 text-[12.5px] overflow-x-auto">
+            <button onClick={() => { haptic(); setOvFilter(true) }} className={'shrink-0 rounded-full px-3 py-1.5 font-bold border ' + (fltCount ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>⚙️ 필터{fltCount ? ' ' + fltCount : ''}</button>
+            <button onClick={() => setSort('price')} className={'shrink-0 rounded-full px-3 py-1.5 font-bold ' + (sort === 'price' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>최저가순</button>
+            <button onClick={() => setSort('duration')} className={'shrink-0 rounded-full px-3 py-1.5 font-bold ' + (sort === 'duration' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>빠른순</button>
+            <label className="ml-auto shrink-0 flex items-center gap-1.5 text-slate-600"><input type="checkbox" checked={directOnly} onChange={e => setDirectOnly(e.target.checked)} /> 직항만</label>
           </div>
           <div className="text-[12px] text-slate-500 px-1">{day ? <><b className="text-brand-600">{day.slice(5).replace('-', '/')}</b> 출발 · <button onClick={() => setDay(null)} className="text-brand-600 font-bold">전체</button></> : st.label} · 최저가 <b className="text-brand-600">{won(lowest)}</b> · {view.length}편 · <a href={mapsUrl(cityName(dest) + ' 관광')} target="_blank" rel="noopener" className="text-brand-600 font-bold">🗺️ {cityName(dest)} 지도</a></div>
           <div className="bg-amber-50 text-amber-800 text-[11.5px] rounded-xl px-3 py-2">💡 여기 보이는 건 <b>최근 확인된 최저가 모음(참고가)</b>이에요 — 전체 시간표가 아니에요. 카드를 누르면 예약처에서 실시간 확정, 모든 항공편은 아래 <b>실시간 전체 보기</b>로.</div>
-          {view.length ? view.map((o, i) => <FlightResult key={i} o={o} low={o.price === lowest} />) : <Empty icon="🔎" text="직항만 조건에 맞는 게 없어요. 직항만을 꺼보세요." />}
+          {view.length ? view.map((o, i) => <FlightResult key={i} o={o} low={o.price === lowest} />) : <Empty icon="🔎" text="조건에 맞는 항공편이 없어요. 필터를 줄여보세요." />}
           {view.length > 0 && (() => {
             const c = view[0]
             const dd = (c.departure_at || '').slice(0, 10), rr = oneway ? null : (c.return_at || '').slice(0, 10)
@@ -562,6 +576,27 @@ function Flights() {
           })()}
         </>
         : <Empty icon="🔎" text="이 달엔 캐시된 가격이 없어요. 다른 달·도시로 검색해 보세요." />)}
+
+      <Sheet open={ovFilter} onClose={() => setOvFilter(false)} title="필터">
+        <div className="px-4 pb-6 space-y-5">
+          <div>
+            <div className="text-[13px] font-bold text-slate-700 mb-2">가격대 (참고가)</div>
+            <div className="flex flex-wrap gap-2">{F_PRICE.map(([v, l]) => <button key={v} onClick={() => setFPrice(v)} className={fchip(fPrice === v)}>{l}</button>)}</div>
+          </div>
+          <div>
+            <div className="text-[13px] font-bold text-slate-700 mb-2">출발 시간대</div>
+            <div className="flex flex-wrap gap-2">{TIME_SLOTS.map(([v, l]) => <button key={v} onClick={() => setFTime(v)} className={fchip(fTime === v)}>{l}</button>)}</div>
+          </div>
+          {airOpts.length > 1 && <div>
+            <div className="text-[13px] font-bold text-slate-700 mb-2">항공사</div>
+            <div className="flex flex-wrap gap-2">{airOpts.map(a => <button key={a} onClick={() => setFAir(p => p.includes(a) ? p.filter(x => x !== a) : [...p, a])} className={fchip(fAir.includes(a))}>{airlineName(a)}</button>)}</div>
+          </div>}
+          <div className="flex gap-2 pt-1">
+            <button onClick={() => { setFPrice(0); setFTime(''); setFAir([]) }} className="flex-1 rounded-2xl py-3 font-bold text-slate-500 bg-slate-100">초기화</button>
+            <button onClick={() => { haptic(); setOvFilter(false) }} className="flex-1 rounded-2xl py-3 font-bold text-white bg-brand-500">{view.length}편 보기</button>
+          </div>
+        </div>
+      </Sheet>
     </div>
   )
 }
