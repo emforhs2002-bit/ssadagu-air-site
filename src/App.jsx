@@ -323,13 +323,42 @@ function whyReasons(d, { who, budgetMax, moods, flightMax }) {
   if (!r.length) r.push('전반적으로 무난한 여행지예요')
   return r
 }
+// 자유입력 → 조건 추출 (규칙 기반 = 무료·즉시·서버 0. LLM은 가격·사실 생성 금지 원칙이라 조건만 뽑음)
+function parseWhere(t) {
+  const moods = [...new Set([
+    ...Q_MOOD.filter(m => t.includes(m)),
+    ...(/바다|해변|비치|스노클/.test(t) ? ['바다'] : []),
+    ...(/먹|맛집|음식|미식/.test(t) ? ['맛집'] : []),
+    ...(/쉬|힐링|휴양|리조트|느긋/.test(t) ? ['휴양'] : []),
+    ...(/온천|료칸|스파/.test(t) ? ['온천'] : []),
+    ...(/자연|풍경|산/.test(t) ? ['자연'] : []),
+    ...(/쇼핑|면세/.test(t) ? ['쇼핑'] : []),
+  ])]
+  const who = Q_WHO.find(w => t.includes(w)) || (/애기|아이|아기|애들/.test(t) ? '가족' : /엄마|아빠|부모/.test(t) ? '부모님' : null)
+  let budgetMax = null
+  if (/20만|이십만/.test(t)) budgetMax = 299000
+  else if (/30만|삼십만/.test(t)) budgetMax = 399000
+  else if (/40만|50만|사십만|오십만/.test(t)) budgetMax = 599000
+  else { const m = t.match(/(\d+)\s*만/); if (m) { const n = +m[1] * 10000; budgetMax = n <= 250000 ? 299000 : n <= 350000 ? 399000 : 599000 } }
+  const flightMax = /짧게|가까|가깝|근거리|가벼운|금방/.test(t) ? 180 : null
+  const when = Q_WHEN.find(w => t.includes(w)) || (/연휴/.test(t) ? '연휴' : null)
+  return { who, budgetMax, moods, flightMax, when }
+}
 function Where({ deals, onOpen }) {
   const [who, setWho] = useState(null), [when, setWhen] = useState(null), [budgetMax, setB] = useState(null), [moods, setMoods] = useState([]), [flightMax, setF] = useState(null), [results, setResults] = useState(null)
+  const [q, setQ] = useState('')
   const toggleMood = m => setMoods(p => p.includes(m) ? p.filter(x => x !== m) : [...p, m])
-  function recommend() {
-    const cond = { who, budgetMax: budgetMax ?? 9e12, moods, flightMax: flightMax ?? 9999 }
-    const ranked = [...DESTINATIONS].map(d => ({ d, s: scoreDest(d, cond) })).sort((a, b) => b.s - a.s).slice(0, 3)
-    setResults(ranked.map(({ d }) => ({ d, deal: deals.filter(x => d.codes.includes((x.route || '').split('-')[1])).sort((a, b) => a.price - b.price)[0], why: whyReasons(d, cond) })))
+  function recommend(cond) {
+    const c = cond || { who, budgetMax: budgetMax ?? 9e12, moods, flightMax: flightMax ?? 9999 }
+    const ranked = [...DESTINATIONS].map(d => ({ d, s: scoreDest(d, c) })).sort((a, b) => b.s - a.s).slice(0, 3)
+    setResults(ranked.map(({ d }) => ({ d, deal: deals.filter(x => d.codes.includes((x.route || '').split('-')[1])).sort((a, b) => a.price - b.price)[0], why: whyReasons(d, c) })))
+  }
+  function runFreeText() {
+    const t = q.trim(); if (!t) return
+    haptic()
+    const f = parseWhere(t)
+    setWho(f.who); setB(f.budgetMax); setMoods(f.moods); setF(f.flightMax); setWhen(f.when)
+    recommend({ who: f.who, budgetMax: f.budgetMax ?? 9e12, moods: f.moods, flightMax: f.flightMax ?? 9999 })
   }
   function saveAlert(d) {
     const w = JSON.parse(localStorage.getItem('wishlist') || '[]'); w.push({ name: d.name, codes: d.codes, who, when, budgetMax, moods, at: new Date().toISOString() }); localStorage.setItem('wishlist', JSON.stringify(w))
@@ -355,13 +384,19 @@ function Where({ deals, onOpen }) {
   )
   return (
     <div className="px-4 pt-2 pb-4">
-      <p className="text-[13px] text-slate-500 mb-4">어디 갈지 모르겠으면, 몇 개만 골라보세요 👇</p>
+      <div className="bg-white rounded-3xl shadow-soft p-4 mb-4">
+        <div className="text-[13.5px] font-bold text-slate-700 mb-1.5">✨ 그냥 말로 적어보세요</div>
+        <textarea value={q} onChange={e => setQ(e.target.value)} rows={2} placeholder="예: 6월에 가족이랑 바다 보러 가까운 데 30만원대" className="w-full border border-slate-200 rounded-2xl px-3 py-2.5 text-[14px] resize-none focus:outline-none focus:border-brand-400" />
+        <button onClick={runFreeText} className="w-full bg-brand-500 text-white font-bold rounded-2xl py-3 mt-2">✨ 이렇게 찾아줘</button>
+        <div className="text-[11px] text-slate-400 mt-2 text-center">가격·정보는 지어내지 않아요 — 조건만 읽어서 검수된 여행지를 골라드려요</div>
+      </div>
+      <p className="text-[13px] text-slate-500 mb-4">또는 직접 골라보세요 👇</p>
       <QGroup title="누구랑 가세요?">{Q_WHO.map(x => <Chip key={x} on={who === x} onClick={() => setWho(x)}>{x}</Chip>)}</QGroup>
       <QGroup title="예산은요? (1인 왕복)">{Q_BUDGET.map(([l, v]) => <Chip key={l} on={budgetMax === v} onClick={() => setB(v)}>{l}</Chip>)}</QGroup>
       <QGroup title="무슨 분위기를 원해요? (여러 개)">{Q_MOOD.map(x => <Chip key={x} on={moods.includes(x)} onClick={() => toggleMood(x)}>{x}</Chip>)}</QGroup>
       <QGroup title="비행시간은요?">{Q_FLIGHT.map(([l, v]) => <Chip key={l} on={flightMax === v} onClick={() => setF(v)}>{l}</Chip>)}</QGroup>
       <QGroup title="언제 가세요?">{Q_WHEN.map(x => <Chip key={x} on={when === x} onClick={() => setWhen(x)}>{x}</Chip>)}</QGroup>
-      <button onClick={recommend} className="w-full bg-brand-500 text-white font-bold rounded-2xl py-3.5 mt-2">여행지 추천받기 ✨</button>
+      <button onClick={() => recommend()} className="w-full bg-brand-500 text-white font-bold rounded-2xl py-3.5 mt-2">여행지 추천받기 ✨</button>
     </div>
   )
 }
@@ -902,11 +937,11 @@ function Home({ deals, onGo, onDeal, onDealFilter }) {
         <button onClick={() => { haptic(); setOv(true) }} className="w-full bg-white rounded-2xl shadow-soft -mt-6 relative px-4 py-4 flex items-center gap-2.5 text-left active:scale-[.99] transition">
           <span>🔍</span><span className="text-slate-400 text-[14.5px]">어디로 떠나세요? 도시 · 나라 · 전체</span>
         </button>
-        <div className="grid grid-cols-4 pt-5 pb-1">
-          {[['hot', '🔥', '핫딜'], ['flights', '✈️', '항공편'], ['hotels', '🏨', '호텔'], ['planner', '🗺️', '플래너']].map(([k, ic, t]) => (
+        <div className="grid grid-cols-5 pt-5 pb-1">
+          {[['hot', '🔥', '핫딜'], ['where', '🧭', '어디갈까'], ['flights', '✈️', '항공편'], ['hotels', '🏨', '호텔'], ['planner', '🗺️', '플래너']].map(([k, ic, t]) => (
             <button key={k} onClick={() => onGo(k)} className="text-center py-1.5 active:scale-95 transition">
-              <span className="w-[52px] h-[52px] mx-auto rounded-full bg-white shadow-soft flex items-center justify-center text-[24px]">{ic}</span>
-              <span className="block text-[12px] font-bold text-slate-700 mt-1.5">{t}</span>
+              <span className="w-[46px] h-[46px] mx-auto rounded-full bg-white shadow-soft flex items-center justify-center text-[22px]">{ic}</span>
+              <span className="block text-[11px] font-bold text-slate-700 mt-1.5">{t}</span>
             </button>
           ))}
         </div>
@@ -1005,7 +1040,7 @@ function Alerts({ prefs, onSavePrefs }) {
 
 /* ───────── shell ───────── */
 const TABS = [['home', '🏠', '홈'], ['hot', '🔥', '핫딜'], ['alerts', '🔔', '알림'], ['my', '👤', '마이']]
-const TAB_TITLE = { hot: '🔥 핫딜', alerts: '특가 알림', flights: '최저가 항공권 검색', hotels: '호텔 최저가 비교', planner: '여행플래너', my: '마이' }
+const TAB_TITLE = { hot: '🔥 핫딜', alerts: '특가 알림', flights: '최저가 항공권 검색', hotels: '호텔 최저가 비교', planner: '여행플래너', where: '🧭 어디 갈까?', my: '마이' }
 
 /* 홈화면 설치 유도 (안드로이드=네이티브 프롬프트, iOS=가이드 시트) */
 function useInstall() {
@@ -1062,6 +1097,7 @@ export default function App() {
         {deals && tab === 'home' && <Home deals={deals} onGo={switchTab} onDeal={setSel} onDealFilter={f => { setHotExt({ ...f, ts: Date.now() }); switchTab('hot') }} />}
         {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} ext={hotExt} onRefresh={loadDeals} updatedAt={updatedAt} /> : <Empty icon="🔎" text="핫딜이 아직 없어요. 알림을 걸어두면 뜨자마자 알려드릴게요." />)}
         {deals && tab === 'alerts' && <Alerts prefs={prefs} onSavePrefs={savePrefs} />}
+        {deals && tab === 'where' && <Where deals={deals} onOpen={setSel} />}
         {deals && tab === 'flights' && <Flights deals={deals} onOpen={setSel} />}
         {deals && tab === 'hotels' && <Suspense fallback={<div className="px-4 pt-2"><SkelRows n={4} /></div>}><Hotels /></Suspense>}
         {deals && tab === 'planner' && <Planner seed={planSeed} clearSeed={() => setPlanSeed(null)} />}
