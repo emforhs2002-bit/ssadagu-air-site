@@ -562,27 +562,35 @@ function monthsList() {
 function PriceCalendar({ y, m, cal, day, onPick }) {
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const lead = new Date(y, m, 1).getDay(), daysIn = new Date(y, m + 1, 0).getDate()
-  const ps = Object.values(cal), min = ps.length ? Math.min(...ps) : 0
+  const ps = Object.values(cal), min = ps.length ? Math.min(...ps) : 0, max = ps.length ? Math.max(...ps) : 0
+  // 가격 히트맵: 싼 날=초록(hue140) → 비싼 날=빨강(hue0)
+  const heat = p => { const t = max === min ? 0 : (p - min) / (max - min); const hue = 140 - t * 140; return { bg: `hsl(${hue},72%,${93 - t * 3}%)`, fg: `hsl(${hue},75%,30%)` } }
   const cells = []
   for (let i = 0; i < lead; i++) cells.push(null)
   for (let d = 1; d <= daysIn; d++) cells.push(d)
   return (
     <div className="bg-white rounded-2xl shadow-soft p-3">
-      <div className="text-center font-bold text-[13.5px] mb-2">{y}년 {m + 1}월 · 날짜별 최저가</div>
+      <div className="flex items-center justify-between mb-2 px-1">
+        <div className="font-bold text-[13.5px]">{y}년 {m + 1}월 · 날짜별 최저가</div>
+        <div className="flex items-center gap-1 text-[9.5px] text-slate-400"><span>싸요</span><span className="w-10 h-2 rounded-full" style={{ background: 'linear-gradient(90deg,hsl(140,72%,88%),hsl(60,72%,86%),hsl(0,72%,90%))' }} /><span>비싸요</span></div>
+      </div>
       <div className="grid grid-cols-7 text-center text-[10px] mb-1">{['일', '월', '화', '수', '목', '금', '토'].map((w, i) => <div key={i} className={i === 0 ? 'text-rose-400' : i === 6 ? 'text-blue-400' : 'text-slate-400'}>{w}</div>)}</div>
       <div className="grid grid-cols-7 gap-1">
         {cells.map((d, i) => {
           if (!d) return <div key={i} />
           const key = `${y}-${pad2(m + 1)}-${pad2(d)}`, p = cal[key], past = new Date(y, m, d) < today, sel = day === key, hol = HOLIDAYS[key]
+          const c = p && !past ? heat(p) : null
           return (
             <button key={i} disabled={!p || past} onClick={() => onPick(sel ? null : key)} title={hol || ''}
-              className={'aspect-square rounded-lg flex flex-col items-center justify-center leading-none ' + (sel ? 'bg-brand-500 text-white' : (p && !past) ? (p === min ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-700') : 'text-slate-200')}>
+              style={c && !sel ? { backgroundColor: c.bg, color: c.fg } : undefined}
+              className={'aspect-square rounded-lg flex flex-col items-center justify-center leading-none ' + (sel ? 'bg-brand-500 text-white' : (!c ? 'text-slate-200' : (p === min ? 'ring-2 ring-emerald-400' : '')))}>
               <span className={'text-[11px] font-bold' + (hol && !sel && !past ? ' text-rose-500' : '')}>{d}{hol ? '·' : ''}</span>
               {p && !past && <span className="text-[8px] font-bold mt-0.5">{Math.round(p / 10000)}만</span>}
             </button>
           )
         })}
       </div>
+      <div className="text-[10px] text-slate-400 text-center mt-1.5">💚 테두리 = 이달 최저가</div>
     </div>
   )
 }
@@ -1041,6 +1049,38 @@ function homeDestGroups(deals) {
     { title: '지금 딜 있는 도시', items: Object.entries(cities).map(([code, name]) => ({ id: 'c:' + code, label: name, sub: code, icon: '🏙️' })) },
   ]
 }
+/* 💰 예산 역검색 — "이 돈이면 어디까지?" (목적지 DB + 현재 특가 매칭) */
+function BudgetFinder({ deals, onOpen }) {
+  const [bud, setBud] = useState(null)
+  const BUD = [[200000, '20만'], [300000, '30만'], [400000, '40만'], [600000, '50만+']]
+  const dealByDest = {}
+  deals.forEach(d => { const c = destOf(d); if (!dealByDest[c] || d.price < dealByDest[c].price) dealByDest[c] = d })
+  const places = bud ? DESTINATIONS.filter(x => x.budgetMin <= bud)
+    .map(x => ({ x, deal: x.codes.map(c => dealByDest[c]).filter(Boolean).sort((a, b) => a.price - b.price)[0] }))
+    .sort((a, b) => (a.deal ? 0 : 1) - (b.deal ? 0 : 1) || a.x.budgetMin - b.x.budgetMin) : []
+  return (
+    <div className="bg-white rounded-2xl shadow-soft p-4 mt-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-[15px] font-extrabold text-slate-900">💰 예산으로 떠나기</h2>
+        {bud && <button onClick={() => setBud(null)} className="text-[12px] text-slate-400 font-bold">초기화</button>}
+      </div>
+      <p className="text-[12px] text-slate-400 mt-0.5">이 돈이면 어디까지 갈 수 있을까?</p>
+      <div className="flex gap-1.5 mt-2.5">{BUD.map(([v, l]) => <button key={v} onClick={() => { haptic(); setBud(v) }} className={'flex-1 text-[13px] rounded-xl py-2.5 font-bold border ' + (bud === v ? 'bg-brand-500 text-white border-brand-500' : 'bg-slate-50 text-slate-600 border-slate-200')}>{l}원</button>)}</div>
+      {bud && <div className="mt-3 space-y-1.5">
+        {places.slice(0, 8).map(({ x, deal }) => (
+          <div key={x.name} onClick={() => deal && onOpen(deal)} className={'flex items-center justify-between rounded-xl px-3 py-2.5 ' + (deal ? 'bg-brand-50 cursor-pointer active:scale-[.99] transition' : 'bg-slate-50')}>
+            <div className="min-w-0">
+              <div className="text-[13.5px] font-bold text-slate-800 truncate">📍 {x.name} <span className="text-[11px] text-slate-400 font-medium">{x.country} · 비행 {Math.round(x.flightMin / 6) / 10}h</span></div>
+              <div className="text-[11px] text-slate-400">{x.budget}대 · {(x.themes || []).slice(0, 3).join('·')}</div>
+            </div>
+            {deal ? <div className="text-right shrink-0 pl-2"><div className="text-[13px] font-black text-brand-600">{won(deal.price)}</div><div className="text-[9.5px] text-brand-500 font-bold">지금 특가 ›</div></div> : <span className="text-[11px] text-slate-300 shrink-0">특가 대기</span>}
+          </div>
+        ))}
+        {!places.length && <div className="text-[12.5px] text-slate-400 py-2">이 예산으로 갈 만한 곳을 못 찾았어요.</div>}
+      </div>}
+    </div>
+  )
+}
 function Home({ deals, onGo, onDeal, onDealFilter }) {
   const [ov, setOv] = useState(false)
   const wk = upcomingWeekends(todayStr())[0]
@@ -1076,6 +1116,7 @@ function Home({ deals, onGo, onDeal, onDealFilter }) {
           <span className="text-[22px]">🗓️</span>
           <span className="flex-1"><b className="block text-[13.5px] text-amber-800">{wk.label}{wk.leave ? ' (연차 ' + wk.leave + '개)' : ''}</b><span className="text-[11.5px] text-amber-600">지금 제일 싸게 갈 수 있는 곳 보기 ›</span></span>
         </button>}
+        <BudgetFinder deals={deals} onOpen={onDeal} />
         <div className="flex items-baseline justify-between mt-6 mb-3">
           <h2 className="text-[17px] font-extrabold text-slate-900">🔥 지금 뜬 핫딜</h2>
           <button onClick={() => onDealFilter({})} className="text-[12px] text-brand-600 font-bold">전체 ›</button>
@@ -1198,6 +1239,13 @@ export default function App() {
   const [prefs, savePrefs] = useAlertPrefs()
   const loadDeals = () => fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => { setDeals(d.deals || []); const t = new Date(); setUpdatedAt(`${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`) }).catch(() => setDeals([]))
   useEffect(() => { loadDeals() }, [])
+  // 앱 숏컷(홈화면 아이콘 길게 누르기) → ?go=hot|flights|hotels 로 해당 탭 진입
+  useEffect(() => {
+    const go = new URLSearchParams(location.search).get('go')
+    if (go && ['hot', 'flights', 'hotels', 'planner', 'where', 'my', 'alerts'].includes(go)) {
+      setTab(go); history.replaceState(null, '', location.pathname)
+    }
+  }, [])
   // 공유 딥링크: #deal=id 로 들어오면 해당 딜 상세 자동 오픈
   useEffect(() => {
     if (!deals || !deals.length) return

@@ -11,5 +11,10 @@
     { "src": "/ssadagu-air-site/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/ssadagu-air-site/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "/ssadagu-air-site/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "🔥 핫딜", "short_name": "핫딜", "url": "/ssadagu-air-site/?go=hot", "icons": [{ "src": "/ssadagu-air-site/icon-192.png", "sizes": "192x192" }] },
+    { "name": "✈️ 항공편 검색", "short_name": "항공편", "url": "/ssadagu-air-site/?go=flights", "icons": [{ "src": "/ssadagu-air-site/icon-192.png", "sizes": "192x192" }] },
+    { "name": "🏨 호텔 최저가 비교", "short_name": "호텔", "url": "/ssadagu-air-site/?go=hotels", "icons": [{ "src": "/ssadagu-air-site/icon-192.png", "sizes": "192x192" }] }
   ]
 }
