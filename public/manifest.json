@@ -1,13 +1,15 @@
 {
-  "name": "싸다구항공 — 딜 검문소",
-  "short_name": "싸다구항공",
-  "description": "인천·김포발 항공권 특가를 검수해서 알려주는 딜 검문소",
+  "name": "싸다구여행 — 어딜봐도 싸다구",
+  "short_name": "싸다구여행",
+  "description": "사람이 직접 확인한 항공권 특가 · 호텔 최저가 비교 · 여행 준비까지",
   "start_url": "/ssadagu-air-site/",
   "scope": "/ssadagu-air-site/",
   "display": "standalone",
   "background_color": "#eefbf8",
   "theme_color": "#14b8a6",
   "icons": [
-    { "src": "/ssadagu-air-site/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "/ssadagu-air-site/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/ssadagu-air-site/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/ssadagu-air-site/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
   ]
 }

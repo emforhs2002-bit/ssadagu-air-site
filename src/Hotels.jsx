@@ -240,7 +240,7 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
   const minKrw = useCountUp(minTotal != null ? Math.round(minTotal * usdKrw) : null)
   const doShare = () => shareIt({
     title: `${h.name} 가격 비교`,
-    text: `🏨 ${h.name} (${h.cityName}) ${md(ci)}~${md(co)} · 1박 최저 ${minTotal != null ? wonFmt(minTotal * usdKrw) : '비교 중'} — 예약처별 가격 비교는 싸다구항공에서`,
+    text: `🏨 ${h.name} (${h.cityName}) ${md(ci)}~${md(co)} · 1박 최저 ${minTotal != null ? wonFmt(minTotal * usdKrw) : '비교 중'} — 예약처별 가격 비교는 싸다구여행에서`,
     url: 'https://emforhs2002-bit.github.io/ssadagu-air-site/',
   })
   return (

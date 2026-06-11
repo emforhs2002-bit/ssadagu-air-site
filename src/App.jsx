@@ -742,7 +742,7 @@ function My({ prefs, onSavePrefs }) {
       <AlertSetup prefs={prefs} onSave={onSavePrefs} />
       <Section title="관심 공항"><div className="flex gap-2 flex-wrap">{['인천(ICN)', '김포(GMP)'].map(a => <span key={a} className="text-[13px] bg-brand-50 text-brand-700 rounded-full px-3 py-1.5">{a}</span>)}</div></Section>
       <Section title="이런 특가는 숨기기"><Toggle label="경유 항공권 숨기기" k="no_transfer" /><Toggle label="새벽 출발/도착 숨기기" k="no_dawn" /><Toggle label="수하물 별도(LCC) 숨기기" k="no_lcc" /></Section>
-      <div className="text-center text-[11px] text-slate-400 pt-2">싸다구항공 · 결제·환불은 판매처 직접, 우린 안심 특가만 골라드려요</div>
+      <div className="text-center text-[11px] text-slate-400 pt-2">싸다구여행 · 결제·환불은 판매처 직접, 우린 안심 특가만 골라드려요</div>
     </div>
   )
 }
@@ -949,7 +949,10 @@ function Home({ deals, onGo, onDeal, onDealFilter }) {
     <div>
       <div className="relative h-[248px] bg-cover bg-center bg-slate-300" style={{ backgroundImage: `linear-gradient(180deg,rgba(15,23,42,.4),rgba(15,23,42,.04) 38%,rgba(15,23,42,.82)),url(${photoBySlug('hero')})` }}>
         <div className="absolute top-5 left-5 right-5 flex items-center justify-between">
-          <span className="text-white font-extrabold text-[16px]" style={{ textShadow: '0 1px 8px rgba(0,0,0,.5)' }}>✈️ 싸다구항공</span>
+          <span className="flex items-center gap-2">
+            <img src={import.meta.env.BASE_URL + 'logo.png'} alt="싸다구여행" className="w-8 h-8 rounded-full shadow" />
+            <span className="text-white font-extrabold text-[16px]" style={{ textShadow: '0 1px 8px rgba(0,0,0,.5)' }}>싸다구여행</span>
+          </span>
           <button onClick={() => { haptic(); onGo('my') }} aria-label="마이" className="w-9 h-9 rounded-full bg-black/25 backdrop-blur flex items-center justify-center text-white text-[17px] active:scale-95 transition">👤</button>
         </div>
         <div className="absolute left-5 right-5 bottom-12 text-white">
