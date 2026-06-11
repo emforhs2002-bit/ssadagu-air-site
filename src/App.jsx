@@ -146,6 +146,44 @@ function DealCard({ d, saved, onSave, onOpen, mine }) {
 }
 
 /* ───────── detail sheet (간결) ───────── */
+let _phCache = null
+function usePriceHistory(route) {
+  const [h, setH] = useState(null)
+  useEffect(() => {
+    let live = true
+    const apply = all => { if (live) setH((all && all[route]) || []) }
+    if (_phCache) apply(_phCache)
+    else fetch(import.meta.env.BASE_URL + 'price_history.json?' + Date.now()).then(r => r.json())
+      .then(all => { _phCache = all; apply(all) }).catch(() => { if (live) setH([]) })
+    return () => { live = false }
+  }, [route])
+  return h
+}
+function PriceSpark({ d }) {
+  const hist = usePriceHistory(d.route)
+  if (hist === null) return null
+  if (hist.length < 2) return (
+    <div className="bg-slate-50 rounded-2xl p-3 text-[12px] text-slate-400">📉 가격 추이는 데이터를 쌓는 중이에요 — 며칠 뒤부터 그래프가 채워져요.</div>
+  )
+  const prices = hist.map(p => p[1]), min = Math.min(...prices), max = Math.max(...prices)
+  const W = 280, H = 54, pad = 5
+  const x = i => pad + (i / (hist.length - 1)) * (W - pad * 2)
+  const y = v => max === min ? H / 2 : pad + (1 - (v - min) / (max - min)) * (H - pad * 2)
+  const path = hist.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(p[1]).toFixed(1)}`).join(' ')
+  return (
+    <div className="bg-slate-50 rounded-2xl p-3">
+      <div className="flex items-center justify-between text-[12px] mb-1.5">
+        <span className="font-bold text-slate-600">📉 최근 가격 추이</span>
+        <span className="text-slate-400">최저 {won(min)} · 최고 {won(max)}</span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full text-brand-500" style={{ height: H }} preserveAspectRatio="none">
+        <path d={path} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        {hist.map((p, i) => <circle key={i} cx={x(i)} cy={y(p[1])} r={i === hist.length - 1 ? 3.5 : 2} fill={i === hist.length - 1 ? '#ef4444' : 'currentColor'} />)}
+      </svg>
+      <div className="flex justify-between text-[10px] text-slate-400 mt-1"><span>{hist[0][0]}</span><span>{hist[hist.length - 1][0]} (오늘)</span></div>
+    </div>
+  )
+}
 function DealSheet({ d, onClose, onPlan }) {
   const dep = fmtDate(d.departure_time), ret = fmtDate(d.return_time)
   const pcv = priceCheckView(d.price_check), photo = photoOf(d), logo = logoOf(d)
@@ -173,6 +211,7 @@ function DealSheet({ d, onClose, onPlan }) {
             <div className="text-slate-600 text-[13px]">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-800'}>{dep.full}</b><br />🛬 <b className={ret.weekend ? 'text-rose-500' : 'text-slate-800'}>{ret.full}</b></div>
             <div className="text-right"><div className="text-[28px] font-black text-brand-600 leading-none">{won(priceAnim)}</div>{d.discount_rate > 0 ? <div className="text-[11px] font-bold text-rose-500 mt-1">왕복 · 평소 대비 -{d.discount_rate}%</div> : <div className="text-[11px] text-slate-400 mt-1">왕복</div>}</div>
           </div>
+          <PriceSpark d={d} />
           {isAuto(d)
             ? <div className="bg-amber-50 rounded-2xl p-3 text-[12.5px] text-amber-800"><b>🤖 자동 발견 · 검수 전</b> — 엔진이 방금 찾은 특가예요. 예약처에서 가격·조건을 꼭 확인하세요.</div>
             : <div className="bg-brand-50 rounded-2xl p-3 text-[12.5px]">
