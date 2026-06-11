@@ -8,6 +8,15 @@ import { Sheet, SearchOverlay, RangeCalendar, StepRow, MadLib, SkelRows, haptic,
 const PROXY = 'https://curly-meadow-ab36ssadagu-proxy.emforhs2002.workers.dev'
 const ALLIANCE = 'Allianceid=8617491&SID=318432318'
 
+/* 호텔 한글명 (구글지도 표기, ko_names.json — 월간 배치 수집. 없으면 영어 폴백) */
+let KO = {}
+let HLANG = (() => { try { return localStorage.getItem('hotelLang') || 'ko' } catch (e) { return 'ko' } })()
+let _koP = null
+const loadKo = () => _koP || (_koP = fetch(import.meta.env.BASE_URL + 'ko_names.json')
+  .then(r => (r.ok ? r.json() : {})).then(j => { KO = j || {} }).catch(() => {}))
+const hname = h => (HLANG === 'ko' && KO[h.key]) || h.name          // 표시명
+const hsub = h => (HLANG === 'ko' && KO[h.key] && KO[h.key] !== h.name ? h.name : null)  // 영어 부제
+
 // 도시 → TripAdvisor location_key (2026-06-10 전수 실검증, 미국 13곳 포함)
 const HOTEL_CITIES = [
   ['g298566', '오사카', '일본'], ['g298184', '도쿄', '일본'], ['g298207', '후쿠오카', '일본'], ['g298560', '삿포로', '일본'], ['g298223', '오키나와', '일본'],
@@ -239,8 +248,8 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
   const minTotal = st.status === 'ok' ? Math.min(...st.rates.map(r => r.rate + (r.tax || 0))) : null
   const minKrw = useCountUp(minTotal != null ? Math.round(minTotal * usdKrw) : null)
   const doShare = () => shareIt({
-    title: `${h.name} 가격 비교`,
-    text: `🏨 ${h.name} (${h.cityName}) ${md(ci)}~${md(co)} · 1박 최저 ${minTotal != null ? wonFmt(minTotal * usdKrw) : '비교 중'} — 예약처별 가격 비교는 싸다구여행에서`,
+    title: `${hname(h)} 가격 비교`,
+    text: `🏨 ${hname(h)} (${h.cityName}) ${md(ci)}~${md(co)} · 1박 최저 ${minTotal != null ? wonFmt(minTotal * usdKrw) : '비교 중'} — 예약처별 가격 비교는 싸다구여행에서`,
     url: 'https://emforhs2002-bit.github.io/ssadagu-air-site/',
   })
   return (
@@ -249,7 +258,8 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
         <button onClick={doShare} className="absolute top-3 right-4 text-white text-[13px] font-bold bg-black/25 rounded-full px-3 py-1.5">공유 ↗</button>
         <div className="absolute bottom-3 left-5 right-5 text-white">
           <div className="text-[12px] opacity-90">{h.cityName} · {h.rating ? `★ ${h.rating} (${(h.reviews || 0).toLocaleString('ko-KR')})` : '평점 없음'}</div>
-          <div className="text-xl font-extrabold leading-tight mt-0.5">{h.name}</div>
+          <div className="text-xl font-extrabold leading-tight mt-0.5">{hname(h)}</div>
+          {hsub(h) && <div className="text-[11px] opacity-75 truncate">{hsub(h)}</div>}
         </div>
       </div>
       <div className="px-5 pt-4 pb-8 space-y-3 text-[13.5px]">
@@ -311,7 +321,8 @@ function HotelCard({ h, ci, co, usdKrw, onOpen }) {
         {h.image ? <img src={h.image} alt="" loading="lazy" className="w-full h-full object-cover fade-in" onError={e => { e.target.style.display = 'none' }} /> : '🏨'}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-[14.5px] font-extrabold text-slate-900 leading-tight truncate">{h.name}</div>
+        <div className="text-[14.5px] font-extrabold text-slate-900 leading-tight truncate">{hname(h)}</div>
+        {hsub(h) && <div className="text-[10.5px] text-slate-300 truncate leading-tight">{hsub(h)}</div>}
         <div className="text-[12px] text-slate-400 mt-1">{h.rating ? <>★ <b className="text-slate-600">{h.rating}</b> ({(h.reviews || 0).toLocaleString('ko-KR')})</> : '평점 없음'}{h.type ? ` · ${h.type}` : ''}</div>
         {tags.length > 0 && <div className="flex flex-wrap gap-1 mt-1.5">{tags.map(t => <span key={t} className="text-[10.5px] font-bold text-slate-500 bg-slate-100 rounded-full px-2 py-0.5">{t}</span>)}</div>}
         <div className="mt-1.5 text-[12px] text-slate-500">
@@ -327,6 +338,9 @@ function HotelCard({ h, ci, co, usdKrw, onOpen }) {
 }
 
 export default function Hotels() {
+  const [, koTick] = useState(0)
+  useEffect(() => { loadKo().then(() => koTick(t => t + 1)) }, [])  // 한글명 로드 후 리렌더
+  const setLang = l => { HLANG = l; try { localStorage.setItem('hotelLang', l) } catch (e) {}; koTick(t => t + 1) }
   const [geo, setGeo] = useState('g298566')
   const [ci, setCi] = useState(addDays(dstr(new Date()), 14))
   const [co, setCo] = useState(addDays(dstr(new Date()), 16))
@@ -472,6 +486,7 @@ export default function Hotels() {
         {/* 필터 · 정렬 바 */}
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar px-0.5 -mt-1">
           <button onClick={() => { haptic(); setOvFilter(true) }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (fltCount ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>⚙️ 필터{fltCount ? ' ' + fltCount : ''}</button>
+          <button onClick={() => { haptic(); setLang(HLANG === 'ko' ? 'en' : 'ko') }} className="shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border bg-white text-slate-600 border-slate-200">🌐 {HLANG === 'ko' ? '한글명' : 'English'}</button>
           <button onClick={() => { haptic(); setClientSort(clientSort === 'price' ? null : 'price') }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (clientSort === 'price' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200')}>💰 가격 낮은순</button>
           <button onClick={() => { haptic(); setClientSort(clientSort === 'rating' ? null : 'rating') }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (clientSort === 'rating' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200')}>⭐ 평점순</button>
           <button onClick={() => { haptic(); setFlt(f => ({ ...f, rating: f.rating === 4 ? null : 4 })) }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (flt.rating === 4 ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>4.0+</button>
