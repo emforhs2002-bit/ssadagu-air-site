@@ -195,15 +195,53 @@ function PriceSpark({ d }) {
     </div>
   )
 }
+function loadImg(src) { return new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = src }) }
+// 카톡 공유용 딜 이미지(정사각 1080) — 사진+가격+로고. 사실(가격/도시)만 표기.
+async function makeDealImage(d) {
+  try { await document.fonts.ready } catch (e) {}
+  const W = 1080, cv = document.createElement('canvas'); cv.width = W; cv.height = W
+  const x = cv.getContext('2d')
+  x.fillStyle = '#0f766e'; x.fillRect(0, 0, W, W)
+  const photo = photoOf(d)
+  if (photo) { try { const im = await loadImg(photo); const r = Math.max(W / im.width, 660 / im.height); const w = im.width * r, h = im.height * r; x.drawImage(im, (W - w) / 2, 0, w, h) } catch (e) {} }
+  const g = x.createLinearGradient(0, 330, 0, 680); g.addColorStop(0, 'rgba(15,118,110,0)'); g.addColorStop(1, '#0f766e'); x.fillStyle = g; x.fillRect(0, 330, W, 360)
+  x.fillStyle = '#fff'; x.fillRect(0, 660, W, W - 660)
+  x.textBaseline = 'alphabetic'
+  if (d.discount_rate > 0) { x.fillStyle = '#f43f5e'; x.font = '800 40px Pretendard, sans-serif'; x.fillText(`평소보다 -${d.discount_rate}%`, 64, 612) }
+  x.fillStyle = '#0f172a'; x.font = '900 108px Pretendard, sans-serif'; x.fillText(String(d.city).slice(0, 8), 64, 800)
+  x.fillStyle = '#64748b'; x.font = '600 38px Pretendard, sans-serif'; x.fillText(`${originOf(d)} 출발 · ${d.airline} · 왕복`, 66, 858)
+  x.fillStyle = '#0d9488'; x.font = '900 96px Pretendard, sans-serif'; x.fillText(won(d.price), 60, 980)
+  try { const lg = await loadImg(import.meta.env.BASE_URL + 'logo.png'); x.drawImage(lg, W - 150, W - 150, 96, 96) } catch (e) {}
+  x.fillStyle = '#94a3b8'; x.font = '700 34px Pretendard, sans-serif'; x.textAlign = 'right'; x.fillText('싸다구여행 · 어딜봐도 싸다구', W - 160, W - 70)
+  return new Promise(res => cv.toBlob(res, 'image/png'))
+}
 function DealSheet({ d, onClose, onPlan }) {
   const dep = fmtDate(d.departure_time), ret = fmtDate(d.return_time)
   const pcv = priceCheckView(d.price_check), photo = photoOf(d), logo = logoOf(d)
   const priceAnim = useCountUp(d.price)
-  const doShare = () => shareIt({
+  const textShare = () => shareIt({
     title: `${d.city} 특가 항공권`,
     text: `🔥 ${d.city} 왕복 ${won(d.price)} (${d.airline}, ${dep.full} 출발${d.discount_rate > 0 ? ` · 평소 대비 -${d.discount_rate}%` : ''}) — 어딜봐도 싸다구`,
     url: SITE_URL + '#deal=' + encodeURIComponent(d.id),
   })
+  const doShare = async () => {
+    haptic()
+    try {
+      const blob = await makeDealImage(d)
+      if (blob) {
+        const file = new File([blob], 'ssadagu-deal.png', { type: 'image/png' })
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], text: `${d.city} 왕복 ${won(d.price)} — 싸다구여행 ${SITE_URL}#deal=${encodeURIComponent(d.id)}` })
+          return
+        }
+        // 공유 파일 미지원 → 이미지 새 탭으로 열어 저장 유도
+        const url = URL.createObjectURL(blob); window.open(url, '_blank')
+        setTimeout(() => URL.revokeObjectURL(url), 30000)
+        return
+      }
+    } catch (e) {}
+    textShare()
+  }
   return (
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/40 fade-in" onClick={onClose} />
