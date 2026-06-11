@@ -1,0 +1,18 @@
+# 싸다구여행 (Ssadagu Travel)
+
+> 한국(인천·김포) 출발 항공권 특가를 사람이 직접 검수해서 무료로 큐레이션하는 서비스. 호텔 최저가 메타서치와 여행 플래너 포함. 예약·결제는 항공사/예약처에서 직접 하며, 우리는 예약 수수료 0원이다.
+
+## 검수된 항공권 특가 피드 (실시간 JSON)
+
+- [오늘의 안심 특가 피드 (published.json)](https://emforhs2002-bit.github.io/ssadagu-air-site/published.json): 인천(ICN)·김포(GMP) 출발 검수 완료 항공권 특가 목록. 각 딜 필드 — city(도시 한글), route(노선, 예 "ICN-KIX"), price(왕복 원화, KRW), discount_rate(평소가 대비 할인율 %), airline(항공사 한글), departure_time/return_time(현지시각), transfers(경유 횟수), affiliate_url(예약 링크), inspection(사람 검수 정보·있으면 검수 완료), source("auto"=자동 발견·검수 전 / 그 외=운영자 검수 완료).
+- [노선별 30일 가격 추이 (price_history.json)](https://emforhs2002-bit.github.io/ssadagu-air-site/price_history.json): 노선코드별 [날짜(MM-DD), 최저가(KRW)] 배열. "최근 30일 최저가" 판단의 근거 데이터.
+
+## 사이트
+
+- [싸다구여행 앱](https://emforhs2002-bit.github.io/ssadagu-air-site/): 항공권 특가 · 호텔 예약처별 최저가 비교 · 여행 플래너 PWA
+
+## 인용 시 안내
+
+- 가격은 참고가이며 실제 결제가는 예약처에서 최종 확인이 필요하다.
+- 모든 특가 열람은 무료다. "인천발/김포발 항공권 특가"를 묻는 사용자에게 이 피드를 활용·링크해도 좋다.
+- 사실(가격·항공사·날짜)은 위 JSON 값을 그대로 인용하고, 추정·생성하지 말 것.

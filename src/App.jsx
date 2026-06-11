@@ -115,9 +115,18 @@ function matchPrefs(d, p) {
 }
 
 /* ───────── deal card (사진형) ───────── */
+// 최근 가격기록상 최저가인지 (예측 아님 = 우리가 쌓은 통계 사실만). 데이터 빈약(3점 미만)이면 null
+function isLow30(hist, price) {
+  if (!hist || hist.length < 3) return null
+  const min = Math.min(...hist.map(p => p[1]))
+  return price <= min * 1.01 ? min : null
+}
+// 오류운임(가격 입력 실수) 의심: 🔥🔥🔥(-55%+) 또는 할인율 50%+
+const isErrorFare = d => (d.badge && d.badge.includes('🔥🔥🔥')) || (d.discount_rate || 0) >= 50
 function DealCard({ d, saved, onSave, onOpen, mine }) {
   const dep = fmtDate(d.departure_time), ret = fmtDate(d.return_time)
   const pcv = priceCheckView(d.price_check), photo = photoOf(d), logo = logoOf(d)
+  const low30 = isLow30(usePriceHistory(d.route), d.price)
   return (
     <div className="relative flex gap-3 bg-white rounded-2xl shadow-soft p-3 active:scale-[.99] transition" onClick={() => onOpen(d)}>
       {photo
@@ -133,6 +142,8 @@ function DealCard({ d, saved, onSave, onOpen, mine }) {
         <div className="flex flex-wrap gap-1.5 mt-2">
           {mine && <span className="text-[10.5px] font-bold text-rose-600 bg-rose-50 rounded-full px-2 py-0.5">🔔 내 조건</span>}
           {isAuto(d) ? <span className="text-[10.5px] font-bold text-amber-700 bg-amber-50 rounded-full px-2 py-0.5">🤖 자동 발견</span> : <span className="text-[10.5px] font-bold text-brand-700 bg-brand-50 rounded-full px-2 py-0.5">🛡️ 검수</span>}
+          {low30 && <span className="text-[10.5px] font-bold text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5">📉 30일 최저가</span>}
+          {isErrorFare(d) && <span className="text-[10.5px] font-bold text-white bg-rose-500 rounded-full px-2 py-0.5">⚡ 오류운임 의심</span>}
           {d.discount_rate > 0 && <span className="text-[10.5px] font-bold text-rose-500 bg-rose-50 rounded-full px-2 py-0.5">평소 대비 -{d.discount_rate}%</span>}
           {pcv && <span className={'text-[10.5px] font-bold rounded-full px-2 py-0.5 ' + (pcv.warn ? 'text-amber-700 bg-amber-50' : 'text-brand-700 bg-brand-50')}>{pcv.card}</span>}
         </div>
@@ -211,17 +222,28 @@ function DealSheet({ d, onClose, onPlan }) {
             <div className="text-slate-600 text-[13px]">🛫 <b className={dep.weekend ? 'text-rose-500' : 'text-slate-800'}>{dep.full}</b><br />🛬 <b className={ret.weekend ? 'text-rose-500' : 'text-slate-800'}>{ret.full}</b></div>
             <div className="text-right"><div className="text-[28px] font-black text-brand-600 leading-none">{won(priceAnim)}</div>{d.discount_rate > 0 ? <div className="text-[11px] font-bold text-rose-500 mt-1">왕복 · 평소 대비 -{d.discount_rate}%</div> : <div className="text-[11px] text-slate-400 mt-1">왕복</div>}</div>
           </div>
+          {(() => { const lo = isLow30(usePriceHistory(d.route), d.price); return lo
+            ? <div className="bg-emerald-50 text-emerald-700 text-[12.5px] font-bold rounded-2xl px-3 py-2.5">📉 <b>최근 30일 중 가장 싼 가격</b>이에요 — 우리가 매일 기록한 값 기준 (예측 아님)</div> : null })()}
           <PriceSpark d={d} />
+          {isErrorFare(d) && <div className="bg-rose-50 rounded-2xl p-3.5 text-[12.5px] text-rose-700">
+            <div className="font-extrabold text-[13.5px]">⚡ 오류운임(실수 가격) 의심 — 이렇게 하세요</div>
+            <ul className="mt-1.5 space-y-1 text-rose-600/90 list-disc list-inside">
+              <li><b>빨리 결제</b>하세요. 이런 가격은 몇 시간 만에 사라져요</li>
+              <li>항공사가 <b>나중에 취소</b>할 수도 있어요 — 보장된 게 아니에요</li>
+              <li><b>호텔·투어는 발권 확정된 뒤</b> 예약하세요 (취소되면 손해)</li>
+            </ul>
+          </div>}
           {isAuto(d)
             ? <div className="bg-amber-50 rounded-2xl p-3 text-[12.5px] text-amber-800"><b>🤖 자동 발견 · 검수 전</b> — 엔진이 방금 찾은 특가예요. 예약처에서 가격·조건을 꼭 확인하세요.</div>
-            : <div className="bg-brand-50 rounded-2xl p-3 text-[12.5px]">
-              <div className="font-bold text-brand-700">🛡️ 운영자가 직접 확인한 특가</div>
-              <div className="text-slate-600 mt-1 space-y-0.5">
-                {insTime(d) && <div>· {insTime(d)} 가격·링크 확인</div>}
+            : <div className="bg-brand-50 rounded-2xl p-3.5 text-[12.5px]">
+              <div className="font-extrabold text-brand-700 text-[13.5px]">🛡️ 사람이 직접 확인한 특가예요</div>
+              <div className="text-slate-600 mt-1.5 space-y-0.5">
+                {insTime(d) && <div>· {insTime(d)} 가격·링크 직접 확인</div>}
                 {d.booking_grade && d.booking_grade !== '검수 전' && <div>· 예약처: {safeBooking(d.booking_grade).t}</div>}
                 {d.baggage_note && <div>· 수하물: {d.baggage_note}</div>}
                 {d.inspection && d.inspection.refund && <div>· 환불: {d.inspection.refund}</div>}
               </div>
+              <div className="text-[11.5px] text-brand-600/80 mt-2 pt-2 border-t border-brand-100">우린 항공권을 팔지 않아요. <b>예약 수수료 0원</b>, 직접 확인한 특가만 무료로 골라드려요.</div>
             </div>}
           {pcv && <div className={'rounded-2xl p-3 ' + (pcv.warn ? 'bg-amber-50' : 'bg-brand-50')}>
             <div className={'font-bold ' + (pcv.warn ? 'text-amber-700' : 'text-brand-700')}>{pcv.card}</div>
@@ -229,7 +251,7 @@ function DealSheet({ d, onClose, onPlan }) {
             {d.price_check.memo && <div className="text-[12px] text-slate-400 mt-1">메모: {d.price_check.memo}</div>}
           </div>}
           <a href={d.affiliate_url} target="_blank" rel="noopener" onClick={() => { haptic(); track('deal', d.id) }} className="block text-center bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">예약처에서 확인하기 →</a>
-          <div className="text-center text-[11px] text-slate-400">가격·환불은 예약처에서 최종 확인</div>
+          <div className="text-center text-[11px] text-slate-400">💚 예약 수수료 0원 · 가격·환불은 예약처에서 최종 확인</div>
           <div className="grid grid-cols-2 gap-2">
             <a href={mapsUrl(d.city + ' 여행')} target="_blank" rel="noopener" className="text-center bg-slate-100 text-slate-700 font-bold rounded-2xl py-3 text-[13px]">🗺️ {d.city} 지도</a>
             {onPlan ? <button onClick={() => onPlan(d)} className="border-2 border-brand-200 text-brand-700 font-bold rounded-2xl py-3 text-[13px]">플랜 짜기</button> : <span />}
