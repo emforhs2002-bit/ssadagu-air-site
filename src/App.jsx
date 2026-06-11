@@ -471,6 +471,13 @@ function FlightResult({ o, low }) {
 
 const CITY_NAME = Object.fromEntries([...CITIES, ...CITIES_US])
 const cityName = c => CITY_NAME[c] || c
+// 도착지 지역 그룹 (호텔 탭과 통일된 분류)
+const FLIGHT_GROUPS = [
+  ['일본', ['FUK', 'KIX', 'TYO', 'OKA', 'CTS']],
+  ['대만 · 홍콩', ['TPE', 'KHH', 'HKG']],
+  ['동남아', ['DAD', 'NHA', 'HAN', 'SGN', 'BKK', 'HKT', 'CEB', 'MNL', 'BKI', 'SIN']],
+  ['괌', ['GUM']],
+]
 function monthsList() {
   const out = [], now = new Date()
   for (let i = 0; i < 8; i++) { const m = now.getMonth() + i, y = now.getFullYear() + Math.floor(m / 12), mm = ((m % 12) + 12) % 12; out.push({ value: `${y}-${pad2(mm + 1)}`, label: `${mm + 1}월`, y, m: mm }) }
@@ -564,15 +571,29 @@ function Flights() {
   const oName = (ORIGINS.find(([c]) => c === origin) || [])[1] || origin
   return (
     <div className="px-4 pt-2 pb-4 space-y-3">
-      {/* 문장형 검색 (Mad Libs) */}
-      <div className="bg-white rounded-3xl shadow-soft p-5">
-        <MadLib parts={[
-          { t: oName, on: () => setOvFrom(true) }, '에서 ',
-          { t: anywhere ? '🌍 어디든지' : cityName(dest), on: () => setOvTo(true) }, ', ',
-          { t: months[mi].label, on: () => setOvMonth(true) }, '에 ',
-          { t: `${pax}명${oneway ? ' · 편도' : ''}`, on: () => setOvPax(true) }, ' 떠나요',
-        ]} />
-        <button onClick={search} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5 mt-4">{anywhere ? '🌍 어디가 싼지 보기' : '최저가 검색 ✈️'}</button>
+      {/* 구조화 검색 박스 (스카이스캐너·트립닷컴식 필드 구분형) */}
+      <div className="bg-white rounded-3xl shadow-soft p-4 space-y-2">
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={() => { haptic(); setOvFrom(true) }} className="bg-slate-50 rounded-xl px-3.5 py-3 text-left active:scale-[.99] transition">
+            <div className="text-[10.5px] text-slate-400 font-bold">출발</div>
+            <div className="text-[14.5px] font-extrabold text-slate-800 truncate">🛫 {oName}</div>
+          </button>
+          <button onClick={() => { haptic(); setOvTo(true) }} className="bg-slate-50 rounded-xl px-3.5 py-3 text-left active:scale-[.99] transition">
+            <div className="text-[10.5px] text-slate-400 font-bold">도착</div>
+            <div className="text-[14.5px] font-extrabold text-slate-800 truncate">{anywhere ? '🌍 어디든지' : '🛬 ' + cityName(dest)}</div>
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={() => { haptic(); setOvMonth(true) }} className="bg-slate-50 rounded-xl px-3.5 py-3 text-left active:scale-[.99] transition">
+            <div className="text-[10.5px] text-slate-400 font-bold">언제</div>
+            <div className="text-[14.5px] font-extrabold text-slate-800 truncate">📅 {months[mi].label}</div>
+          </button>
+          <button onClick={() => { haptic(); setOvPax(true) }} className="bg-slate-50 rounded-xl px-3.5 py-3 text-left active:scale-[.99] transition">
+            <div className="text-[10.5px] text-slate-400 font-bold">인원</div>
+            <div className="text-[14.5px] font-extrabold text-slate-800 truncate">👤 {pax}명{oneway ? ' · 편도' : ''}</div>
+          </button>
+        </div>
+        <button onClick={search} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">{anywhere ? '🌍 어디가 싼지 보기' : '항공권 검색 ✈️'}</button>
       </div>
 
       <SearchOverlay open={ovFrom} onClose={() => setOvFrom(false)} title="어디서 출발하세요?" placeholder="출발 공항"
@@ -582,7 +603,7 @@ function Flights() {
         recentKey="toAp" voice
         groups={[
           { title: '모르겠어요', items: [{ id: '-', label: '어디든지', sub: '가장 싼 도시부터 보기', icon: '🌍' }] },
-          { title: '아시아 · 괌', items: CITIES.map(([c, n]) => ({ id: c, label: n, sub: c, icon: '🏙️' })) },
+          ...FLIGHT_GROUPS.map(([title, codes]) => ({ title, items: codes.map(c => ({ id: c, label: cityName(c), sub: c, icon: '🏙️' })) })),
           { title: '🇺🇸 미주', items: CITIES_US.map(([c, n]) => ({ id: c, label: n, sub: c, icon: '🗽' })) },
         ]}
         onPick={it => setDest(it.id)} />
