@@ -85,17 +85,19 @@ function rqPump() {
   }
 }
 const rqEnqueue = fn => new Promise((res, rej) => { RQ.q.push({ fn, res, rej }); rqPump() })
-const dmKey = (k, ci, co) => `dm_${k}_${ci}_${co}`
-function dmCached(k, ci, co) { try { const c = sessionStorage.getItem(dmKey(k, ci, co)); return c == null ? undefined : (c === '' ? null : +c) } catch (e) { return undefined } }
-async function dayMinOf(k, ci, co) {
+const dmKey = (k, ci, co) => `dm2_${k}_${ci}_${co}`
+// 캐시 값: undefined(미조회) | null(이 날짜 비교가 없음) | {min,max,rows:[{code,total}×3]}
+function dmCached(k, ci, co) { try { const c = sessionStorage.getItem(dmKey(k, ci, co)); return c == null ? undefined : JSON.parse(c) } catch (e) { return undefined } }
+async function dayRatesOf(k, ci, co) {
   const v = await rqEnqueue(async () => {
     const r = await fetch(`${PROXY}/xotelo/rates?hotel_key=${k}&chk_in=${ci}&chk_out=${co}&currency=USD`)
     const j = await r.json()
     const rates = (j.result && j.result.rates) || []
     if (!rates.length) return null
-    return Math.min(...rates.map(x => x.rate + (x.tax || 0)))
+    const totals = rates.map(x => ({ code: x.code, total: x.rate + (x.tax || 0) })).sort((a, b) => a.total - b.total)
+    return { min: totals[0].total, max: totals[totals.length - 1].total, rows: totals.slice(0, 3) }
   }).catch(() => null)
-  try { sessionStorage.setItem(dmKey(k, ci, co), v == null ? '' : String(v)) } catch (e) {}
+  try { sessionStorage.setItem(dmKey(k, ci, co), JSON.stringify(v)) } catch (e) {}
   return v
 }
 
@@ -246,6 +248,7 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
     return () => { alive = false }
   }, [h.key, ci, co])
   const minTotal = st.status === 'ok' ? Math.min(...st.rates.map(r => r.rate + (r.tax || 0))) : null
+  const maxTotal = st.status === 'ok' ? Math.max(...st.rates.map(r => r.rate + (r.tax || 0))) : null
   const minKrw = useCountUp(minTotal != null ? Math.round(minTotal * usdKrw) : null)
   const doShare = () => shareIt({
     title: `${hname(h)} 가격 비교`,
@@ -267,6 +270,8 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
           <div className="text-[12.5px] text-slate-500">🗓️ {md(ci)} ~ {md(co)} · {nights}박 · 성인 {adults}</div>
           {minKrw != null && <div className="text-[13px] font-bold text-brand-600">1박 최저 {wonFmt(minKrw / 1)}</div>}
         </div>
+        {minTotal != null && maxTotal > minTotal && Math.round((maxTotal - minTotal) * usdKrw) >= 10000 &&
+          <div className="bg-rose-50 text-rose-600 text-[12.5px] font-bold rounded-xl px-3 py-2.5">💸 같은 호텔인데 예약처 따라 1박 최대 <b>{wonFmt((maxTotal - minTotal) * usdKrw)}</b> 차이 — 최저 예약처를 콕 집어드렸어요</div>}
         {st.status === 'loading' && <div className="space-y-2">{[0, 1, 2].map(i => <div key={i} className="skel h-[58px] rounded-2xl" />)}</div>}
         {st.status === 'error' && <HEmpty icon="⚠️" text="가격을 불러오지 못했어요. 잠시 후 다시 시도해 주세요." />}
         {st.status === 'empty' && <div className="bg-slate-50 rounded-2xl p-3 text-[12.5px] text-slate-500">이 날짜엔 비교 가격이 안 잡혔어요. 아래 예약처에서 직접 확인해 보세요.</div>}
@@ -276,7 +281,7 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
             const p = PROVIDERS[r.code]
             const href = p && p.url ? p.url(h.name, ci, co, adults, rooms) : h.taUrl
             return (
-              <a key={i} href={href} target="_blank" rel="noopener" onClick={() => { haptic(); try { fetch(`${PROXY}/click`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'hotel', id: h.key + ':' + r.code }), keepalive: true }).catch(() => {}) } catch (e) {} }} className={'flex items-center justify-between rounded-2xl px-3.5 py-3 ' + (lowest ? 'bg-brand-50 glow-lowest' : 'bg-slate-50')}>
+              <a key={i} href={href} target="_blank" rel="noopener" onClick={() => { haptic(); try { fetch(`${PROXY}/click`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'hotel', id: h.key + ':' + r.code }), keepalive: true }).catch(() => {}) } catch (e) {} }} className={'flex items-center justify-between rounded-2xl px-3.5 py-3 ' + (lowest ? 'bg-brand-50 glow-lowest shine' : 'bg-slate-50')}>
                 <div className="min-w-0">
                   <div className="text-[14px] font-bold text-slate-800">{provName(r.code)} {lowest && <span className="text-[10.5px] font-bold text-white bg-brand-500 rounded-full px-2 py-0.5 align-middle">🏆 전 예약처 최저</span>}</div>
                   <div className="text-[11px] text-slate-400 mt-0.5">{r.tax ? `객실 ${wonFmt(r.rate * usdKrw)} + 세금 ${wonFmt(r.tax * usdKrw)}` : '세금 정보 없음'}</div>
@@ -299,40 +304,59 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
   )
 }
 
-function HotelCard({ h, ci, co, usdKrw, onOpen }) {
+/* 네이버 호텔식 카드 — 큰 사진 + 예약처별 가격 인라인 비교 + 최저가 반짝 */
+function HotelCard({ h, ci, co, adults, rooms, usdKrw, onOpen }) {
   const tags = (h.mentions || []).map(m => MENTION_KO[m]).filter(Boolean).slice(0, 3)
-  const [dayMin, setDayMin] = useState(() => dmCached(h.key, ci, co))
+  const [dm, setDm] = useState(() => dmCached(h.key, ci, co))
   const ref = useRef(null)
-  // 화면에 보일 때만 그 날짜의 예약처별 최저가를 가져옴 (큐 대기 → 카드 가격이 날짜 기준으로 업그레이드)
+  // 화면에 보일 때만 그 날짜의 예약처별 가격을 가져옴 (동시 3개 큐 + 세션 캐시)
   useEffect(() => {
-    if (dayMin !== undefined) return
+    if (dm !== undefined) return
     const el = ref.current
     if (!el) return
     let dead = false
     const io = new IntersectionObserver(es => {
-      if (es[0].isIntersecting) { io.disconnect(); dayMinOf(h.key, ci, co).then(v => { if (!dead) setDayMin(v) }) }
+      if (es[0].isIntersecting) { io.disconnect(); dayRatesOf(h.key, ci, co).then(v => { if (!dead) setDm(v) }) }
     }, { rootMargin: '120px' })
     io.observe(el)
     return () => { dead = true; io.disconnect() }
   }, [h.key, ci, co])
+  const saving = dm && dm.max > dm.min ? Math.round((dm.max - dm.min) * usdKrw) : 0
+  const rowGo = (e, r) => {
+    e.stopPropagation(); haptic()
+    try { fetch(`${PROXY}/click`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'hotel', id: h.key + ':' + r.code }), keepalive: true }).catch(() => {}) } catch (err) {}
+    const p = PROVIDERS[r.code]
+    window.open(p && p.url ? p.url(h.name, ci, co, adults, rooms) : h.taUrl, '_blank', 'noopener')
+  }
   return (
-    <div ref={ref} className="relative flex gap-3 bg-white rounded-2xl shadow-soft p-3 active:scale-[.99] transition cursor-pointer" onClick={() => { haptic(); onOpen(h) }}>
-      <div className="w-[84px] h-[84px] rounded-2xl shrink-0 bg-slate-100 overflow-hidden flex items-center justify-center text-2xl">
-        {h.image ? <img src={h.image} alt="" loading="lazy" className="w-full h-full object-cover fade-in" onError={e => { e.target.style.display = 'none' }} /> : '🏨'}
+    <div ref={ref} className="bg-white rounded-2xl shadow-soft overflow-hidden active:scale-[.995] transition cursor-pointer" onClick={() => { haptic(); onOpen(h) }}>
+      <div className="relative h-36 bg-slate-100">
+        {h.image ? <img src={h.image} alt="" loading="lazy" className="w-full h-full object-cover fade-in" onError={e => { e.target.style.display = 'none' }} /> : <div className="w-full h-full flex items-center justify-center text-3xl">🏨</div>}
+        <div className="absolute top-2.5 left-2.5 flex gap-1.5">
+          {h.rating >= 4.5 && <span className="text-[10.5px] font-bold text-white bg-emerald-500/95 rounded-full px-2 py-0.5">⭐ 평점 우수</span>}
+          {(h.reviews || 0) >= 2000 && <span className="text-[10.5px] font-bold text-white bg-sky-500/95 rounded-full px-2 py-0.5">💬 리뷰 많은</span>}
+        </div>
+        <span className="absolute bottom-2.5 right-2.5 text-[11.5px] font-bold text-brand-700 bg-white/95 rounded-full px-3 py-1.5 shadow">전체 가격 비교 ›</span>
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-[14.5px] font-extrabold text-slate-900 leading-tight truncate">{hname(h)}</div>
+      <div className="p-3.5">
+        <div className="text-[15px] font-extrabold text-slate-900 leading-tight truncate">{hname(h)}</div>
         {hsub(h) && <div className="text-[10.5px] text-slate-300 truncate leading-tight">{hsub(h)}</div>}
-        <div className="text-[12px] text-slate-400 mt-1">{h.rating ? <>★ <b className="text-slate-600">{h.rating}</b> ({(h.reviews || 0).toLocaleString('ko-KR')})</> : '평점 없음'}{h.type ? ` · ${h.type}` : ''}</div>
-        {tags.length > 0 && <div className="flex flex-wrap gap-1 mt-1.5">{tags.map(t => <span key={t} className="text-[10.5px] font-bold text-slate-500 bg-slate-100 rounded-full px-2 py-0.5">{t}</span>)}</div>}
-        <div className="mt-1.5 text-[12px] text-slate-500">
-          {dayMin === undefined ? <span className="skel inline-block h-[14px] w-28 rounded-md align-middle" />
-            : dayMin != null ? <>1박 <b className="text-brand-600 text-[14px] font-black">{wonFmt(dayMin * usdKrw)}</b><span className="text-slate-400"> · 선택 날짜 · 세금포함</span></>
-            : h.priceMin != null ? <>1박 <b className="text-slate-600 text-[13px] font-bold">{wonFmt(h.priceMin * usdKrw)}</b><span className="text-slate-400">부터 · 참고가</span></>
-            : '가격은 비교에서 확인'}
+        <div className="text-[12px] text-slate-400 mt-0.5 truncate">{h.rating ? <>★ <b className="text-slate-600">{h.rating}</b> ({(h.reviews || 0).toLocaleString('ko-KR')})</> : '평점 없음'}{h.type ? ` · ${h.type}` : ''}{tags.length > 0 && <> · {tags.join(' · ')}</>}</div>
+        <div className="mt-2.5 space-y-1.5">
+          {dm === undefined && <><div className="skel h-[38px] rounded-xl" /><div className="skel h-[38px] rounded-xl" /></>}
+          {dm && dm.rows.map((r, i) => {
+            const low = i === 0
+            return (
+              <button key={r.code + i} onClick={e => rowGo(e, r)} className={'w-full flex items-center justify-between rounded-xl px-3 py-2 text-left ' + (low ? 'bg-brand-50 glow-lowest shine' : 'bg-slate-50')}>
+                <span className="text-[12.5px] font-bold text-slate-700 truncate">{provName(r.code)} {low && <span className="text-[10px] font-bold text-white bg-brand-500 rounded-full px-1.5 py-0.5 align-middle">💰 최저</span>}</span>
+                <span className={'text-[14px] font-black shrink-0 pl-2 ' + (low ? 'text-brand-600' : 'text-slate-600')}>{wonFmt(r.total * usdKrw)}<span className="text-[10px] text-slate-400 font-medium"> /1박</span></span>
+              </button>
+            )
+          })}
+          {dm && saving >= 10000 && <div className="text-[11.5px] font-bold text-rose-500 px-0.5">💸 예약처 따라 1박 최대 {wonFmt(saving)} 차이 — 최저 예약처를 콕 집었어요</div>}
+          {dm === null && <div className="text-[12px] text-slate-400">이 날짜 비교 가격이 안 잡혔어요{h.priceMin != null && <> · 참고가 1박 <b className="text-slate-600">{wonFmt(h.priceMin * usdKrw)}</b>부터</>} — 눌러서 확인</div>}
         </div>
       </div>
-      <div className="self-center text-brand-500 font-bold text-[12px] shrink-0">비교 ›</div>
     </div>
   )
 }
@@ -432,8 +456,8 @@ export default function Hotels() {
       if (flt.tags.length) { const ts = hotelTags(h); if (!flt.tags.every(t => ts.includes(t))) return false }
       return true
     })
-    // 정렬은 카드에 보이는 가격 기준: 날짜 가격(dayMin 캐시)이 있으면 그걸, 없으면 참고가
-    const eff = h => { const c = dmCached(h.key, ci, co); if (c != null) return c; return h.priceMin != null ? h.priceMin : 9e9 }
+    // 정렬은 카드에 보이는 가격 기준: 날짜 가격(캐시 min)이 있으면 그걸, 없으면 참고가
+    const eff = h => { const c = dmCached(h.key, ci, co); if (c && c.min != null) return c.min; return h.priceMin != null ? h.priceMin : 9e9 }
     if (clientSort === 'price') arr = [...arr].sort((a, b) => eff(a) - eff(b))
     if (clientSort === 'rating') arr = [...arr].sort((a, b) => (b.rating || 0) - (a.rating || 0))
     return arr
@@ -442,15 +466,24 @@ export default function Hotels() {
 
   return (
     <div className="px-4 pt-2 pb-4 space-y-3">
-      {/* 문장형 검색 (Mad Libs) */}
-      <div className="bg-white rounded-3xl shadow-soft p-5">
-        <MadLib parts={[
-          { t: CITY_OF[geo], on: () => setOvCity(true) }, '에서 ',
-          { t: `${md(ci)} ~ ${md(co)} · ${nights}박`, on: () => setOvCal(true) }, ', ',
-          { t: guestLabel, on: () => setOvGuest(true) }, ' 묵을 곳 찾기',
-        ]} />
-        <button onClick={() => search()} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5 mt-4">호텔 최저가 비교 🔍</button>
-        <div className="flex items-center gap-2 mt-3 bg-slate-50 rounded-2xl px-3 py-1">
+      {/* 구조화 검색 박스 (네이버·트립닷컴식 필드 구분형) */}
+      <div className="bg-white rounded-3xl shadow-soft p-4 space-y-2">
+        <button onClick={() => { haptic(); setOvCity(true) }} className="w-full bg-slate-50 rounded-xl px-3.5 py-3 text-left active:scale-[.99] transition">
+          <div className="text-[10.5px] text-slate-400 font-bold">목적지</div>
+          <div className="text-[15px] font-extrabold text-slate-800">📍 {CITY_OF[geo]}</div>
+        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={() => { haptic(); setOvCal(true) }} className="bg-slate-50 rounded-xl px-3.5 py-3 text-left active:scale-[.99] transition">
+            <div className="text-[10.5px] text-slate-400 font-bold">체크인 · 체크아웃</div>
+            <div className="text-[13.5px] font-extrabold text-slate-800">📅 {md(ci)}~{md(co)} · {nights}박</div>
+          </button>
+          <button onClick={() => { haptic(); setOvGuest(true) }} className="bg-slate-50 rounded-xl px-3.5 py-3 text-left active:scale-[.99] transition">
+            <div className="text-[10.5px] text-slate-400 font-bold">인원 · 객실</div>
+            <div className="text-[13.5px] font-extrabold text-slate-800">👤 {guestLabel}</div>
+          </button>
+        </div>
+        <button onClick={() => search()} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">호텔 최저가 비교 🔍</button>
+        <div className="flex items-center gap-2 bg-slate-50 rounded-2xl px-3 py-1">
           <span className="text-[14px]">✨</span>
           <input value={nl} onChange={e => setNl(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') runNl() }} placeholder="말로 찾기: 7월 중순 오사카 2박 2명"
             className="flex-1 bg-transparent outline-none text-[13.5px] py-2 placeholder:text-slate-400" />
@@ -499,8 +532,9 @@ export default function Hotels() {
             onLoadMore={() => { const s = stRef.current; if (s.status === 'ok' && s.more && !s.loadingMore) fetchList(geo, sort, s.list.length, s.list) }} />
           <div className="text-[11.5px] text-slate-400 px-1">핀 숫자 = <b className="text-slate-500">1박 참고가(원)</b> · 핀을 누르면 가격 비교</div>
         </>}
+        <div className="bg-slate-50 text-slate-500 text-[12px] rounded-xl px-3 py-2.5"><b className="text-rose-500">1박 · 세금 포함 참고가</b>예요. 판매 사이트에서 숙소명·위치·가격을 다시 확인하세요.</div>
         {view === 'list' && <div className="space-y-3">
-          {displayed.map(h => <HotelCard key={h.key + ci + co} h={h} ci={ci} co={co} usdKrw={usdKrw} onOpen={setSel} />)}
+          {displayed.map(h => <HotelCard key={h.key + ci + co} h={h} ci={ci} co={co} adults={adults} rooms={rooms} usdKrw={usdKrw} onOpen={setSel} />)}
           {displayed.length === 0 && <HEmpty icon="🔎" text="조건에 맞는 호텔이 아직 없어요. 아래 '더 불러오기'를 누르거나 필터를 줄여보세요." />}
         </div>}
         {view === 'list' && <div ref={sentinel} />}
