@@ -1,10 +1,10 @@
-/* 싸다구항공 서비스워커 v2 — 오프라인 지원
+/* 싸다구항공 서비스워커 v4 — 오프라인 지원
    /assets/(해시 번들)=cache-first(불변) · published.json/사진=stale-while-revalidate
    · API(워커 프록시)=network-first(오프라인 시 마지막 응답) · HTML=network-first(폴백 캐시) */
-// OneSignal 웹푸시 SDK (같은 SW에 통합 — 별도 워커 파일 불필요)
-try { importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js') } catch (e) {}
+// ※ OneSignal 웹푸시는 루트(github.io/OneSignalSDKWorker.js)가 전담 — 여기서 import 안 함
+//   (GitHub Pages 프로젝트 하위경로라 OneSignal은 루트 스코프로만 등록됨. 둘 다 import하면 충돌)
 
-const V = 'ssadagu-v3'
+const V = 'ssadagu-v4'
 const RUNTIME = V + '-rt'
 
 self.addEventListener('install', e => { self.skipWaiting() })

@@ -18,9 +18,8 @@
     OneSignalDeferred.push(async function (OneSignal) {
       await OneSignal.init({
         appId: "fe0d7053-8086-4ea5-ad28-2ecdc264dc23",
-        serviceWorkerPath: "/ssadagu-air-site/sw.js",
-        serviceWorkerUpdaterPath: "/ssadagu-air-site/sw.js",
-        serviceWorkerParam: { scope: "/ssadagu-air-site/" },
+        // 웹푸시 워커는 루트(github.io/OneSignalSDKWorker.js)가 전담 — 대시보드가 루트 스코프로
+        // 강제하므로 하위경로 override는 무시됨. 루트 repo(emforhs2002-bit.github.io)에 워커 배치.
         promptOptions: {
           slidedown: {
             prompts: [{
