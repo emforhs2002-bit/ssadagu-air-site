@@ -735,6 +735,11 @@ function AlertSetup({ prefs, onSave }) {
 function My({ prefs, onSavePrefs }) {
   return (
     <div className="px-4 pb-4 pt-2 space-y-4">
+      <Section title="🔔 알림 설정">
+        <p className="text-[12.5px] text-slate-500 leading-relaxed mb-3">새 특가가 뜨면 폰으로 바로 알려드려요. 아이폰은 <b className="text-slate-600">홈 화면에 추가한 뒤</b> 켤 수 있어요.</p>
+        <button onClick={() => enablePush(prefs)} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3">🔔 푸시 알림 켜기</button>
+      </Section>
+      <AlertSetup prefs={prefs} onSave={onSavePrefs} />
       <Section title="관심 공항"><div className="flex gap-2 flex-wrap">{['인천(ICN)', '김포(GMP)'].map(a => <span key={a} className="text-[13px] bg-brand-50 text-brand-700 rounded-full px-3 py-1.5">{a}</span>)}</div></Section>
       <Section title="이런 특가는 숨기기"><Toggle label="경유 항공권 숨기기" k="no_transfer" /><Toggle label="새벽 출발/도착 숨기기" k="no_dawn" /><Toggle label="수하물 별도(LCC) 숨기기" k="no_lcc" /></Section>
       <div className="text-center text-[11px] text-slate-400 pt-2">싸다구항공 · 결제·환불은 판매처 직접, 우린 안심 특가만 골라드려요</div>
@@ -943,8 +948,9 @@ function Home({ deals, onGo, onDeal, onDealFilter }) {
   return (
     <div>
       <div className="relative h-[248px] bg-cover bg-center bg-slate-300" style={{ backgroundImage: `linear-gradient(180deg,rgba(15,23,42,.4),rgba(15,23,42,.04) 38%,rgba(15,23,42,.82)),url(${photoBySlug('hero')})` }}>
-        <div className="absolute top-5 left-5 right-5">
+        <div className="absolute top-5 left-5 right-5 flex items-center justify-between">
           <span className="text-white font-extrabold text-[16px]" style={{ textShadow: '0 1px 8px rgba(0,0,0,.5)' }}>✈️ 싸다구항공</span>
+          <button onClick={() => { haptic(); onGo('my') }} aria-label="마이" className="w-9 h-9 rounded-full bg-black/25 backdrop-blur flex items-center justify-center text-white text-[17px] active:scale-95 transition">👤</button>
         </div>
         <div className="absolute left-5 right-5 bottom-12 text-white">
           <h1 className="text-[23px] font-extrabold leading-[1.3]" style={{ textShadow: '0 2px 14px rgba(0,0,0,.45)' }}>발품은 우리가 팔게<br />넌 떠나기만 해.</h1>
@@ -1107,22 +1113,22 @@ export default function App() {
   const p = { savedIds, onSave: toggleSave, onOpen: setSel }
   return (
     <div className="max-w-md mx-auto min-h-full flex flex-col bg-[#eefbf8]">
-      <main className="flex-1 pb-20">
+      <main className="flex-1 pb-8">
         {deals === null && <div className="px-4 pt-8"><SkelRows n={5} /></div>}
         {deals && tab !== 'home' && <div className="px-5 pt-7 pb-1 flex items-center gap-1.5">
-          {!TABS.some(t => t[0] === tab) && <button onClick={() => switchTab('home')} className="text-[22px] text-slate-500 -ml-2 pr-1">←</button>}
+          <button onClick={() => switchTab('home')} className="text-[22px] text-slate-500 -ml-2 pr-1">←</button>
           <h1 className="text-[22px] font-extrabold text-slate-900">{TAB_TITLE[tab]}</h1>
+          {tab !== 'my' && <button onClick={() => switchTab('my')} aria-label="마이" className="ml-auto w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-[17px] active:scale-95 transition">👤</button>}
         </div>}
         {deals && tab === 'home' && <Home deals={deals} onGo={switchTab} onDeal={setSel} onDealFilter={f => { setHotExt({ ...f, ts: Date.now() }); switchTab('hot') }} />}
         {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} ext={hotExt} onRefresh={loadDeals} updatedAt={updatedAt} /> : <Empty icon="🔎" text="핫딜이 아직 없어요. 알림을 걸어두면 뜨자마자 알려드릴게요." />)}
-        {deals && tab === 'alerts' && <Alerts prefs={prefs} onSavePrefs={savePrefs} />}
         {deals && tab === 'where' && <Where deals={deals} onOpen={setSel} />}
         {deals && tab === 'flights' && <Flights deals={deals} onOpen={setSel} />}
         {deals && tab === 'hotels' && <Suspense fallback={<div className="px-4 pt-2"><SkelRows n={4} /></div>}><Hotels /></Suspense>}
         {deals && tab === 'planner' && <Planner seed={planSeed} clearSeed={() => setPlanSeed(null)} />}
         {deals && tab === 'my' && <My prefs={prefs} onSavePrefs={savePrefs} />}
       </main>
-      {inst.mode && <div className="fixed bottom-[70px] inset-x-0 max-w-md mx-auto px-3 z-40">
+      {inst.mode && <div className="fixed bottom-3 inset-x-0 max-w-md mx-auto px-3 z-40">
         <div className="bg-slate-900/95 text-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-soft fade-in">
           <span className="text-xl">📲</span>
           <div className="flex-1 text-[12.5px]"><b>홈 화면에 추가</b>하면 앱처럼 빨라요</div>
@@ -1137,9 +1143,6 @@ export default function App() {
           <div className="flex gap-3 items-center"><span className="w-7 h-7 shrink-0 rounded-full bg-brand-50 text-brand-600 font-bold flex items-center justify-center">3</span><span>이제 앱처럼 열려요. 곧 <b>특가 알림</b>도 받을 수 있어요 🔔</span></div>
         </div>
       </Sheet>}
-      <nav className="fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white border-t border-slate-100 grid grid-cols-4 pb-[env(safe-area-inset-bottom)] z-40">
-        {TABS.map(([k, ic, label]) => <button key={k} onClick={() => switchTab(k)} className={'py-2.5 flex flex-col items-center gap-0.5 text-[10.5px] ' + (tab === k ? 'text-brand-600 font-bold' : 'text-slate-400')}><span className="text-lg leading-none">{ic}</span>{label}</button>)}
-      </nav>
       {sel && <DealSheet d={sel} onClose={() => setSel(null)} onPlan={d => { setSel(null); setPlanSeed(seedFromDeal(d)); setTab('planner') }} />}
     </div>
   )
