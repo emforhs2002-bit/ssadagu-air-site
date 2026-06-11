@@ -80,6 +80,17 @@ function useSaved() {
   const toggle = id => setIds(p => { const n = p.includes(id) ? p.filter(x => x !== id) : [...p, id]; localStorage.setItem('saved', JSON.stringify(n)); return n })
   return [ids, toggle]
 }
+// 노선 찜: 노선(예 ICN-KIX)을 찜하면 그 노선 딜을 핫딜에서 먼저 보여주고, 푸시 복구 시 가격하락 알림 대상
+function useRouteWatch() {
+  const [routes, setRoutes] = useState(() => { try { return JSON.parse(localStorage.getItem('routeWatch') || '[]') } catch { return [] } })
+  const toggle = r => setRoutes(p => {
+    const n = p.includes(r) ? p.filter(x => x !== r) : [...p, r]
+    localStorage.setItem('routeWatch', JSON.stringify(n))
+    try { window.OneSignalDeferred = window.OneSignalDeferred || []; window.OneSignalDeferred.push(os => { try { os.User.addTags({ watch_routes: n.join(',') || 'none' }) } catch (e) {} }) } catch (e) {}
+    return n
+  })
+  return [routes, toggle]
+}
 function report(id, kind) {
   const l = JSON.parse(localStorage.getItem('reports') || '[]'); l.push({ id, kind, at: new Date().toISOString() }); localStorage.setItem('reports', JSON.stringify(l))
   try { fetch(PROXY + '/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, kind }) }).catch(() => {}) } catch (e) {}
@@ -123,7 +134,7 @@ function isLow30(hist, price) {
 }
 // 오류운임(가격 입력 실수) 의심: 🔥🔥🔥(-55%+) 또는 할인율 50%+
 const isErrorFare = d => (d.badge && d.badge.includes('🔥🔥🔥')) || (d.discount_rate || 0) >= 50
-function DealCard({ d, saved, onSave, onOpen, mine }) {
+function DealCard({ d, saved, onSave, onOpen, mine, watched }) {
   const dep = fmtDate(d.departure_time), ret = fmtDate(d.return_time)
   const pcv = priceCheckView(d.price_check), photo = photoOf(d), logo = logoOf(d)
   const low30 = isLow30(usePriceHistory(d.route), d.price)
@@ -140,7 +151,8 @@ function DealCard({ d, saved, onSave, onOpen, mine }) {
         </div>
         <div className="text-[12px] text-slate-500 mt-1.5">🛫 {originOf(d)} <b className={dep.weekend ? 'text-rose-500' : 'text-slate-700'}>{dep.md}({dep.dow})</b> · <b className={ret.weekend ? 'text-rose-500' : 'text-slate-700'}>{ret.md}({ret.dow})</b></div>
         <div className="flex flex-wrap gap-1.5 mt-2">
-          {mine && <span className="text-[10.5px] font-bold text-rose-600 bg-rose-50 rounded-full px-2 py-0.5">🔔 내 조건</span>}
+          {watched && <span className="text-[10.5px] font-bold text-rose-600 bg-rose-50 rounded-full px-2 py-0.5">🔔 찜한 노선</span>}
+          {mine && !watched && <span className="text-[10.5px] font-bold text-rose-600 bg-rose-50 rounded-full px-2 py-0.5">🔔 내 조건</span>}
           {isAuto(d) ? <span className="text-[10.5px] font-bold text-amber-700 bg-amber-50 rounded-full px-2 py-0.5">🤖 자동 발견</span> : <span className="text-[10.5px] font-bold text-brand-700 bg-brand-50 rounded-full px-2 py-0.5">🛡️ 검수</span>}
           {low30 && <span className="text-[10.5px] font-bold text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5">📉 30일 최저가</span>}
           {isErrorFare(d) && <span className="text-[10.5px] font-bold text-white bg-rose-500 rounded-full px-2 py-0.5">⚡ 오류운임 의심</span>}
@@ -215,7 +227,7 @@ async function makeDealImage(d) {
   x.fillStyle = '#94a3b8'; x.font = '700 34px Pretendard, sans-serif'; x.textAlign = 'right'; x.fillText('싸다구여행 · 어딜봐도 싸다구', W - 160, W - 70)
   return new Promise(res => cv.toBlob(res, 'image/png'))
 }
-function DealSheet({ d, onClose, onPlan }) {
+function DealSheet({ d, onClose, onPlan, watched, onWatch }) {
   const dep = fmtDate(d.departure_time), ret = fmtDate(d.return_time)
   const pcv = priceCheckView(d.price_check), photo = photoOf(d), logo = logoOf(d)
   const priceAnim = useCountUp(d.price)
@@ -290,6 +302,7 @@ function DealSheet({ d, onClose, onPlan }) {
           </div>}
           <a href={d.affiliate_url} target="_blank" rel="noopener" onClick={() => { haptic(); track('deal', d.id) }} className="block text-center bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">예약처에서 확인하기 →</a>
           <div className="text-center text-[11px] text-slate-400">💚 예약 수수료 0원 · 가격·환불은 예약처에서 최종 확인</div>
+          {onWatch && <button onClick={() => { haptic(); onWatch() }} className={'w-full font-bold rounded-2xl py-3 text-[13px] border-2 ' + (watched ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-white border-slate-200 text-slate-600')}>{watched ? `🔔 ${originOf(d)}–${d.city} 노선 알림 켜짐 (해제)` : `🔔 ${originOf(d)}–${d.city} 노선 가격 알림 받기`}</button>}
           <div className="grid grid-cols-2 gap-2">
             <a href={mapsUrl(d.city + ' 여행')} target="_blank" rel="noopener" className="text-center bg-slate-100 text-slate-700 font-bold rounded-2xl py-3 text-[13px]">🗺️ {d.city} 지도</a>
             {onPlan ? <button onClick={() => onPlan(d)} className="border-2 border-brand-200 text-brand-700 font-bold rounded-2xl py-3 text-[13px]">플랜 짜기</button> : <span />}
@@ -302,7 +315,8 @@ function DealSheet({ d, onClose, onPlan }) {
 }
 
 /* ───────── 🔥 핫딜 (본체 · 포토 히어로) ───────── */
-function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onRefresh, updatedAt, ext }) {
+function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onRefresh, updatedAt, ext, watchRoutes = [] }) {
+  const isW = d => watchRoutes.includes(d.route)
   const [cat, setCat] = useState('all')
   const [pick, setPick] = useState(null)
   // 홈 검색에서 넘어온 필터(나라/도시) 적용
@@ -316,7 +330,7 @@ function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onRefresh, updatedAt
   const tMove = e => { if (touchY.current == null) return; const d = e.touches[0].clientY - touchY.current; if (d > 0 && window.scrollY <= 0) setPull(Math.min(90, d * 0.45)) }
   const tEnd = () => { if (pull > 60) { haptic(12); doRefresh() } setPull(0); touchY.current = null }
   const base = pick ? deals.filter(d => destOf(d) === pick) : filterCat(deals, cat)
-  const list = [...base].sort((a, b) => (matchPrefs(b, prefs) - matchPrefs(a, prefs)) || (b.discount_rate - a.discount_rate))
+  const list = [...base].sort((a, b) => ((isW(b) - isW(a)) * 2) || (matchPrefs(b, prefs) - matchPrefs(a, prefs)) || (b.discount_rate - a.discount_rate))
   const mineCount = hasPrefs(prefs) ? list.filter(d => matchPrefs(d, prefs)).length : 0
   const byCity = {}; deals.forEach(d => { const c = destOf(d); if (!byCity[c] || d.price < byCity[c].price) byCity[c] = d })
   const circles = Object.values(byCity).sort((a, b) => a.price - b.price)
@@ -350,7 +364,7 @@ function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onRefresh, updatedAt
         </div>
         {updatedAt && <div className="text-[11px] text-slate-400 mb-3"><b className="text-slate-500">{updatedAt}</b> 기준 · 1시간마다 자동 갱신, 누르면 최신 조회</div>}
         <div className="space-y-3">
-          {list.length ? list.map(d => <DealCard key={d.id} d={d} saved={savedIds.includes(d.id)} onSave={onSave} onOpen={onOpen} mine={matchPrefs(d, prefs)} />)
+          {list.length ? list.map(d => <DealCard key={d.id} d={d} saved={savedIds.includes(d.id)} onSave={onSave} onOpen={onOpen} mine={matchPrefs(d, prefs)} watched={isW(d)} />)
             : <Empty icon="🔎" text="이 조건엔 핫딜이 아직 없어요." />}
         </div>
       </div>
@@ -813,7 +827,8 @@ function AlertSetup({ prefs, onSave }) {
     </Section>
   )
 }
-function My({ prefs, onSavePrefs }) {
+const routeLabel = r => { const [o, dd] = (r || '').split('-'); return `${ORIGIN_NAME[o] || o} → ${cityName(dd)}` }
+function My({ prefs, onSavePrefs, watchRoutes = [], onToggleRoute }) {
   return (
     <div className="px-4 pb-4 pt-2 space-y-4">
       <Section title="🔔 알림 설정">
@@ -821,6 +836,10 @@ function My({ prefs, onSavePrefs }) {
         <button onClick={() => enablePush(prefs)} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3">🔔 푸시 알림 켜기</button>
       </Section>
       <AlertSetup prefs={prefs} onSave={onSavePrefs} />
+      {watchRoutes.length > 0 && <Section title="🔔 찜한 노선">
+        <p className="text-[12px] text-slate-500 mb-2">찜한 노선 특가를 핫딜에서 먼저 보여드려요. 가격이 떨어지면 알림도 보내드릴게요(푸시 켜기 필요).</p>
+        <div className="space-y-1.5">{watchRoutes.map(r => <div key={r} className="flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2.5"><span className="text-[13.5px] font-bold text-slate-700">✈️ {routeLabel(r)}</span><button onClick={() => onToggleRoute(r)} className="text-[12px] text-rose-500 font-bold">해제</button></div>)}</div>
+      </Section>}
       <Section title="관심 공항"><div className="flex gap-2 flex-wrap">{['인천(ICN)', '김포(GMP)'].map(a => <span key={a} className="text-[13px] bg-brand-50 text-brand-700 rounded-full px-3 py-1.5">{a}</span>)}</div></Section>
       <Section title="이런 특가는 숨기기"><Toggle label="경유 항공권 숨기기" k="no_transfer" /><Toggle label="새벽 출발/도착 숨기기" k="no_dawn" /><Toggle label="수하물 별도(LCC) 숨기기" k="no_lcc" /></Section>
       <div className="text-center text-[11px] text-slate-400 pt-2">싸다구여행 · 결제·환불은 판매처 직접, 우린 안심 특가만 골라드려요</div>
@@ -1175,6 +1194,7 @@ export default function App() {
   const [planSeed, setPlanSeed] = useState(null)
   const [hotExt, setHotExt] = useState(null)
   const [savedIds, toggleSave] = useSaved()
+  const [watchRoutes, toggleRoute] = useRouteWatch()
   const [prefs, savePrefs] = useAlertPrefs()
   const loadDeals = () => fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => { setDeals(d.deals || []); const t = new Date(); setUpdatedAt(`${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`) }).catch(() => setDeals([]))
   useEffect(() => { loadDeals() }, [])
@@ -1205,12 +1225,12 @@ export default function App() {
           {tab !== 'my' && <button onClick={() => switchTab('my')} aria-label="마이" className="ml-auto w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-[17px] active:scale-95 transition">👤</button>}
         </div>}
         {deals && tab === 'home' && <Home deals={deals} onGo={switchTab} onDeal={setSel} onDealFilter={f => { setHotExt({ ...f, ts: Date.now() }); switchTab('hot') }} />}
-        {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} ext={hotExt} onRefresh={loadDeals} updatedAt={updatedAt} /> : <Empty icon="🔎" text="핫딜이 아직 없어요. 알림을 걸어두면 뜨자마자 알려드릴게요." />)}
+        {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} ext={hotExt} onRefresh={loadDeals} updatedAt={updatedAt} watchRoutes={watchRoutes} /> : <Empty icon="🔎" text="핫딜이 아직 없어요. 알림을 걸어두면 뜨자마자 알려드릴게요." />)}
         {deals && tab === 'where' && <Where deals={deals} onOpen={setSel} />}
         {deals && tab === 'flights' && <Flights deals={deals} onOpen={setSel} />}
         {deals && tab === 'hotels' && <Suspense fallback={<div className="px-4 pt-2"><SkelRows n={4} /></div>}><Hotels /></Suspense>}
         {deals && tab === 'planner' && <Planner seed={planSeed} clearSeed={() => setPlanSeed(null)} />}
-        {deals && tab === 'my' && <My prefs={prefs} onSavePrefs={savePrefs} />}
+        {deals && tab === 'my' && <My prefs={prefs} onSavePrefs={savePrefs} watchRoutes={watchRoutes} onToggleRoute={toggleRoute} />}
       </main>
       {inst.mode && <div className="fixed bottom-3 inset-x-0 max-w-md mx-auto px-3 z-40">
         <div className="bg-slate-900/95 text-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-soft fade-in">
@@ -1227,7 +1247,7 @@ export default function App() {
           <div className="flex gap-3 items-center"><span className="w-7 h-7 shrink-0 rounded-full bg-brand-50 text-brand-600 font-bold flex items-center justify-center">3</span><span>이제 앱처럼 열려요. 곧 <b>특가 알림</b>도 받을 수 있어요 🔔</span></div>
         </div>
       </Sheet>}
-      {sel && <DealSheet d={sel} onClose={() => setSel(null)} onPlan={d => { setSel(null); setPlanSeed(seedFromDeal(d)); setTab('planner') }} />}
+      {sel && <DealSheet d={sel} onClose={() => setSel(null)} onPlan={d => { setSel(null); setPlanSeed(seedFromDeal(d)); setTab('planner') }} watched={watchRoutes.includes(sel.route)} onWatch={() => toggleRoute(sel.route)} />}
     </div>
   )
 }
