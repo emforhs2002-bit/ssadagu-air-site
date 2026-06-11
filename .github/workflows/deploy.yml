@@ -10,6 +10,10 @@ permissions:
   pages: write
   id-token: write
 
+# GitHub이 2026-06-16부터 Node24 강제 → 미리 옵트인 (deploy-pages@v4 등 Node20 경고 해소)
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 concurrency:
   group: pages
   cancel-in-progress: true
