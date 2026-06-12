@@ -24,7 +24,8 @@
           slidedown: {
             prompts: [{
               type: "push",
-              autoPrompt: true,
+              // 알림은 로그인 후 '알림 켜기' 버튼으로만 (회원 가입 유도) — 자동 프롬프트 끔
+              autoPrompt: false,
               text: {
                 actionMessage: "새 특가가 뜨면 바로 알려드릴게요 🔔 (언제든 끌 수 있어요)",
                 acceptButton: "알림 받기",

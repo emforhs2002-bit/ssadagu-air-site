@@ -3,6 +3,7 @@ import { DESTINATIONS } from './destinations'
 import { COUNTRY_INFO, VISA_NOTE } from './planner'
 import { vt, haptic, shareIt, useCountUp, Sheet, SearchOverlay, StepRow, MadLib, SkelRows } from './ui'
 import { HOLIDAYS, upcomingWeekends } from './holidays'
+import { useAuth, signIn, signOut, authReady, scheduleSync, pullCloud, requireLogin } from './auth'
 const Hotels = lazy(() => import('./Hotels'))
 
 /* ───────── helpers ───────── */
@@ -77,8 +78,13 @@ const logoOf = d => { const c = d.airline_code || AIRLINE_IATA[(d.airline || '')
 /* ───────── localStorage ───────── */
 function useSaved() {
   const [ids, setIds] = useState(() => { try { return JSON.parse(localStorage.getItem('saved') || '[]') } catch { return [] } })
-  const toggle = id => setIds(p => { const n = p.includes(id) ? p.filter(x => x !== id) : [...p, id]; localStorage.setItem('saved', JSON.stringify(n)); return n })
+  useCloudRefresh(() => { try { setIds(JSON.parse(localStorage.getItem('saved') || '[]')) } catch (e) {} })
+  const toggle = id => setIds(p => { const n = p.includes(id) ? p.filter(x => x !== id) : [...p, id]; localStorage.setItem('saved', JSON.stringify(n)); scheduleSync(); return n })
   return [ids, toggle]
+}
+// 클라우드 동기화가 로컬 데이터를 갱신했을 때(cloud-sync 이벤트) 상태 다시 읽기
+function useCloudRefresh(fn) {
+  useEffect(() => { window.addEventListener('cloud-sync', fn); return () => window.removeEventListener('cloud-sync', fn) }, [])
 }
 // 푸시 구독 상태 ('on'|'off'|'denied') — 버튼/아이콘에 표시
 function usePushState() {
@@ -102,9 +108,11 @@ function usePushState() {
 // 노선 찜: 노선(예 ICN-KIX)을 찜하면 그 노선 딜을 핫딜에서 먼저 보여주고, 푸시 복구 시 가격하락 알림 대상
 function useRouteWatch() {
   const [routes, setRoutes] = useState(() => { try { return JSON.parse(localStorage.getItem('routeWatch') || '[]') } catch { return [] } })
-  const toggle = r => setRoutes(p => {
+  useCloudRefresh(() => { try { setRoutes(JSON.parse(localStorage.getItem('routeWatch') || '[]')) } catch (e) {} })
+  const toggle = r => requireLogin() && setRoutes(p => {
     const n = p.includes(r) ? p.filter(x => x !== r) : [...p, r]
     localStorage.setItem('routeWatch', JSON.stringify(n))
+    scheduleSync()
     try { window.OneSignalDeferred = window.OneSignalDeferred || []; window.OneSignalDeferred.push(os => { try { os.User.addTags({ watch_routes: n.join(',') || 'none' }) } catch (e) {} }) } catch (e) {}
     return n
   })
@@ -132,7 +140,8 @@ const mapsUrl = q => 'https://www.google.com/maps/search/?api=1&query=' + encode
    진짜 푸시(새 딜 뜨면 알림)는 OneSignal 웹푸시+이메일이 다음 단계. 조건이 공통 뿌리. */
 function useAlertPrefs() {
   const [prefs, setPrefs] = useState(() => { try { return JSON.parse(localStorage.getItem('alertPrefs') || 'null') } catch { return null } })
-  const save = p => { localStorage.setItem('alertPrefs', JSON.stringify(p)); setPrefs(p) }
+  useCloudRefresh(() => { try { setPrefs(JSON.parse(localStorage.getItem('alertPrefs') || 'null')) } catch (e) {} })
+  const save = p => { localStorage.setItem('alertPrefs', JSON.stringify(p)); setPrefs(p); scheduleSync() }
   return [prefs, save]
 }
 const hasPrefs = p => !!(p && ((p.regions && p.regions.length) || p.budgetMax || p.directOnly))
@@ -836,6 +845,7 @@ function AlertSetup({ prefs, onSave }) {
   const [directOnly, setDirect] = useState(prefs?.directOnly || false)
   const toggleR = r => setRegions(p => p.includes(r) ? p.filter(x => x !== r) : [...p, r])
   const save = () => {
+    if (!requireLogin()) return
     const p = { regions, budgetMax, directOnly }
     onSave(p)
     // 이미 푸시를 켠 사용자면 새 조건을 OneSignal 태그에 즉시 반영
@@ -855,10 +865,79 @@ function AlertSetup({ prefs, onSave }) {
   )
 }
 const routeLabel = r => { const [o, dd] = (r || '').split('-'); return `${ORIGIN_NAME[o] || o} → ${cityName(dd)}` }
+/* 소셜 로그인 버튼 (로그인 화면·마이 탭 공용) */
+const KakaoBtn = ({ className }) => (
+  <button onClick={() => { haptic(); signIn('kakao') }} className={'w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 font-bold text-[14.5px] bg-[#FEE500] text-[#191919] active:scale-[.99] transition ' + (className || '')}>
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.48 3 2 6.54 2 10.9c0 2.8 1.86 5.25 4.64 6.64l-.94 3.5c-.08.3.26.55.52.38l4.16-2.77c.53.07 1.07.1 1.62.1 5.52 0 10-3.54 10-7.9S17.52 3 12 3z" /></svg>
+    카카오로 시작하기
+  </button>
+)
+const GoogleBtn = ({ className }) => (
+  <button onClick={() => { haptic(); signIn('google') }} className={'w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 font-bold text-[14.5px] bg-white border border-slate-200 text-slate-700 active:scale-[.99] transition ' + (className || '')}>
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.45c-.28 1.5-1.12 2.77-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z" /><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.13 0-5.78-2.11-6.72-4.96H1.27v3.1C3.24 21.3 7.31 24 12 24z" /><path fill="#FBBC05" d="M5.28 14.28A7.2 7.2 0 0 1 4.9 12c0-.79.14-1.56.38-2.28v-3.1H1.27A12 12 0 0 0 0 12c0 1.94.46 3.77 1.27 5.38l4.01-3.1z" /><path fill="#EA4335" d="M12 4.77c1.76 0 3.35.6 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.24 2.7 1.27 6.62l4.01 3.1C6.22 6.88 8.87 4.77 12 4.77z" /></svg>
+    구글로 시작하기
+  </button>
+)
+/* 풀스크린 로그인 (트리플식 온보딩) — 첫 방문·회원 기능 진입 시 노출 */
+function LoginScreen({ open, onClose }) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-[80] bg-white max-w-md mx-auto flex flex-col fade-in">
+      <div className="pt-7 text-center relative shrink-0">
+        <span className="text-[15px] font-extrabold tracking-tight text-slate-900">싸다구여행</span>
+        <button onClick={onClose} aria-label="닫기" className="absolute top-5 right-4 w-9 h-9 flex items-center justify-center text-[18px] text-slate-300">✕</button>
+      </div>
+      <div className="flex-1 flex flex-col items-center justify-center px-8 text-center -mt-8">
+        <div className="relative w-[150px] h-[150px]">
+          <div className="absolute inset-0 rounded-full bg-slate-50" />
+          <img src={import.meta.env.BASE_URL + 'logo.png'} alt="" className="absolute inset-0 m-auto w-[72px] h-[72px] rounded-2xl shadow-card" />
+          <span className="absolute -top-1 right-3 text-[26px] rotate-12">✈️</span>
+          <span className="absolute bottom-3 -left-3 text-[24px] -rotate-12">🏨</span>
+          <span className="absolute top-8 -left-5 text-[20px]">🔥</span>
+          <span className="absolute -bottom-2 right-1 text-[20px]">🔔</span>
+        </div>
+        <h1 className="text-[22px] font-extrabold text-slate-900 leading-[1.4] mt-8">특가를 아는 여행앱,<br />싸다구여행</h1>
+        <p className="text-[13.5px] text-slate-400 mt-2.5 leading-relaxed">로그인하면 특가 알림을 받고<br />찜 · 알림 조건 · 여행 플랜이 어느 기기서든 이어져요</p>
+      </div>
+      <div className="px-5 pb-[max(20px,env(safe-area-inset-bottom))] shrink-0 space-y-2.5">
+        <KakaoBtn />
+        <GoogleBtn />
+        <button onClick={onClose} className="w-full text-center text-[13px] text-slate-400 underline underline-offset-2 py-2">나중에 할게요</button>
+      </div>
+    </div>
+  )
+}
+/* 계정: 로그인 전 = 카카오/구글 버튼, 로그인 후 = 프로필 + 동기화 상태. 키 미설정 시 숨김 */
+function AccountSection() {
+  const user = useAuth()
+  if (!authReady) return null
+  if (!user) return (
+    <div className="bg-white border border-slate-100 rounded-2xl shadow-card p-4">
+      <div className="text-[15px] font-extrabold text-slate-900">로그인하고 어디서든 이어보기</div>
+      <p className="text-[12px] text-slate-400 mt-1 leading-relaxed">찜한 특가 · 알림 조건 · 여행 플랜이 계정에 저장돼요. 폰을 바꿔도 그대로!</p>
+      <KakaoBtn className="mt-3" />
+      <GoogleBtn className="mt-2" />
+    </div>
+  )
+  const md = user.user_metadata || {}
+  return (
+    <div className="bg-white border border-slate-100 rounded-2xl shadow-card p-4 flex items-center gap-3">
+      {md.avatar_url
+        ? <img src={md.avatar_url} alt="" referrerPolicy="no-referrer" className="w-11 h-11 rounded-full bg-slate-100" />
+        : <span className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-[20px]">👤</span>}
+      <div className="flex-1 min-w-0">
+        <div className="text-[15px] font-extrabold text-slate-900 truncate">{md.full_name || md.name || '여행자'}님</div>
+        <div className="text-[11.5px] text-slate-400 truncate">{user.email || ''} · ☁️ 동기화 켜짐</div>
+      </div>
+      <button onClick={() => { haptic(); signOut() }} className="text-[12px] font-bold text-slate-400 bg-slate-50 rounded-full px-3 py-1.5 shrink-0">로그아웃</button>
+    </div>
+  )
+}
 function My({ prefs, onSavePrefs, watchRoutes = [], onToggleRoute }) {
   const push = usePushState()
   return (
     <div className="px-4 pb-4 pt-2 space-y-4">
+      <AccountSection />
       <Section title="🔔 알림 설정">
         {push === 'on'
           ? <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold rounded-2xl py-3 text-center text-[14px]">🔔 알림 켜짐 ✓<div className="text-[11.5px] font-normal text-emerald-600/80 mt-0.5">새 특가가 뜨면 바로 보내드려요</div></div>
@@ -1003,7 +1082,8 @@ function Planner({ seed, clearSeed }) {
   useEffect(() => {
     if (seed) { setDestName(seed.destName || DESTINATIONS[0].name); setStart(seed.start || ''); setEnd(seed.end || ''); setMode('new'); clearSeed && clearSeed() }
   }, [seed])
-  const persist = list => { setPlans(list); localStorage.setItem('plans', JSON.stringify(list)) }
+  useCloudRefresh(() => setPlans(loadPlans()))
+  const persist = list => { setPlans(list); localStorage.setItem('plans', JSON.stringify(list)); scheduleSync() }
   const create = () => {
     const d = DESTINATIONS.find(x => x.name === destName) || {}
     const days = tripDays(start, end) || 3
@@ -1284,6 +1364,7 @@ function syncPushTags(prefs) {  // 권한 요청 없이 태그만 갱신 (조건
 }
 function enablePush(prefs) {
   haptic(12)
+  if (!requireLogin()) return
   const perm = typeof Notification !== 'undefined' ? Notification.permission : 'default'
   if (perm === 'denied') {
     alert('알림이 브라우저에서 차단돼 있어요 🔕\n주소창 왼쪽 자물쇠(🔒)를 누르고 → 알림 → "허용"으로 바꾼 뒤 새로고침해 주세요.')
@@ -1368,6 +1449,24 @@ export default function App() {
   const [savedIds, toggleSave] = useSaved()
   const [watchRoutes, toggleRoute] = useRouteWatch()
   const [prefs, savePrefs] = useAlertPrefs()
+  // 로그인돼 있으면 계정 데이터를 내려받아 로컬 갱신 (첫 로그인이면 로컬을 계정에 시드)
+  const user = useAuth()
+  useEffect(() => { if (user) pullCloud(user) }, [user && user.id])
+  // 풀스크린 로그인: 회원 기능 게이트(open-login 이벤트) + 첫 방문 온보딩(닫으면 7일 뒤 재노출)
+  const [loginOpen, setLoginOpen] = useState(false)
+  useEffect(() => {
+    const h = () => setLoginOpen(true)
+    window.addEventListener('open-login', h)
+    return () => window.removeEventListener('open-login', h)
+  }, [])
+  useEffect(() => {
+    if (!authReady || !deals || user) return
+    if (Date.now() - (+localStorage.getItem('loginPromptAt') || 0) < 7 * 86400000) return
+    const t = setTimeout(() => setLoginOpen(true), 1200)
+    return () => clearTimeout(t)
+  }, [deals, user])
+  useEffect(() => { if (user) setLoginOpen(false) }, [user])
+  const closeLogin = () => { localStorage.setItem('loginPromptAt', String(Date.now())); setLoginOpen(false) }
   const loadDeals = () => fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => { setDeals(d.deals || []); const t = new Date(); setUpdatedAt(`${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`) }).catch(() => setDeals([]))
   useEffect(() => { loadDeals() }, [])
   // 앱 숏컷(홈화면 아이콘 길게 누르기) → ?go=hot|flights|hotels 로 해당 탭 진입
@@ -1430,6 +1529,7 @@ export default function App() {
         </div>
       </Sheet>}
       {sel && <DealSheet d={sel} onClose={() => setSel(null)} onPlan={d => { setSel(null); setPlanSeed(seedFromDeal(d)); setTab('planner') }} watched={watchRoutes.includes(sel.route)} onWatch={() => toggleRoute(sel.route)} />}
+      <LoginScreen open={loginOpen} onClose={closeLogin} />
     </div>
   )
 }
