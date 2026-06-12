@@ -1246,6 +1246,9 @@ export default function App() {
       setTab(go); history.replaceState(null, '', location.pathname)
     }
   }, [])
+  // 푸시 구독자에게 조건 태그 자동 부여 (슬라이드 프롬프트로 구독해도 태그 없으면 타겟 발송이 안 됨)
+  // → 앱 열 때마다 현재 조건(없으면 전체)을 OneSignal 태그로 동기화. r_all=1 기본이라 타겟 필터에 잡힘.
+  useEffect(() => { syncPushTags(prefs) }, [prefs])
   // 공유 딥링크: #deal=id 로 들어오면 해당 딜 상세 자동 오픈
   useEffect(() => {
     if (!deals || !deals.length) return
