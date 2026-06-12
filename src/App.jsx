@@ -1186,12 +1186,21 @@ function syncPushTags(prefs) {  // 권한 요청 없이 태그만 갱신 (조건
 }
 function enablePush(prefs) {
   haptic(12)
+  const perm = typeof Notification !== 'undefined' ? Notification.permission : 'default'
+  if (perm === 'denied') {
+    alert('알림이 브라우저에서 차단돼 있어요 🔕\n주소창 왼쪽 자물쇠(🔒)를 누르고 → 알림 → "허용"으로 바꾼 뒤 새로고침해 주세요.')
+    return
+  }
   try {
     window.OneSignalDeferred = window.OneSignalDeferred || []
     window.OneSignalDeferred.push(async OneSignal => {
+      const wasOn = perm === 'granted' && OneSignal.User && OneSignal.User.PushSubscription && OneSignal.User.PushSubscription.optedIn
       try { await OneSignal.Notifications.requestPermission() } catch (e) {}
       try { await OneSignal.User.PushSubscription.optIn() } catch (e) {}  // 권한만이 아니라 실제 구독 생성
       try { await OneSignal.User.addTags(prefTags(prefs)) } catch (e) {}
+      const now = typeof Notification !== 'undefined' ? Notification.permission : 'default'
+      if (now === 'granted') alert(wasOn ? '이미 알림이 켜져 있어요! 🔔\n새 특가가 뜨면 바로 보내드릴게요.' : '알림을 켰어요! 🔔\n조건에 맞는 새 특가가 뜨면 바로 알려드릴게요.')
+      else alert('알림 권한을 허용하지 않으셨어요. 켜고 싶으면 다시 눌러주세요 🙂')
     })
   } catch (e) { alert('푸시 설정 중 문제가 있었어요. 잠시 후 다시 시도해주세요.') }
 }
