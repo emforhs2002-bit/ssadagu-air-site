@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-11T22:52:17+00:00",
+  "updated_at": "2026-06-12T04:26:09+00:00",
   "note": null,
   "deals": [
     {
@@ -385,7 +385,7 @@
       "route": "ICN-KIX",
       "city": "오사카",
       "badge": "🔥",
-      "price": 174755,
+      "price": 174750,
       "normal_price": 260000,
       "discount_rate": 33,
       "airline": "피치",
@@ -397,11 +397,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 174755,
+        "airfare": 174750,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 243655
+        "total_est": 243650
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -413,7 +413,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0707KIX14071?t=MM17834577001783464300000110ICNKIX17840529001784059800000115KIXICN_683bc392e16c77891574c8b2aed959a6_8299&search_date=11062026&expected_price_uuid=019eb743-a9e8-8030-a20a-b51fe839fc4f&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=174755&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN0707KIX14071?t=MM17834577001783464300000110ICNKIX17840529001784059800000115KIXICN_683bc392e16c77891574c8b2aed959a6_8299&search_date=11062026&expected_price_uuid=019eb743-a9e8-8030-a20a-b51fe839fc4f&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=174750&marker=737258",
       "status": "published",
       "source": "auto"
     },
