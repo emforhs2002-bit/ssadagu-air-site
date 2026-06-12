@@ -4,8 +4,8 @@ import { createClient } from '@supabase/supabase-js'
 /* ───────── Supabase 인증 + 클라우드 동기화 ─────────
    키 발급 절차는 SETUP_AUTH.md 참고. anon key는 공개해도 되는 키(RLS가 데이터 보호).
    키가 비어 있으면 로그인 UI가 숨겨지고 사이트는 기존 그대로(로컬 저장) 동작한다. */
-export const SUPABASE_URL = ''
-export const SUPABASE_ANON_KEY = ''
+export const SUPABASE_URL = 'https://pzmufzhbzgufagjouzqd.supabase.co'
+export const SUPABASE_ANON_KEY = 'sb_publishable_RWbhJbpnrmbbZb9rCm0SDA_21Br2YL2'
 export const authReady = !!(SUPABASE_URL && SUPABASE_ANON_KEY)
 export const supabase = authReady ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null
 
