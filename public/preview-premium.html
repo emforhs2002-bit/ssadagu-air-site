@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>싸다구여행 — 프리미엄 홈 시안</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{font-family:'Pretendard',system-ui,sans-serif;background:#e9f1ef;color:#0f172a;letter-spacing:-.02em;line-height:1.45}
+  .app{max-width:430px;margin:0 auto;background:#f3f8f7;min-height:100vh;overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,.08)}
+  .hero{position:relative;height:300px;background-size:cover;background-position:center;
+    background-image:linear-gradient(180deg,rgba(8,40,38,.55),rgba(8,40,38,.05) 35%,rgba(8,40,38,.85)),url('https://emforhs2002-bit.github.io/ssadagu-air-site/dest/hero.jpg')}
+  .top{position:absolute;top:18px;left:20px;right:20px;display:flex;align-items:center;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:9px}
+  .brand img{width:34px;height:34px;border-radius:50%;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+  .brand b{color:#fff;font-size:17px;font-weight:800;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+  .pf{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(255,255,255,.25)}
+  .htxt{position:absolute;left:22px;right:22px;bottom:80px;color:#fff}
+  .htxt h1{font-size:25px;font-weight:800;line-height:1.32;text-shadow:0 2px 16px rgba(0,0,0,.5)}
+  .htxt p{font-size:14.5px;font-weight:700;margin-top:6px;color:#a7f3d6;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+  /* 신뢰 스트립 = 차별화 */
+  .trust{position:absolute;left:16px;right:16px;bottom:18px;display:flex;gap:7px;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-radius:16px;padding:11px 10px;box-shadow:0 8px 28px rgba(8,40,38,.22)}
+  .trust .t{flex:1;text-align:center}
+  .trust .t .ic{font-size:18px}
+  .trust .t b{display:block;font-size:12px;font-weight:800;color:#0f766e;margin-top:3px}
+  .trust .t span{display:block;font-size:10px;color:#64748b;margin-top:1px}
+  .trust .dv{width:1px;background:#e2e8f0;margin:2px 0}
+  .body{padding:18px 16px 40px}
+  /* 검색 */
+  .search{background:#fff;border-radius:18px;padding:15px 16px;display:flex;align-items:center;gap:11px;box-shadow:0 6px 22px rgba(15,23,42,.07);margin-bottom:22px}
+  .search .mg{width:34px;height:34px;border-radius:11px;background:#e1f3ee;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .search span{color:#94a3b8;font-size:14.5px;font-weight:600}
+  /* 서비스 그리드 — 입체 타일 */
+  .svc{display:flex;justify-content:space-between;margin-bottom:24px}
+  .svc a{text-align:center;text-decoration:none;width:19%}
+  .svc .tile{width:58px;height:58px;margin:0 auto;border-radius:19px;display:flex;align-items:center;justify-content:center;font-size:27px;
+    box-shadow:0 7px 16px rgba(15,23,42,.13),inset 0 1px 0 rgba(255,255,255,.7)}
+  .svc .l{display:block;font-size:12.5px;font-weight:700;color:#334155;margin-top:8px}
+  .t1{background:linear-gradient(145deg,#fff1ec,#ffd9c9)}
+  .t2{background:linear-gradient(145deg,#eaf6ff,#c7e6ff)}
+  .t3{background:linear-gradient(145deg,#e7f0ff,#cdddff)}
+  .t4{background:linear-gradient(145deg,#fde8ef,#fbc9da)}
+  .t5{background:linear-gradient(145deg,#eafaf1,#c5edd6)}
+  /* 차별화 3포인트 */
+  .why{background:linear-gradient(135deg,#0f766e,#14b8a6);border-radius:20px;padding:16px 18px;color:#fff;margin-bottom:22px;box-shadow:0 10px 26px rgba(15,118,110,.3)}
+  .why h3{font-size:14.5px;font-weight:800;margin-bottom:11px}
+  .why .row{display:flex;gap:10px}
+  .why .c{flex:1;background:rgba(255,255,255,.14);border-radius:13px;padding:11px 9px;text-align:center}
+  .why .c .ic{font-size:20px}
+  .why .c b{display:block;font-size:12px;font-weight:800;margin-top:5px}
+  .why .c span{display:block;font-size:10px;color:#bdf0e0;margin-top:2px;line-height:1.3}
+  /* 연휴 배너 */
+  .banner{display:flex;align-items:center;gap:13px;background:#fff;border-radius:18px;padding:14px 16px;margin-bottom:26px;box-shadow:0 6px 20px rgba(15,23,42,.06);border-left:5px solid #f59e0b}
+  .banner .em{font-size:30px}
+  .banner b{display:block;font-size:14px;font-weight:800;color:#92400e}
+  .banner span{display:block;font-size:12px;color:#b45309;margin-top:2px;font-weight:600}
+  .banner .go{margin-left:auto;font-size:20px;color:#cbd5e1}
+  /* 섹션 헤더 */
+  .sh{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:13px}
+  .sh h2{font-size:19px;font-weight:800}
+  .sh a{font-size:12.5px;color:#0f766e;font-weight:700;text-decoration:none}
+  /* 피처 딜 카드 — 가독성 강조 */
+  .feat{background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,.1);margin-bottom:16px}
+  .feat .ph{position:relative;height:178px;background-size:cover;background-position:center;
+    background-image:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.42)),url('https://emforhs2002-bit.github.io/ssadagu-air-site/dest/cebu.jpg')}
+  .feat .badges{position:absolute;top:13px;left:13px;display:flex;gap:6px;flex-wrap:wrap}
+  .bdg{font-size:11px;font-weight:800;border-radius:9px;padding:5px 9px;backdrop-filter:blur(4px)}
+  .b-ver{background:rgba(15,118,110,.92);color:#fff}
+  .b-low{background:rgba(16,185,129,.92);color:#fff}
+  .b-disc{background:rgba(244,63,94,.94);color:#fff}
+  .feat .city{position:absolute;bottom:12px;left:16px;color:#fff}
+  .feat .city b{font-size:24px;font-weight:800;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+  .feat .meta{font-size:12px;color:#e2e8f0;text-shadow:0 1px 6px rgba(0,0,0,.6);margin-top:1px}
+  .feat .info{padding:15px 17px 17px}
+  .feat .line1{display:flex;align-items:flex-end;justify-content:space-between}
+  .feat .dates{font-size:13px;color:#475569;font-weight:600}
+  .feat .dates b{color:#0f172a;font-weight:800}
+  .feat .price{text-align:right}
+  .feat .price .p{font-size:27px;font-weight:900;color:#0f766e;line-height:1}
+  .feat .price .u{font-size:11px;color:#94a3b8;font-weight:700}
+  .feat .chk{margin-top:12px;background:#ecfdf5;border-radius:12px;padding:9px 12px;font-size:11.5px;color:#0f766e;font-weight:700;display:flex;align-items:center;gap:7px}
+  /* 컴팩트 리스트 */
+  .row2{display:flex;gap:12px;background:#fff;border-radius:18px;padding:11px;box-shadow:0 5px 16px rgba(15,23,42,.05);margin-bottom:11px}
+  .row2 .ph{width:74px;height:74px;border-radius:14px;background-size:cover;background-position:center;flex-shrink:0}
+  .row2 .c{flex:1;min-width:0}
+  .row2 .c .nm{font-size:15px;font-weight:800}
+  .row2 .c .mt{font-size:11.5px;color:#94a3b8;margin-top:3px;font-weight:600}
+  .row2 .c .bs{margin-top:6px;display:flex;gap:5px}
+  .row2 .c .bs .x{font-size:10px;font-weight:800;border-radius:7px;padding:3px 7px}
+  .x-v{background:#e1f3ee;color:#0f766e}.x-d{background:#fff1f2;color:#e11d48}
+  .row2 .pr{align-self:center;text-align:right;flex-shrink:0}
+  .row2 .pr .p{font-size:16px;font-weight:900;color:#0f766e}
+  .row2 .pr .u{font-size:10px;color:#94a3b8;font-weight:700}
+  .tag{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:99px;z-index:9;opacity:.9}
+</style>
+</head>
+<body>
+<div class="tag">🎨 프리미엄 홈 시안 (현재 앱과 비교용)</div>
+<div class="app">
+  <div class="hero">
+    <div class="top">
+      <div class="brand"><img src="https://emforhs2002-bit.github.io/ssadagu-air-site/logo.png" alt=""><b>싸다구여행</b></div>
+      <div class="pf">👤</div>
+    </div>
+    <div class="htxt">
+      <h1>발품은 우리가 팔게,<br>넌 떠나기만 해.</h1>
+      <p>어딜봐도 싸다구.</p>
+    </div>
+    <div class="trust">
+      <div class="t"><div class="ic">🛡️</div><b>사람이 검수</b><span>눈으로 확인</span></div>
+      <div class="dv"></div>
+      <div class="t"><div class="ic">💸</div><b>수수료 0원</b><span>안 붙여요</span></div>
+      <div class="dv"></div>
+      <div class="t"><div class="ic">🇰🇷</div><b>인천·김포</b><span>한국발 전문</span></div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="search"><div class="mg">🔍</div><span>어디로 떠나세요? 도시·나라·전체</span></div>
+
+    <div class="svc">
+      <a href="#"><div class="tile t1">🔥</div><span class="l">핫딜</span></a>
+      <a href="#"><div class="tile t2">🧭</div><span class="l">어디갈까</span></a>
+      <a href="#"><div class="tile t3">✈️</div><span class="l">항공편</span></a>
+      <a href="#"><div class="tile t4">🏨</div><span class="l">호텔</span></a>
+      <a href="#"><div class="tile t5">🗺️</div><span class="l">플래너</span></a>
+    </div>
+
+    <div class="why">
+      <h3>왜 싸다구여행이냐면 —</h3>
+      <div class="row">
+        <div class="c"><div class="ic">👀</div><b>직접 확인</b><span>가격·환불 사람이</span></div>
+        <div class="c"><div class="ic">📉</div><b>제일 싼 곳</b><span>예약처 다 비교</span></div>
+        <div class="c"><div class="ic">⚡</div><b>오류운임</b><span>실수가격도 잡음</span></div>
+      </div>
+    </div>
+
+    <div class="banner">
+      <div class="em">📅</div>
+      <div><b>7/17~19 제헌절 3일 연휴</b><span>지금 제일 싸게 갈 수 있는 곳</span></div>
+      <div class="go">›</div>
+    </div>
+
+    <div class="sh"><h2>🔥 오늘의 안심특가</h2><a href="#">전체 ›</a></div>
+
+    <div class="feat">
+      <div class="ph">
+        <div class="badges">
+          <span class="bdg b-ver">🛡️ 검수 완료</span>
+          <span class="bdg b-low">📉 30일 최저가</span>
+          <span class="bdg b-disc">평소 대비 -43%</span>
+        </div>
+        <div class="city"><b>세부</b><div class="meta">인천 출발 · 세부퍼시픽 · 직항 · 왕복 9시간 30분</div></div>
+      </div>
+      <div class="info">
+        <div class="line1">
+          <div class="dates">🗓️ <b>7/20(월)</b> ~ <b>7/23(목)</b></div>
+          <div class="price"><div class="p">243,378<span style="font-size:16px">원</span></div><div class="u">왕복 · 1인</div></div>
+        </div>
+        <div class="chk">✅ 운영자가 6/9 10:38 가격·링크 직접 확인 · 예약 수수료 0원</div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="ph" style="background-image:url('https://emforhs2002-bit.github.io/ssadagu-air-site/dest/osaka.jpg')"></div>
+      <div class="c">
+        <div class="nm">오사카</div>
+        <div class="mt">인천 · 피치 · 직항 · 왕복 3시간 45분</div>
+        <div class="bs"><span class="x x-v">🤖 자동발견</span><span class="x x-d">-33%</span></div>
+      </div>
+      <div class="pr"><div class="p">174,755원</div><div class="u">왕복</div></div>
+    </div>
+
+    <div class="row2">
+      <div class="ph" style="background-image:url('https://emforhs2002-bit.github.io/ssadagu-air-site/dest/fukuoka.jpg')"></div>
+      <div class="c">
+        <div class="nm">후쿠오카</div>
+        <div class="mt">인천 · 이스타 · 직항 · 왕복 2시간 50분</div>
+        <div class="bs"><span class="x x-v">🛡️ 검수</span><span class="x x-d">-20%</span></div>
+      </div>
+      <div class="pr"><div class="p">183,908원</div><div class="u">왕복</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
