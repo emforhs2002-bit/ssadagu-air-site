@@ -80,6 +80,25 @@ function useSaved() {
   const toggle = id => setIds(p => { const n = p.includes(id) ? p.filter(x => x !== id) : [...p, id]; localStorage.setItem('saved', JSON.stringify(n)); return n })
   return [ids, toggle]
 }
+// 푸시 구독 상태 ('on'|'off'|'denied') — 버튼/아이콘에 표시
+function usePushState() {
+  const [s, setS] = useState('off')
+  useEffect(() => {
+    const perm = typeof Notification !== 'undefined' ? Notification.permission : 'default'
+    if (perm === 'denied') { setS('denied'); return }
+    try {
+      window.OneSignalDeferred = window.OneSignalDeferred || []
+      window.OneSignalDeferred.push(os => {
+        try {
+          const ps = os.User && os.User.PushSubscription
+          setS(perm === 'granted' && ps && ps.optedIn ? 'on' : 'off')
+          if (ps && ps.addEventListener) ps.addEventListener('change', e => setS(e && e.current && e.current.optedIn ? 'on' : 'off'))
+        } catch (e) {}
+      })
+    } catch (e) {}
+  }, [])
+  return s
+}
 // 노선 찜: 노선(예 ICN-KIX)을 찜하면 그 노선 딜을 핫딜에서 먼저 보여주고, 푸시 복구 시 가격하락 알림 대상
 function useRouteWatch() {
   const [routes, setRoutes] = useState(() => { try { return JSON.parse(localStorage.getItem('routeWatch') || '[]') } catch { return [] } })
@@ -837,11 +856,17 @@ function AlertSetup({ prefs, onSave }) {
 }
 const routeLabel = r => { const [o, dd] = (r || '').split('-'); return `${ORIGIN_NAME[o] || o} → ${cityName(dd)}` }
 function My({ prefs, onSavePrefs, watchRoutes = [], onToggleRoute }) {
+  const push = usePushState()
   return (
     <div className="px-4 pb-4 pt-2 space-y-4">
       <Section title="🔔 알림 설정">
-        <p className="text-[12.5px] text-slate-500 leading-relaxed mb-3">새 특가가 뜨면 폰으로 바로 알려드려요. 아이폰은 <b className="text-slate-600">홈 화면에 추가한 뒤</b> 켤 수 있어요.</p>
-        <button onClick={() => enablePush(prefs)} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3">🔔 푸시 알림 켜기</button>
+        {push === 'on'
+          ? <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold rounded-2xl py-3 text-center text-[14px]">🔔 알림 켜짐 ✓<div className="text-[11.5px] font-normal text-emerald-600/80 mt-0.5">새 특가가 뜨면 바로 보내드려요</div></div>
+          : <>
+            <p className="text-[12.5px] text-slate-500 leading-relaxed mb-3">새 특가가 뜨면 폰으로 바로 알려드려요. 아이폰은 <b className="text-slate-600">홈 화면에 추가한 뒤</b> 켤 수 있어요.</p>
+            <button onClick={() => enablePush(prefs)} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3">🔔 푸시 알림 켜기</button>
+            {push === 'denied' && <p className="text-[12px] text-rose-500 mt-2">⚠️ 브라우저에서 알림이 차단돼 있어요. 주소창 자물쇠 🔒 → 알림 → 허용으로 바꿔주세요.</p>}
+          </>}
       </Section>
       <AlertSetup prefs={prefs} onSave={onSavePrefs} />
       {watchRoutes.length > 0 && <Section title="🔔 찜한 노선">
