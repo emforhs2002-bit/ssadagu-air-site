@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-13T14:10:48+00:00",
+  "updated_at": "2026-06-13T16:18:48+00:00",
   "note": null,
   "deals": [
     {
@@ -83,48 +83,6 @@
         "refund": "특가운임 변경제한 가능"
       },
       "affiliate_url": "https://www.aviasales.com/search/ICN0807TYO22071?t=ZE17834955001783504200000145ICNNRT17847450001784754900000165NRTICN_3595a7e77ba756a7a650e267d25761b8_11717&search_date=08062026&expected_price_uuid=019ea4bc-052b-8030-20f1-83b303ac0f15&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=243007&marker=737258",
-      "source": "Travelpayouts 자동발견",
-      "status": "published"
-    },
-    {
-      "id": "ICN-DAD-2026-06-13",
-      "route": "ICN-DAD",
-      "city": "다낭",
-      "badge": "",
-      "price": 328287,
-      "normal_price": 420000,
-      "discount_rate": 22,
-      "airline": "이스타항공",
-      "carrier_type": "LCC",
-      "departure_time": "2026-06-13 21:15",
-      "return_time": "2026-06-18 23:45",
-      "duration": "9시간 10분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 328287,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 397187
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "B",
-      "inspection": {
-        "checked_at": "6/9(화) 10:38",
-        "price_ok": false,
-        "link_ok": false,
-        "refund": "특가운임 변경제한 가능"
-      },
-      "affiliate_url": "https://www.aviasales.com/search/ICN1306DAD18061?t=ZE17813853001781395800000295ICNDAD17818263001781848800000255DADICN_99772718773eda21b4ad6e7457b880cd_15660&search_date=03062026&expected_price_uuid=019e8c54-a031-8030-65de-f4f4dc7e72e4&static_fare_key=TY%7CP1%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=328287&marker=737258",
       "source": "Travelpayouts 자동발견",
       "status": "published"
     },
