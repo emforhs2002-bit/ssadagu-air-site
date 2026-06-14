@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-13T22:09:45+00:00",
+  "updated_at": "2026-06-14T04:41:53+00:00",
   "note": null,
   "deals": [
     {
@@ -372,44 +372,6 @@
       "booking_grade": "확인 전",
       "inspection": null,
       "affiliate_url": "https://www.aviasales.com/search/ICN0707KIX14071?t=MM17834577001783464300000110ICNKIX17840295001784036400000115KIXICN_fa1a6de8cb0fb1722af6abe2c347eec3_7715&search_date=12062026&expected_price_uuid=019ebb28-3ea8-8030-eb75-f4f2d0dd9336&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=162513&marker=737258",
-      "status": "published",
-      "source": "auto"
-    },
-    {
-      "id": "ICN-MNL-2026-08-26",
-      "route": "ICN-MNL",
-      "city": "마닐라",
-      "badge": "🔥",
-      "price": 278642,
-      "normal_price": 380000,
-      "discount_rate": 27,
-      "airline": "세부퍼시픽",
-      "carrier_type": "LCC",
-      "departure_time": "2026-08-26 02:15",
-      "return_time": "2026-09-06 19:35",
-      "duration": "8시간 35분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 278642,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 347542
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행",
-        "새벽 출발/도착이 부담스러운 사람"
-      ],
-      "booking_grade": "확인 전",
-      "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN2608MNL06091?t=5J17877105001787722800000265ICNMNL17887233001788741900000250MNLICN_6379245abfa1df8de2ed486bc66618db_13164&search_date=07062026&expected_price_uuid=019e9f63-cb94-8030-e962-40780f04e33d&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH1%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=278642&marker=737258",
       "status": "published",
       "source": "auto"
     }
