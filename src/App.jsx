@@ -4,6 +4,7 @@ import { COUNTRY_INFO, VISA_NOTE } from './planner'
 import { vt, haptic, shareIt, useCountUp, Sheet, SearchOverlay, StepRow, MadLib, SkelRows } from './ui'
 import { HOLIDAYS, upcomingWeekends } from './holidays'
 const Hotels = lazy(() => import('./Hotels'))
+import { useGoogleAuth } from './auth'
 
 /* ───────── helpers ───────── */
 const DAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -855,17 +856,33 @@ function AlertSetup({ prefs, onSave }) {
   )
 }
 const routeLabel = r => { const [o, dd] = (r || '').split('-'); return `${ORIGIN_NAME[o] || o} → ${cityName(dd)}` }
-function My({ prefs, onSavePrefs, watchRoutes = [], onToggleRoute }) {
+function My({ prefs, onSavePrefs, watchRoutes = [], onToggleRoute, auth = { enabled: false } }) {
   const push = usePushState()
+  const gBtnRef = useRef(null)
+  useEffect(() => {
+    if (auth.enabled && !auth.user && gBtnRef.current) auth.renderButton(gBtnRef.current)
+  }, [auth.enabled, auth.user, auth.ready])
   return (
     <div className="px-4 pb-4 pt-2 space-y-4">
       <Section title="🔔 알림 설정">
-        {push === 'on'
-          ? <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold rounded-2xl py-3 text-center text-[14px]">🔔 알림 켜짐 ✓<div className="text-[11.5px] font-normal text-emerald-600/80 mt-0.5">새 특가가 뜨면 바로 보내드려요</div></div>
+        {auth.enabled && !auth.user
+          ? <div className="space-y-2.5">
+            <p className="text-[12.5px] text-slate-500 leading-relaxed">특가 알림은 <b className="text-slate-600">로그인한 분만</b> 받을 수 있어요. 구글로 3초면 끝나요.</p>
+            <div ref={gBtnRef} className="flex justify-center" />
+          </div>
           : <>
-            <p className="text-[12.5px] text-slate-500 leading-relaxed mb-3">새 특가가 뜨면 폰으로 바로 알려드려요. 아이폰은 <b className="text-slate-600">홈 화면에 추가한 뒤</b> 켤 수 있어요.</p>
-            <button onClick={() => enablePush(prefs)} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3">🔔 푸시 알림 켜기</button>
-            {push === 'denied' && <p className="text-[12px] text-rose-500 mt-2">⚠️ 브라우저에서 알림이 차단돼 있어요. 주소창 자물쇠 🔒 → 알림 → 허용으로 바꿔주세요.</p>}
+            {auth.user && <div className="flex items-center gap-2 mb-3">
+              {auth.user.picture && <img src={auth.user.picture} alt="" referrerPolicy="no-referrer" className="w-6 h-6 rounded-full" />}
+              <span className="text-[12.5px] text-slate-500 truncate"><b className="text-slate-700">{auth.user.name || auth.user.email}</b> 님</span>
+              <button onClick={auth.logout} className="ml-auto text-[12px] text-slate-400 underline shrink-0">로그아웃</button>
+            </div>}
+            {push === 'on'
+              ? <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold rounded-2xl py-3 text-center text-[14px]">🔔 알림 켜짐 ✓<div className="text-[11.5px] font-normal text-emerald-600/80 mt-0.5">새 특가가 뜨면 바로 보내드려요</div></div>
+              : <>
+                <p className="text-[12.5px] text-slate-500 leading-relaxed mb-3">새 특가가 뜨면 폰으로 바로 알려드려요. 아이폰은 <b className="text-slate-600">홈 화면에 추가한 뒤</b> 켤 수 있어요.</p>
+                <button onClick={() => enablePush(prefs)} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3">🔔 푸시 알림 켜기</button>
+                {push === 'denied' && <p className="text-[12px] text-rose-500 mt-2">⚠️ 브라우저에서 알림이 차단돼 있어요. 주소창 자물쇠 🔒 → 알림 → 허용으로 바꿔주세요.</p>}
+              </>}
           </>}
       </Section>
       <AlertSetup prefs={prefs} onSave={onSavePrefs} />
@@ -1271,6 +1288,7 @@ export default function App() {
   const [savedIds, toggleSave] = useSaved()
   const [watchRoutes, toggleRoute] = useRouteWatch()
   const [prefs, savePrefs] = useAlertPrefs()
+  const auth = useGoogleAuth()
   const loadDeals = () => fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => { setDeals(d.deals || []); const t = new Date(); setUpdatedAt(`${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`) }).catch(() => setDeals([]))
   useEffect(() => { loadDeals() }, [])
   // 앱 숏컷(홈화면 아이콘 길게 누르기) → ?go=hot|flights|hotels 로 해당 탭 진입
@@ -1315,7 +1333,7 @@ export default function App() {
         {deals && tab === 'flights' && <Flights deals={deals} onOpen={setSel} />}
         {deals && tab === 'hotels' && <Suspense fallback={<div className="px-4 pt-2"><SkelRows n={4} /></div>}><Hotels /></Suspense>}
         {deals && tab === 'planner' && <Planner seed={planSeed} clearSeed={() => setPlanSeed(null)} />}
-        {deals && tab === 'my' && <My prefs={prefs} onSavePrefs={savePrefs} watchRoutes={watchRoutes} onToggleRoute={toggleRoute} />}
+        {deals && tab === 'my' && <My prefs={prefs} onSavePrefs={savePrefs} watchRoutes={watchRoutes} onToggleRoute={toggleRoute} auth={auth} />}
       </main>
       {inst.mode && <div className="fixed bottom-3 inset-x-0 max-w-md mx-auto px-3 z-40">
         <div className="bg-slate-900/95 text-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-soft fade-in">
