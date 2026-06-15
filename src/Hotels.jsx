@@ -54,6 +54,8 @@ const PROVIDERS = {
   Orbitz: { name: '오르비츠', url: (n, ci, co, ad = 2, rm = 1, ch = 0) => `https://www.orbitz.com/Hotel-Search?destination=${enc(n)}&startDate=${ci}&endDate=${co}&adults=${ad}&rooms=${rm}` + (ch > 0 ? `&children=${ch}` : '') },
 }
 const provName = c => (PROVIDERS[c] && PROVIDERS[c].name) || c
+// 실시간 비교가(Xotelo)가 안 잡힐 때 직접 검색으로 보내줄 주요 예약처 (딥링크 빌더 있는 것만)
+const FALLBACK_PROVIDERS = ['BookingCom', 'Agoda', 'CtripTA', 'Expedia', 'HotelsCom']
 
 const MENTION_KO = { Family: '가족', Business: '비즈니스', 'Mid-range': '중급', Luxury: '럭셔리', Budget: '가성비', 'City View': '시티뷰', Romantic: '커플', Spa: '스파', Beach: '해변', 'Breakfast included': '조식 포함' }
 /* 필터 (트립닷컴 스타일 — 불러온 호텔에 즉시 적용) */
@@ -233,6 +235,25 @@ async function geminiParse(text) {
   return j.slots || {}
 }
 
+/* 실시간 비교가가 없을 때: 호텔명·날짜·인원을 채운 예약처 직접검색 버튼들 */
+function ProviderLinks({ h, ci, co, adults, rooms, children }) {
+  return (
+    <div className="grid grid-cols-2 gap-2 mt-2">
+      {FALLBACK_PROVIDERS.map(code => {
+        const p = PROVIDERS[code]
+        const href = p && p.url ? p.url(h.name, ci, co, adults, rooms, children) : h.taUrl
+        return (
+          <a key={code} href={href} target="_blank" rel="noopener"
+            onClick={() => { haptic(); try { fetch(`${PROXY}/click`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'hotel', id: h.key + ':' + code }), keepalive: true }).catch(() => {}) } catch (e) {} }}
+            className="flex items-center justify-between bg-slate-50 rounded-2xl px-3.5 py-3 text-[13.5px] font-bold text-slate-800">
+            <span className="truncate">{p ? p.name : code}</span><span className="text-slate-400 text-[11px] shrink-0 pl-2">검색 ›</span>
+          </a>
+        )
+      })}
+    </div>
+  )
+}
+
 /* ── 가격 비교 시트 ── */
 function HotelSheet({ h, ci, co, adults, rooms, children, usdKrw, onClose }) {
   const [st, setSt] = useState({ status: 'loading' })
@@ -277,8 +298,8 @@ function HotelSheet({ h, ci, co, adults, rooms, children, usdKrw, onClose }) {
         {minTotal != null && maxTotal > minTotal && Math.round((maxTotal - minTotal) * usdKrw) >= 10000 &&
           <div className="bg-rose-50 text-rose-600 text-[12.5px] font-bold rounded-xl px-3 py-2.5">💸 같은 호텔인데 예약처 따라 1박 최대 <b>{wonFmt((maxTotal - minTotal) * usdKrw)}</b> 차이 — 최저 예약처를 콕 집어드렸어요</div>}
         {st.status === 'loading' && <div className="space-y-2">{[0, 1, 2].map(i => <div key={i} className="skel h-[58px] rounded-2xl" />)}</div>}
-        {st.status === 'error' && <HEmpty icon="⚠️" text="가격을 불러오지 못했어요. 잠시 후 다시 시도해 주세요." />}
-        {st.status === 'empty' && <div className="bg-slate-50 rounded-2xl p-3 text-[12.5px] text-slate-500">이 날짜엔 비교 가격이 안 잡혔어요. 아래 예약처에서 직접 확인해 보세요.</div>}
+        {st.status === 'error' && <><div className="bg-slate-50 rounded-2xl p-3 text-[12.5px] text-slate-500">실시간 비교가를 잠깐 불러오지 못했어요. 아래 예약처에서 바로 확인해 보세요.</div><ProviderLinks h={h} ci={ci} co={co} adults={adults} rooms={rooms} children={children} /></>}
+        {st.status === 'empty' && <><div className="bg-slate-50 rounded-2xl p-3 text-[12.5px] text-slate-500">{h.priceMin != null ? <>참고가는 1박 <b className="text-slate-700">{wonFmt(h.priceMin * usdKrw)}</b>부터예요. </> : ''}이 날짜 실시간 비교가는 안 잡혔어요 — 아래 예약처에서 바로 확인해 보세요.</div><ProviderLinks h={h} ci={ci} co={co} adults={adults} rooms={rooms} children={children} /></>}
         {st.status === 'ok' && <div className="space-y-2">
           {st.rates.map((r, i) => {
             const total = r.rate + (r.tax || 0), lowest = total === minTotal
