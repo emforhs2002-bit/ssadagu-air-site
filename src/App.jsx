@@ -862,27 +862,36 @@ function My({ prefs, onSavePrefs, watchRoutes = [], onToggleRoute, auth = { enab
   useEffect(() => {
     if (auth.enabled && !auth.user && gBtnRef.current) auth.renderButton(gBtnRef.current)
   }, [auth.enabled, auth.user, auth.ready])
+  if (auth.enabled && !auth.user) return (
+    <div className="px-4 pt-6 pb-8">
+      <div className="bg-white rounded-3xl shadow-soft px-6 py-9 text-center">
+        <div className="text-[44px] leading-none mb-3">🔔✈️</div>
+        <h2 className="text-[20px] font-extrabold text-slate-900 leading-snug">특가 핫딜,<br />알림으로 먼저 받아보세요!</h2>
+        <p className="text-[13px] text-slate-500 mt-2.5 leading-relaxed">로그인하면 관심 노선·예산 조건으로<br />새 특가가 뜰 때 폰으로 바로 쏴드려요.</p>
+        <ul className="text-[13px] text-slate-600 text-left space-y-2 my-6 mx-auto max-w-[230px]">
+          <li className="flex gap-2"><span>🔥</span><span>조건 맞는 특가 실시간 푸시 알림</span></li>
+          <li className="flex gap-2"><span>🛫</span><span>관심 노선·예산만 콕 집어서</span></li>
+          <li className="flex gap-2"><span>♡</span><span>찜한 딜·노선 저장</span></li>
+        </ul>
+        <div ref={gBtnRef} className="flex justify-center" />
+        <p className="text-[11px] text-slate-400 mt-3">구글 계정으로 3초 · 완전 무료</p>
+      </div>
+    </div>
+  )
   return (
     <div className="px-4 pb-4 pt-2 space-y-4">
       <Section title="🔔 알림 설정">
-        {auth.enabled && !auth.user
-          ? <div className="space-y-2.5">
-            <p className="text-[12.5px] text-slate-500 leading-relaxed">특가 알림은 <b className="text-slate-600">로그인한 분만</b> 받을 수 있어요. 구글로 3초면 끝나요.</p>
-            <div ref={gBtnRef} className="flex justify-center" />
-          </div>
+        {auth.user && <div className="flex items-center gap-2 mb-3">
+          {auth.user.picture && <img src={auth.user.picture} alt="" referrerPolicy="no-referrer" className="w-6 h-6 rounded-full" />}
+          <span className="text-[12.5px] text-slate-500 truncate"><b className="text-slate-700">{auth.user.name || auth.user.email}</b> 님</span>
+          <button onClick={auth.logout} className="ml-auto text-[12px] text-slate-400 underline shrink-0">로그아웃</button>
+        </div>}
+        {push === 'on'
+          ? <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold rounded-2xl py-3 text-center text-[14px]">🔔 알림 켜짐 ✓<div className="text-[11.5px] font-normal text-emerald-600/80 mt-0.5">새 특가가 뜨면 바로 보내드려요</div></div>
           : <>
-            {auth.user && <div className="flex items-center gap-2 mb-3">
-              {auth.user.picture && <img src={auth.user.picture} alt="" referrerPolicy="no-referrer" className="w-6 h-6 rounded-full" />}
-              <span className="text-[12.5px] text-slate-500 truncate"><b className="text-slate-700">{auth.user.name || auth.user.email}</b> 님</span>
-              <button onClick={auth.logout} className="ml-auto text-[12px] text-slate-400 underline shrink-0">로그아웃</button>
-            </div>}
-            {push === 'on'
-              ? <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold rounded-2xl py-3 text-center text-[14px]">🔔 알림 켜짐 ✓<div className="text-[11.5px] font-normal text-emerald-600/80 mt-0.5">새 특가가 뜨면 바로 보내드려요</div></div>
-              : <>
-                <p className="text-[12.5px] text-slate-500 leading-relaxed mb-3">새 특가가 뜨면 폰으로 바로 알려드려요. 아이폰은 <b className="text-slate-600">홈 화면에 추가한 뒤</b> 켤 수 있어요.</p>
-                <button onClick={() => enablePush(prefs)} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3">🔔 푸시 알림 켜기</button>
-                {push === 'denied' && <p className="text-[12px] text-rose-500 mt-2">⚠️ 브라우저에서 알림이 차단돼 있어요. 주소창 자물쇠 🔒 → 알림 → 허용으로 바꿔주세요.</p>}
-              </>}
+            <p className="text-[12.5px] text-slate-500 leading-relaxed mb-3">새 특가가 뜨면 폰으로 바로 알려드려요. 아이폰은 <b className="text-slate-600">홈 화면에 추가한 뒤</b> 켤 수 있어요.</p>
+            <button onClick={() => enablePush(prefs)} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3">🔔 푸시 알림 켜기</button>
+            {push === 'denied' && <p className="text-[12px] text-rose-500 mt-2">⚠️ 브라우저에서 알림이 차단돼 있어요. 주소창 자물쇠 🔒 → 알림 → 허용으로 바꿔주세요.</p>}
           </>}
       </Section>
       <AlertSetup prefs={prefs} onSave={onSavePrefs} />

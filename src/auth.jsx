@@ -74,6 +74,7 @@ export function useGoogleAuth() {
         callback: handleCredential,
         auto_select: false,
         cancel_on_tap_outside: true,
+        ux_mode: 'popup',
       })
       setReady(true)
     }).catch(() => {})
