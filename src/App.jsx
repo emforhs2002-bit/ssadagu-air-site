@@ -1297,7 +1297,7 @@ export default function App() {
   const [savedIds, toggleSave] = useSaved()
   const [watchRoutes, toggleRoute] = useRouteWatch()
   const [prefs, savePrefs] = useAlertPrefs()
-  const auth = useGoogleAuth()
+  const auth = useGoogleAuth(() => setTab('home'))  // 로그인 완료되면 홈으로
   const loadDeals = () => fetch(import.meta.env.BASE_URL + 'published.json?' + Date.now()).then(r => r.json()).then(d => { setDeals(d.deals || []); const t = new Date(); setUpdatedAt(`${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`) }).catch(() => setDeals([]))
   useEffect(() => { loadDeals() }, [])
   // 앱 숏컷(홈화면 아이콘 길게 누르기) → ?go=hot|flights|hotels 로 해당 탭 진입

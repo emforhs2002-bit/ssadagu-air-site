@@ -46,10 +46,12 @@ function loadGis() {
   return gisPromise
 }
 
-export function useGoogleAuth() {
+export function useGoogleAuth(onLogin) {
   const [user, setUser] = useState(loadUser)
   const [ready, setReady] = useState(false)
   const pendingCb = useRef(null)
+  const onLoginRef = useRef(onLogin)
+  onLoginRef.current = onLogin
 
   const handleCredential = useCallback(resp => {
     const token = resp && resp.credential
@@ -62,6 +64,7 @@ export function useGoogleAuth() {
     // 회원→구독 기록(비차단): 워커 KV에 저장. 실패해도 로그인 자체엔 영향 없음.
     try { fetch(`${PROXY}/auth/google`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ credential: token }), keepalive: true }).catch(() => {}) } catch (e) {}
     if (pendingCb.current) { const cb = pendingCb.current; pendingCb.current = null; try { cb(u) } catch (e) {} }
+    try { onLoginRef.current && onLoginRef.current(u) } catch (e) {}  // 로그인 완료 → 홈 이동 등
   }, [])
 
   useEffect(() => {
