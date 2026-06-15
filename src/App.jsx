@@ -831,11 +831,43 @@ const Empty = ({ icon, text }) => <div className="text-center text-slate-400 py-
 
 const A_REGIONS = ['일본', '동남아', '대만', '베트남', '태국', '괌']
 const A_BUDGET = [['20만 이하', 200000], ['30만 이하', 300000], ['40만 이하', 400000], ['상관없음', 0]]
+// 자연어 → 알림 조건 키워드 폴백 (워커 LLM 미배포/실패 시 클라에서 즉시 처리)
+const CITY_REGION = {
+  일본: ['일본', '도쿄', '오사카', '후쿠오카', '삿포로', '오키나와', '나고야', '교토', '다카마쓰', '구마모토'],
+  동남아: ['동남아', '싱가포르', '말레이', '쿠알라룸푸르', '코타키나발루', '보라카이', '세부', '마닐라', '필리핀', '발리', '인도네시아'],
+  대만: ['대만', '타이베이', '타이중', '가오슝', '타이완'],
+  베트남: ['베트남', '다낭', '나트랑', '하노이', '호치민', '푸꾸옥', '달랏', '하롱'],
+  태국: ['태국', '방콕', '푸켓', '치앙마이', '파타야', '끄라비'],
+  괌: ['괌', '사이판'],
+}
+function parseAlertText(text) {
+  const t = String(text || '')
+  const regions = []
+  for (const [region, kws] of Object.entries(CITY_REGION)) if (kws.some(k => t.includes(k))) regions.push(region)
+  let budgetMax = 0
+  const m = t.match(/(\d+)\s*만/)
+  if (m) { const w = parseInt(m[1], 10) * 10000; budgetMax = w <= 200000 ? 200000 : w <= 300000 ? 300000 : w <= 400000 ? 400000 : 0 }
+  const directOnly = /직항/.test(t) && !/경유/.test(t)
+  return { regions, budgetMax, directOnly }
+}
 function AlertSetup({ prefs, onSave }) {
   const [regions, setRegions] = useState(prefs?.regions || [])
   const [budgetMax, setBudget] = useState(prefs?.budgetMax || 0)
   const [directOnly, setDirect] = useState(prefs?.directOnly || false)
+  const [nl, setNl] = useState('')
+  const [parsing, setParsing] = useState(false)
   const toggleR = r => setRegions(p => p.includes(r) ? p.filter(x => x !== r) : [...p, r])
+  const applyNL = async () => {
+    const text = nl.trim(); if (!text) return
+    setParsing(true)
+    let slots = null
+    try { const r = await fetch(`${PROXY}/gemini-alert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) }); if (r.ok) slots = (await r.json()).slots } catch (e) {}
+    if (!slots) slots = parseAlertText(text)  // 워커 LLM 미배포/실패 → 키워드 폴백
+    setRegions((slots.regions || []).filter(r => A_REGIONS.includes(r)))
+    setBudget([0, 200000, 300000, 400000].includes(slots.budgetMax) ? slots.budgetMax : 0)
+    setDirect(!!slots.directOnly)
+    setParsing(false); haptic()
+  }
   const save = () => {
     const p = { regions, budgetMax, directOnly }
     onSave(p)
@@ -846,6 +878,14 @@ function AlertSetup({ prefs, onSave }) {
   return (
     <Section title="🔔 내 특가 알림 조건">
       <div className="text-[12px] text-slate-500 mb-3">조건을 저장하면 핫딜 탭에서 <b className="text-rose-500">내 조건에 맞는 안심 특가를 먼저</b> 보여드려요.</div>
+      <div className="mb-3.5">
+        <div className="text-[12px] font-bold text-slate-600 mb-1">✨ 말로 조건 입력</div>
+        <div className="flex gap-1.5">
+          <input value={nl} onChange={e => setNl(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') applyNL() }} placeholder="예: 도쿄나 오사카 20만원 이하 직항" className="flex-1 min-w-0 bg-slate-50 rounded-xl px-3 py-2.5 text-[13px] outline-none border border-slate-200 focus:border-brand-400" />
+          <button onClick={applyNL} disabled={parsing} className="shrink-0 bg-slate-800 text-white text-[12.5px] font-bold rounded-xl px-3.5 disabled:opacity-50">{parsing ? '…' : '입력'}</button>
+        </div>
+        <div className="text-[11px] text-slate-400 mt-1">말로 적으면 아래 조건이 자동으로 채워져요. 확인 후 저장하세요.</div>
+      </div>
       <div className="text-[12px] font-bold text-slate-600 mb-1">지역</div>
       <div className="flex flex-wrap gap-1.5">{A_REGIONS.map(r => <Chip key={r} on={regions.includes(r)} onClick={() => toggleR(r)}>{r}</Chip>)}</div>
       <div className="text-[12px] font-bold text-slate-600 mt-3 mb-1">예산 (1인 왕복)</div>
