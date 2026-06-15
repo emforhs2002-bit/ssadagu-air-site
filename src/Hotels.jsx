@@ -536,20 +536,22 @@ export default function Hotels() {
       {st.status === 'error' && <HEmpty icon="⚠️" text="호텔을 불러오지 못했어요. 잠시 후 다시 시도해 주세요." />}
       {st.status === 'ok' && <>
         <div className="flex items-center justify-between px-1">
-          <div className="text-[12px] text-slate-400">{CITY_OF[geo]} <b className="text-slate-500">{(st.total || 0).toLocaleString('ko-KR')}곳</b>{fltCount > 0 && <> · 조건 맞는 <b className="text-brand-600">{displayed.length}곳</b></>}</div>
           <div className="flex bg-white border border-slate-200 rounded-full p-0.5">
             {[['list', '목록'], ['map', '🗺️ 지도']].map(([v, t]) => <button key={v} onClick={() => { haptic(); setView(v) }} className={'text-[12px] rounded-full px-3 py-1 font-bold ' + (view === v ? 'bg-brand-500 text-white' : 'text-slate-500')}>{t}</button>)}
           </div>
+          <select value={clientSort || sort} onChange={e => { haptic(); const v = e.target.value; if (v === 'price' || v === 'rating') { setClientSort(v) } else { setClientSort(null); setSort(v); search(geo, v) } }} className="text-[12px] font-bold text-slate-600 bg-white border border-slate-200 rounded-full pl-3 pr-2 py-1.5 outline-none">
+            <option value="popularity">인기순</option>
+            <option value="price">가격 낮은순</option>
+            <option value="rating">평점순</option>
+            <option value="best_value">가성비</option>
+          </select>
         </div>
         {/* 필터 · 정렬 바 */}
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar px-0.5 -mt-1">
           <button onClick={() => { haptic(); setOvFilter(true) }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (fltCount ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>⚙️ 필터{fltCount ? ' ' + fltCount : ''}</button>
           <button onClick={() => { haptic(); setLang(HLANG === 'ko' ? 'en' : 'ko') }} className="shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border bg-white text-slate-600 border-slate-200">🌐 {HLANG === 'ko' ? '한글명' : 'English'}</button>
-          <button onClick={() => { haptic(); setClientSort(clientSort === 'price' ? null : 'price') }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (clientSort === 'price' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200')}>💰 가격 낮은순</button>
-          <button onClick={() => { haptic(); setClientSort(clientSort === 'rating' ? null : 'rating') }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (clientSort === 'rating' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200')}>⭐ 평점순</button>
           <button onClick={() => { haptic(); setFlt(f => ({ ...f, rating: f.rating === 4 ? null : 4 })) }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (flt.rating === 4 ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>4.0+</button>
           <button onClick={() => { haptic(); toggleTag('조식 포함') }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (flt.tags.includes('조식 포함') ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>🍳 조식</button>
-          {view === 'list' && [['popularity', '인기순'], ['best_value', '가성비']].map(([v, t]) => <button key={v} onClick={() => { setClientSort(null); setSort(v); search(geo, v) }} className={'shrink-0 text-[12px] rounded-full px-3 py-1.5 font-bold border ' + (!clientSort && sort === v ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200')}>{t}</button>)}
         </div>
         {view === 'map' && <>
           <HotelMap hotels={displayed} usdKrw={usdKrw} onOpen={setSel}

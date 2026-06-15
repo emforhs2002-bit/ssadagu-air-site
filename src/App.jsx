@@ -846,7 +846,7 @@ function parseAlertText(text) {
   for (const [region, kws] of Object.entries(CITY_REGION)) if (kws.some(k => t.includes(k))) regions.push(region)
   let budgetMax = 0
   const m = t.match(/(\d+)\s*만/)
-  if (m) { const w = parseInt(m[1], 10) * 10000; budgetMax = w <= 200000 ? 200000 : w <= 300000 ? 300000 : w <= 400000 ? 400000 : 0 }
+  if (m) budgetMax = parseInt(m[1], 10) * 10000
   const directOnly = /직항/.test(t) && !/경유/.test(t)
   return { regions, budgetMax, directOnly }
 }
@@ -864,7 +864,7 @@ function AlertSetup({ prefs, onSave }) {
     try { const r = await fetch(`${PROXY}/gemini-alert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) }); if (r.ok) slots = (await r.json()).slots } catch (e) {}
     if (!slots) slots = parseAlertText(text)  // 워커 LLM 미배포/실패 → 키워드 폴백
     setRegions((slots.regions || []).filter(r => A_REGIONS.includes(r)))
-    setBudget([0, 200000, 300000, 400000].includes(slots.budgetMax) ? slots.budgetMax : 0)
+    setBudget(Math.max(0, parseInt(slots.budgetMax, 10) || 0))
     setDirect(!!slots.directOnly)
     setParsing(false); haptic()
   }
@@ -877,7 +877,7 @@ function AlertSetup({ prefs, onSave }) {
   }
   return (
     <Section title="🔔 내 특가 알림 조건">
-      <div className="text-[12px] text-slate-500 mb-3">조건을 저장하면 핫딜 탭에서 <b className="text-rose-500">내 조건에 맞는 안심 특가를 먼저</b> 보여드려요.</div>
+      <div className="text-[12px] text-slate-500 mb-3">조건을 저장하면 <b className="text-rose-500">내 조건에 맞는 안심 특가를 알려드릴게요.</b></div>
       <div className="mb-3.5">
         <div className="text-[12px] font-bold text-slate-600 mb-1">✨ 말로 조건 입력</div>
         <div className="flex gap-1.5">
@@ -888,8 +888,12 @@ function AlertSetup({ prefs, onSave }) {
       </div>
       <div className="text-[12px] font-bold text-slate-600 mb-1">지역</div>
       <div className="flex flex-wrap gap-1.5">{A_REGIONS.map(r => <Chip key={r} on={regions.includes(r)} onClick={() => toggleR(r)}>{r}</Chip>)}</div>
-      <div className="text-[12px] font-bold text-slate-600 mt-3 mb-1">예산 (1인 왕복)</div>
-      <div className="flex flex-wrap gap-1.5">{A_BUDGET.map(([l, v]) => <Chip key={l} on={budgetMax === v} onClick={() => setBudget(v)}>{l}</Chip>)}</div>
+      <div className="text-[12px] font-bold text-slate-600 mt-3 mb-1">예산 (1인 왕복, 최대)</div>
+      <div className="flex items-center gap-2">
+        <input type="number" inputMode="numeric" value={budgetMax || ''} onChange={e => setBudget(Math.max(0, parseInt(e.target.value || '0', 10) || 0))} placeholder="예: 250000" className="flex-1 min-w-0 bg-slate-50 rounded-xl px-3 py-2.5 text-[13px] outline-none border border-slate-200 focus:border-brand-400" />
+        <span className="text-[13px] text-slate-500 shrink-0">원 이하</span>
+      </div>
+      <div className="text-[11px] text-slate-400 mt-1">이 금액 이하 특가만 알림받아요. 비우면 가격 상관없이 전체.</div>
       <label className="flex items-center gap-2 text-[13px] text-slate-600 mt-3"><input type="checkbox" checked={directOnly} onChange={e => setDirect(e.target.checked)} /> 직항만 받기</label>
       <button onClick={save} className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3 mt-3">알림 조건 저장 🔔</button>
     </Section>
@@ -941,7 +945,6 @@ function My({ prefs, onSavePrefs, watchRoutes = [], onToggleRoute, auth = { enab
       </Section>}
       <Section title="관심 공항"><div className="flex gap-2 flex-wrap">{['인천(ICN)', '김포(GMP)'].map(a => <span key={a} className="text-[13px] bg-brand-50 text-brand-700 rounded-full px-3 py-1.5">{a}</span>)}</div></Section>
       <Section title="이런 특가는 숨기기"><Toggle label="경유 항공권 숨기기" k="no_transfer" /><Toggle label="새벽 출발/도착 숨기기" k="no_dawn" /><Toggle label="수하물 별도(LCC) 숨기기" k="no_lcc" /></Section>
-      <div className="text-center text-[11px] text-slate-400 pt-2">싸다구여행 · 결제·환불은 판매처 직접, 우린 안심 특가만 골라드려요</div>
     </div>
   )
 }
@@ -1374,7 +1377,9 @@ export default function App() {
         {deals && tab !== 'home' && <div className="px-5 pt-7 pb-1 flex items-center gap-1.5">
           <button onClick={() => switchTab('home')} className="text-[22px] text-slate-500 -ml-2 pr-1">←</button>
           <h1 className="text-[22px] font-extrabold text-slate-900">{TAB_TITLE[tab]}</h1>
-          {tab !== 'my' && <button onClick={() => switchTab('my')} aria-label="마이" className="ml-auto w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-[17px] active:scale-95 transition">👤</button>}
+          {tab === 'my'
+            ? <button onClick={() => switchTab('home')} aria-label="홈" className="ml-auto w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-[17px] active:scale-95 transition">🏠</button>
+            : <button onClick={() => switchTab('my')} aria-label="마이" className="ml-auto w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-[17px] active:scale-95 transition">👤</button>}
         </div>}
         {deals && tab === 'home' && <Home deals={deals} onGo={switchTab} onDeal={setSel} onDealFilter={f => { setHotExt({ ...f, ts: Date.now() }); switchTab('hot') }} />}
         {deals && tab === 'hot' && (deals.length ? <HotDeals deals={deals} {...p} prefs={prefs} ext={hotExt} onRefresh={loadDeals} updatedAt={updatedAt} watchRoutes={watchRoutes} /> : <Empty icon="🔎" text="핫딜이 아직 없어요. 알림을 걸어두면 뜨자마자 알려드릴게요." />)}
@@ -1383,6 +1388,7 @@ export default function App() {
         {deals && tab === 'hotels' && <Suspense fallback={<div className="px-4 pt-2"><SkelRows n={4} /></div>}><Hotels /></Suspense>}
         {deals && tab === 'planner' && <Planner seed={planSeed} clearSeed={() => setPlanSeed(null)} />}
         {deals && tab === 'my' && <My prefs={prefs} onSavePrefs={savePrefs} watchRoutes={watchRoutes} onToggleRoute={toggleRoute} auth={auth} />}
+        {deals && <div className="text-center text-[11px] text-slate-400 px-6 pt-6 pb-4 leading-relaxed">싸다구여행 · 우린 안심 특가만 골라드려요<br />문의 <a href="mailto:emforhs2002@gmail.com" className="text-slate-500 underline">emforhs2002@gmail.com</a></div>}
       </main>
       {inst.mode && <div className="fixed bottom-3 inset-x-0 max-w-md mx-auto px-3 z-40">
         <div className="bg-slate-900/95 text-white rounded-2xl px-4 py-3 flex items-center gap-3 shadow-soft fade-in">
