@@ -41,13 +41,17 @@ const CITY_GROUPS = HOTEL_REGIONS.map(([title, cs]) => ({
 }))
 
 const enc = encodeURIComponent
+// 아동: 앱이 나이를 따로 받지 않으므로, 나이를 요구하는 예약처(부킹 등)는 기본 10세로 채운다
+const childAges = ch => Array(Math.max(0, ch | 0)).fill(10)
 const PROVIDERS = {
-  BookingCom: { name: '부킹닷컴', url: (n, ci, co, ad, rm) => `https://www.booking.com/searchresults.ko.html?ss=${enc(n)}&checkin=${ci}&checkout=${co}&group_adults=${ad}&no_rooms=${rm}` },
-  Agoda: { name: '아고다', url: (n, ci, co, ad, rm) => `https://www.agoda.com/ko-kr/search?textToSearch=${enc(n)}&checkIn=${ci}&checkOut=${co}&adults=${ad}&rooms=${rm}` },
-  CtripTA: { name: '트립닷컴', url: (n, ci, co, ad) => `https://kr.trip.com/hotels/list?searchWord=${enc(n)}&checkin=${ci}&checkout=${co}&adult=${ad}&${ALLIANCE}&trip_sub1=hotel_tab` },
-  Expedia: { name: '익스피디아', url: (n, ci, co) => `https://www.expedia.co.kr/Hotel-Search?destination=${enc(n)}&startDate=${ci}&endDate=${co}` },
-  HotelsCom: { name: '호텔스닷컴', url: (n, ci, co) => `https://kr.hotels.com/Hotel-Search?destination=${enc(n)}&startDate=${ci}&endDate=${co}` },
-  Priceline: { name: '프라이스라인', url: null }, Travelocity: { name: '트래블로시티', url: null }, Orbitz: { name: '오르비츠', url: null },
+  BookingCom: { name: '부킹닷컴', url: (n, ci, co, ad, rm, ch = 0) => `https://www.booking.com/searchresults.ko.html?ss=${enc(n)}&checkin=${ci}&checkout=${co}&group_adults=${ad}&no_rooms=${rm}` + (ch > 0 ? `&group_children=${ch}` + childAges(ch).map(a => `&age=${a}`).join('') : '') },
+  Agoda: { name: '아고다', url: (n, ci, co, ad, rm, ch = 0) => `https://www.agoda.com/search?textToSearch=${enc(n)}&checkIn=${ci}&los=${nightsOf(ci, co) || 1}&rooms=${rm}&adults=${ad}` + (ch > 0 ? `&children=${ch}&childAges=${childAges(ch).join(',')}` : '') },
+  CtripTA: { name: '트립닷컴', url: (n, ci, co, ad, rm = 1, ch = 0) => `https://kr.trip.com/hotels/list?searchWord=${enc(n)}&checkin=${ci}&checkout=${co}&adult=${ad}&crn=${rm}` + (ch > 0 ? `&children=${ch}` : '') + `&${ALLIANCE}&trip_sub1=hotel_tab` },
+  Expedia: { name: '익스피디아', url: (n, ci, co, ad = 2, rm = 1, ch = 0) => `https://www.expedia.co.kr/Hotel-Search?destination=${enc(n)}&startDate=${ci}&endDate=${co}&adults=${ad}&rooms=${rm}` + (ch > 0 ? `&children=${ch}` : '') },
+  HotelsCom: { name: '호텔스닷컴', url: (n, ci, co, ad = 2, rm = 1, ch = 0) => `https://kr.hotels.com/Hotel-Search?destination=${enc(n)}&startDate=${ci}&endDate=${co}&adults=${ad}&rooms=${rm}` + (ch > 0 ? `&children=${ch}` : '') },
+  Priceline: { name: '프라이스라인', url: null },
+  Travelocity: { name: '트래블로시티', url: (n, ci, co, ad = 2, rm = 1, ch = 0) => `https://www.travelocity.com/Hotel-Search?destination=${enc(n)}&startDate=${ci}&endDate=${co}&adults=${ad}&rooms=${rm}` + (ch > 0 ? `&children=${ch}` : '') },
+  Orbitz: { name: '오르비츠', url: (n, ci, co, ad = 2, rm = 1, ch = 0) => `https://www.orbitz.com/Hotel-Search?destination=${enc(n)}&startDate=${ci}&endDate=${co}&adults=${ad}&rooms=${rm}` + (ch > 0 ? `&children=${ch}` : '') },
 }
 const provName = c => (PROVIDERS[c] && PROVIDERS[c].name) || c
 
@@ -230,7 +234,7 @@ async function geminiParse(text) {
 }
 
 /* ── 가격 비교 시트 ── */
-function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
+function HotelSheet({ h, ci, co, adults, rooms, children, usdKrw, onClose }) {
   const [st, setSt] = useState({ status: 'loading' })
   const nights = nightsOf(ci, co)
   useEffect(() => {
@@ -279,7 +283,7 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
           {st.rates.map((r, i) => {
             const total = r.rate + (r.tax || 0), lowest = total === minTotal
             const p = PROVIDERS[r.code]
-            const href = p && p.url ? p.url(h.name, ci, co, adults, rooms) : h.taUrl
+            const href = p && p.url ? p.url(h.name, ci, co, adults, rooms, children) : h.taUrl
             return (
               <a key={i} href={href} target="_blank" rel="noopener" onClick={() => { haptic(); try { fetch(`${PROXY}/click`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'hotel', id: h.key + ':' + r.code }), keepalive: true }).catch(() => {}) } catch (e) {} }} className={'flex items-center justify-between rounded-2xl px-3.5 py-3 ' + (lowest ? 'bg-brand-50 glow-lowest shine' : 'bg-slate-50')}>
                 <div className="min-w-0">
@@ -305,7 +309,7 @@ function HotelSheet({ h, ci, co, adults, rooms, usdKrw, onClose }) {
 }
 
 /* 네이버 호텔식 카드 — 큰 사진 + 예약처별 가격 인라인 비교 + 최저가 반짝 */
-function HotelCard({ h, ci, co, adults, rooms, usdKrw, onOpen }) {
+function HotelCard({ h, ci, co, adults, rooms, children, usdKrw, onOpen }) {
   const tags = (h.mentions || []).map(m => MENTION_KO[m]).filter(Boolean).slice(0, 3)
   const [dm, setDm] = useState(() => dmCached(h.key, ci, co))
   const ref = useRef(null)
@@ -326,7 +330,7 @@ function HotelCard({ h, ci, co, adults, rooms, usdKrw, onOpen }) {
     e.stopPropagation(); haptic()
     try { fetch(`${PROXY}/click`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'hotel', id: h.key + ':' + r.code }), keepalive: true }).catch(() => {}) } catch (err) {}
     const p = PROVIDERS[r.code]
-    window.open(p && p.url ? p.url(h.name, ci, co, adults, rooms) : h.taUrl, '_blank', 'noopener')
+    window.open(p && p.url ? p.url(h.name, ci, co, adults, rooms, children) : h.taUrl, '_blank', 'noopener')
   }
   return (
     <div ref={ref} className="bg-white rounded-2xl shadow-soft overflow-hidden active:scale-[.995] transition cursor-pointer" onClick={() => { haptic(); onOpen(h) }}>
@@ -534,7 +538,7 @@ export default function Hotels() {
         </>}
         <div className="bg-slate-50 text-slate-500 text-[12px] rounded-xl px-3 py-2.5"><b className="text-rose-500">1박 · 세금 포함 참고가</b>예요. 판매 사이트에서 숙소명·위치·가격을 다시 확인하세요.</div>
         {view === 'list' && <div className="space-y-3">
-          {displayed.map(h => <HotelCard key={h.key + ci + co} h={h} ci={ci} co={co} adults={adults} rooms={rooms} usdKrw={usdKrw} onOpen={setSel} />)}
+          {displayed.map(h => <HotelCard key={h.key + ci + co} h={h} ci={ci} co={co} adults={adults} rooms={rooms} children={children} usdKrw={usdKrw} onOpen={setSel} />)}
           {displayed.length === 0 && <HEmpty icon="🔎" text="조건에 맞는 호텔이 아직 없어요. 아래 '더 불러오기'를 누르거나 필터를 줄여보세요." />}
         </div>}
         {view === 'list' && <div ref={sentinel} />}
@@ -583,7 +587,7 @@ export default function Hotels() {
           <div className="pt-3"><button onClick={() => setOvGuest(false)} className="w-full bg-brand-500 text-white font-bold rounded-2xl py-3">완료</button></div>
         </div>
       </Sheet>
-      {sel && <HotelSheet h={sel} ci={ci} co={co} adults={adults} rooms={rooms} usdKrw={usdKrw} onClose={() => setSel(null)} />}
+      {sel && <HotelSheet h={sel} ci={ci} co={co} adults={adults} rooms={rooms} children={children} usdKrw={usdKrw} onClose={() => setSel(null)} />}
     </div>
   )
 }
