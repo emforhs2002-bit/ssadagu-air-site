@@ -136,12 +136,12 @@ function useAlertPrefs() {
   const save = p => { localStorage.setItem('alertPrefs', JSON.stringify(p)); setPrefs(p) }
   return [prefs, save]
 }
-const hasPrefs = p => !!(p && ((p.regions && p.regions.length) || p.budgetMax || p.directOnly))
+const hasPrefs = p => !!(p && ((p.dests && p.dests.length) || p.budgetMax || p.directOnly))
 function matchPrefs(d, p) {
   if (!hasPrefs(p)) return false
   if (p.budgetMax && d.price > p.budgetMax) return false
   if (p.directOnly && d.transfers !== 0) return false
-  if (p.regions && p.regions.length && !p.regions.some(r => byGeo([d], r).length > 0)) return false
+  if (p.dests && p.dests.length && !p.dests.some(city => (CITY_CODES[city] || []).includes(destOf(d)))) return false
   return true
 }
 
@@ -829,47 +829,62 @@ function Toggle({ label, k }) {
 const Section = ({ title, children }) => <div className="bg-white rounded-2xl shadow-soft p-4"><div className="text-[13px] font-bold text-slate-700 mb-2">{title}</div>{children}</div>
 const Empty = ({ icon, text }) => <div className="text-center text-slate-400 py-20"><div className="text-4xl mb-2">{icon}</div><div className="text-[13px] px-10">{text}</div></div>
 
-const A_REGIONS = ['일본', '동남아', '대만', '베트남', '태국', '괌']
-const A_BUDGET = [['20만 이하', 200000], ['30만 이하', 300000], ['40만 이하', 400000], ['상관없음', 0]]
-// 자연어 → 알림 조건 키워드 폴백 (워커 LLM 미배포/실패 시 클라에서 즉시 처리)
-const CITY_REGION = {
-  일본: ['일본', '도쿄', '오사카', '후쿠오카', '삿포로', '오키나와', '나고야', '교토', '다카마쓰', '구마모토'],
-  동남아: ['동남아', '싱가포르', '말레이', '쿠알라룸푸르', '코타키나발루', '보라카이', '세부', '마닐라', '필리핀', '발리', '인도네시아'],
-  대만: ['대만', '타이베이', '타이중', '가오슝', '타이완'],
-  베트남: ['베트남', '다낭', '나트랑', '하노이', '호치민', '푸꾸옥', '달랏', '하롱'],
-  태국: ['태국', '방콕', '푸켓', '치앙마이', '파타야', '끄라비'],
-  괌: ['괌', '사이판'],
+// 알림 대상 도시 (flight_deals.py ROUTES와 일치). [지역그룹, [[도시명,[IATA코드]], ...]]
+const ALERT_CITIES = [
+  ['일본', [['도쿄', ['TYO', 'HND']], ['오사카', ['KIX']], ['후쿠오카', ['FUK']], ['삿포로', ['CTS']], ['오키나와', ['OKA']]]],
+  ['베트남', [['다낭', ['DAD']], ['나트랑', ['NHA']], ['하노이', ['HAN']], ['호치민', ['SGN']]]],
+  ['태국', [['방콕', ['BKK']], ['푸켓', ['HKT']]]],
+  ['대만', [['타이베이', ['TPE']], ['가오슝', ['KHH']]]],
+  ['필리핀', [['세부', ['CEB']], ['마닐라', ['MNL']]]],
+  ['그 외', [['코타키나발루', ['BKI']], ['홍콩', ['HKG']], ['괌', ['GUM']]]],
+]
+const CITY_CODES = Object.fromEntries(ALERT_CITIES.flatMap(([, cs]) => cs))  // {도쿄:['TYO','HND'],...}
+const ALL_CITY_CODES = Object.values(CITY_CODES).flat()
+// 자연어 → 도시 키워드(별칭) / 광역 키워드 (워커 LLM 미배포/실패 시 클라 폴백)
+const CITY_ALIASES = {
+  도쿄: ['도쿄', '동경', 'tokyo', '하네다', '나리타'], 오사카: ['오사카', 'osaka', '간사이'], 후쿠오카: ['후쿠오카', 'fukuoka'],
+  삿포로: ['삿포로', '홋카이도', 'sapporo'], 오키나와: ['오키나와', 'okinawa'],
+  다낭: ['다낭', 'danang'], 나트랑: ['나트랑', '나짱', 'nhatrang'], 하노이: ['하노이', 'hanoi'], 호치민: ['호치민', '사이공', 'hochiminh'],
+  방콕: ['방콕', 'bangkok'], 푸켓: ['푸켓', 'phuket'], 타이베이: ['타이베이', '타이페이', '대북', 'taipei'], 가오슝: ['가오슝', 'kaohsiung'],
+  세부: ['세부', 'cebu'], 마닐라: ['마닐라', 'manila'], 코타키나발루: ['코타키나발루', '코타', 'kk'], 홍콩: ['홍콩', 'hongkong'], 괌: ['괌', 'guam'],
 }
+const BROAD_CITIES = {
+  일본: ['도쿄', '오사카', '후쿠오카', '삿포로', '오키나와'], 베트남: ['다낭', '나트랑', '하노이', '호치민'],
+  태국: ['방콕', '푸켓'], 대만: ['타이베이', '가오슝'], 필리핀: ['세부', '마닐라'],
+  동남아: ['다낭', '나트랑', '하노이', '호치민', '방콕', '푸켓', '세부', '마닐라', '코타키나발루'],
+}
+const BROAD_ALIASES = { 일본: ['일본', 'japan'], 베트남: ['베트남', 'vietnam'], 태국: ['태국', 'thailand'], 대만: ['대만', '타이완', 'taiwan'], 필리핀: ['필리핀', 'philippines'], 동남아: ['동남아'] }
 function parseAlertText(text) {
   const t = String(text || '')
-  const regions = []
-  for (const [region, kws] of Object.entries(CITY_REGION)) if (kws.some(k => t.includes(k))) regions.push(region)
+  const dests = new Set()
+  for (const [region, kws] of Object.entries(BROAD_ALIASES)) if (kws.some(k => t.includes(k))) (BROAD_CITIES[region] || []).forEach(c => dests.add(c))
+  for (const [city, kws] of Object.entries(CITY_ALIASES)) if (kws.some(k => t.includes(k))) dests.add(city)
   let budgetMax = 0
   const m = t.match(/(\d+)\s*만/)
   if (m) budgetMax = parseInt(m[1], 10) * 10000
   const directOnly = /직항/.test(t) && !/경유/.test(t)
-  return { regions, budgetMax, directOnly }
+  return { dests: [...dests], budgetMax, directOnly }
 }
 function AlertSetup({ prefs, onSave }) {
-  const [regions, setRegions] = useState(prefs?.regions || [])
+  const [dests, setDests] = useState(prefs?.dests || [])
   const [budgetMax, setBudget] = useState(prefs?.budgetMax || 0)
   const [directOnly, setDirect] = useState(prefs?.directOnly || false)
   const [nl, setNl] = useState('')
   const [parsing, setParsing] = useState(false)
-  const toggleR = r => setRegions(p => p.includes(r) ? p.filter(x => x !== r) : [...p, r])
+  const toggleD = c => setDests(p => p.includes(c) ? p.filter(x => x !== c) : [...p, c])
   const applyNL = async () => {
     const text = nl.trim(); if (!text) return
     setParsing(true)
     let slots = null
     try { const r = await fetch(`${PROXY}/gemini-alert`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) }); if (r.ok) slots = (await r.json()).slots } catch (e) {}
     if (!slots) slots = parseAlertText(text)  // 워커 LLM 미배포/실패 → 키워드 폴백
-    setRegions((slots.regions || []).filter(r => A_REGIONS.includes(r)))
+    setDests((slots.dests || []).filter(c => CITY_CODES[c]))
     setBudget(Math.max(0, parseInt(slots.budgetMax, 10) || 0))
     setDirect(!!slots.directOnly)
     setParsing(false); haptic()
   }
   const save = () => {
-    const p = { regions, budgetMax, directOnly }
+    const p = { dests, budgetMax, directOnly }
     onSave(p)
     // 이미 푸시를 켠 사용자면 새 조건을 OneSignal 태그에 즉시 반영
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') syncPushTags(p)
@@ -886,8 +901,13 @@ function AlertSetup({ prefs, onSave }) {
         </div>
         <div className="text-[11px] text-slate-400 mt-1">말로 적으면 아래 조건이 자동으로 채워져요. 확인 후 저장하세요.</div>
       </div>
-      <div className="text-[12px] font-bold text-slate-600 mb-1">지역</div>
-      <div className="flex flex-wrap gap-1.5">{A_REGIONS.map(r => <Chip key={r} on={regions.includes(r)} onClick={() => toggleR(r)}>{r}</Chip>)}</div>
+      <div className="text-[12px] font-bold text-slate-600 mb-1">도시 선택 <span className="font-normal text-slate-400">· 안 고르면 전체</span></div>
+      <div className="space-y-2">
+        {ALERT_CITIES.map(([region, cs]) => <div key={region}>
+          <div className="text-[11px] text-slate-400 mb-1">{region}</div>
+          <div className="flex flex-wrap gap-1.5">{cs.map(([city]) => <Chip key={city} on={dests.includes(city)} onClick={() => toggleD(city)}>{city}</Chip>)}</div>
+        </div>)}
+      </div>
       <div className="text-[12px] font-bold text-slate-600 mt-3 mb-1">예산 (1인 왕복, 최대)</div>
       <div className="flex items-center gap-2">
         <input type="number" inputMode="numeric" value={budgetMax || ''} onChange={e => setBudget(Math.max(0, parseInt(e.target.value || '0', 10) || 0))} placeholder="예: 250000" className="flex-1 min-w-0 bg-slate-50 rounded-xl px-3 py-2.5 text-[13px] outline-none border border-slate-200 focus:border-brand-400" />
@@ -1260,12 +1280,13 @@ function Home({ deals, onGo, onDeal, onDealFilter }) {
 
 /* ───────── 🔔 알림 ───────── */
 // 알림 조건 → OneSignal 태그 (서버 push_alerts.py 의 LABEL_TAG 와 키 일치 필수)
-const REGION_TAG = { '일본': 'r_jp', '동남아': 'r_sea', '대만': 'r_tw', '베트남': 'r_vn', '태국': 'r_th', '괌': 'r_gum' }
+// 도시 선택 → OneSignal 태그 d_<code>(소문자). 백엔드 push_alerts.filters_for 와 키 규칙 일치 필수.
 function prefTags(prefs) {
-  const regions = (prefs && prefs.regions) || []
-  const t = { r_jp: '0', r_sea: '0', r_tw: '0', r_vn: '0', r_th: '0', r_gum: '0' }
-  regions.forEach(r => { if (REGION_TAG[r]) t[REGION_TAG[r]] = '1' })
-  t.r_all = regions.length ? '0' : '1'   // 지역 미선택 = 전체 받기
+  const dests = (prefs && prefs.dests) || []
+  const t = {}
+  ALL_CITY_CODES.forEach(c => { t['d_' + c.toLowerCase()] = '0' })  // 전부 0으로 초기화(해제 즉시 반영)
+  dests.forEach(city => (CITY_CODES[city] || []).forEach(c => { t['d_' + c.toLowerCase()] = '1' }))
+  t.d_all = dests.length ? '0' : '1'   // 도시 미선택 = 전체 받기
   t.bmax = String(prefs && prefs.budgetMax ? prefs.budgetMax : 99999999)  // 0(상관없음)=무제한
   t.direct = prefs && prefs.directOnly ? '1' : '0'
   return t
