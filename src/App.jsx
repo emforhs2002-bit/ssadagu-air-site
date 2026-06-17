@@ -513,19 +513,20 @@ function Where({ deals, onOpen }) {
   )
 }
 /* ───────── ✈️ 항공편 찾기 (A안: 검색 → 예약처 딥링크 / 달력) ─────────
-   우리가 가격을 매기지 않는다. 별도 수수료도 안 붙인다. 예약처(Aviasales)에서 실제가를 보게 연결만 한다.
-   인앱에 가짜/참고가를 띄우지 않음 → '눌렀더니 가격 다름' 불만 원천 차단 + 어필리에이트 추적(marker). */
-const MARKER = '737258'
+   우리가 가격을 매기지 않는다. 별도 수수료도 안 붙인다. 한국어 예약처(트립닷컴 kr.trip.com)에서 실제가를 보게 연결만 한다.
+   1차 타겟이 한국인이라 영어 사이트(aviasales) 거부감을 없애려 트립닷컴으로 보냄 + 제휴 추적(Allianceid/SID, 항공/호텔은 trip_sub1로 구분). */
+const TRIP_ALLIANCE = 'Allianceid=8617491&SID=318432318'
 const ORIGINS = [['ICN', '인천'], ['GMP', '김포'], ['PUS', '부산']]
 const CITIES = [['FUK', '후쿠오카'], ['KIX', '오사카'], ['TYO', '도쿄'], ['OKA', '오키나와'], ['CTS', '삿포로'], ['TPE', '타이베이'], ['KHH', '가오슝'], ['DAD', '다낭'], ['NHA', '나트랑'], ['HAN', '하노이'], ['SGN', '호치민'], ['BKK', '방콕'], ['HKT', '푸켓'], ['CEB', '세부'], ['MNL', '마닐라'], ['BKI', '코타키나발루'], ['HKG', '홍콩'], ['SIN', '싱가포르'], ['GUM', '괌']]
 const CITIES_US = [['NYC', '뉴욕'], ['LAX', '로스앤젤레스'], ['SFO', '샌프란시스코'], ['LAS', '라스베가스'], ['HNL', '호놀룰루(하와이)'], ['SEA', '시애틀'], ['ORD', '시카고'], ['BOS', '보스턴'], ['MIA', '마이애미']]
 const pad2 = n => String(n).padStart(2, '0')
 const ymd = (y, m, d) => `${y}-${pad2(m + 1)}-${pad2(d)}`  // m: 0-based
 const todayStr = () => { const d = new Date(); return ymd(d.getFullYear(), d.getMonth(), d.getDate()) }
+// IATA(공항/도시) 코드 → 트립닷컴 한국 항공검색 딥링크 (한국어·원화, 제휴 추적 포함)
 function aviaLink({ origin, dest, depart, ret, pax = 1 }) {
-  const dm = s => { const p = s.split('-'); return p[2] + p[1] }  // YYYY-MM-DD → DDMM
-  const code = origin + dm(depart) + dest + (ret ? dm(ret) : '') + pax
-  return `https://www.aviasales.com/search/${code}?marker=${MARKER}`
+  const o = (origin || '').toLowerCase(), d = (dest || '').toLowerCase()
+  const q = `dcity=${o}&acity=${d}&ddate=${depart}${ret ? `&rdate=${ret}` : ''}&triptype=${ret ? 'rt' : 'ow'}&class=y&quantity=${pax || 1}&locale=ko-KR&curr=KRW`
+  return `https://kr.trip.com/flights/showfarefirst?${q}&${TRIP_ALLIANCE}&trip_sub1=flight_tab`
 }
 const Seg = ({ on, children, onClick }) => <button onClick={onClick} className={'flex-1 text-[13px] rounded-xl py-2 font-bold ' + (on ? 'bg-brand-500 text-white' : 'bg-white text-slate-500 border border-slate-200')}>{children}</button>
 const Pick = ({ label, value, onChange, options }) => <div><label className="text-[12px] text-slate-500">{label}</label><select value={value} onChange={e => onChange(e.target.value)} className="w-full mt-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-[14px]">{options.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></div>
@@ -535,7 +536,8 @@ const PROXY = 'https://curly-meadow-ab36ssadagu-proxy.emforhs2002.workers.dev'
 const IATA_NAME = { KE: '대한항공', OZ: '아시아나항공', '7C': '제주항공', LJ: '진에어', TW: '티웨이항공', BX: '에어부산', RS: '에어서울', ZE: '이스타항공', YP: '에어프레미아', '5J': '세부퍼시픽', VJ: '비엣젯', VN: '베트남항공', MM: '피치항공', AK: '에어아시아', FD: '타이에어아시아', TR: '스쿠트', PR: '필리핀항공', CX: '캐세이퍼시픽', UO: '홍콩익스프레스', SQ: '싱가포르항공', TG: '타이항공', NH: 'ANA', JL: '일본항공', JX: '스타럭스', CI: '중화항공', BR: '에바항공', UA: '유나이티드', MH: '말레이시아항공', DL: '델타항공', AA: '아메리칸항공', HA: '하와이안항공', AS: '알래스카항공', B6: '제트블루', AC: '에어캐나다', WS: '웨스트젯' }
 const airlineName = c => IATA_NAME[c] || c
 function fmtISO(s) { if (!s) return { full: '-' }; const dt = new Date(s); if (isNaN(dt)) return { full: s }; const w = dt.getDay(); return { md: `${dt.getMonth() + 1}/${dt.getDate()}`, dow: DAYS[w], time: `${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`, weekend: w === 0 || w === 6 } }
-function offerLink(o) { const base = 'https://www.aviasales.com' + (o.link || ''); return base + (base.includes('?') ? '&' : '?') + 'marker=' + MARKER }
+// 개별 특가 카드 → 그 노선·날짜로 트립닷컴 항공검색 (트립닷컴은 aviasales 전용 링크를 못 받으므로 노선·날짜로 재구성)
+function offerLink(o) { return aviaLink({ origin: o.origin, dest: o.destination, depart: (o.departure_at || '').slice(0, 10), ret: (o.return_at || '').slice(0, 10), pax: 1 }) }
 const durStr = m => m ? `${Math.floor(m / 60)}시간 ${m % 60}분` : ''
 
 function FlightResult({ o, low }) {
