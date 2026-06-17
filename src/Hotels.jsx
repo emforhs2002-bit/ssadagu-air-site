@@ -486,8 +486,11 @@ export default function Hotels() {
     })
     // 정렬은 카드에 보이는 가격 기준: 날짜 가격(캐시 min)이 있으면 그걸, 없으면 참고가
     const eff = h => { const c = dmCached(h.key, ci, co); if (c && c.min != null) return c.min; return h.priceMin != null ? h.priceMin : 9e9 }
+    const hasP = h => { const c = dmCached(h.key, ci, co); return (c && c.min != null) || h.priceMin != null }
     if (clientSort === 'price') arr = [...arr].sort((a, b) => eff(a) - eff(b))
-    if (clientSort === 'rating') arr = [...arr].sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    else if (clientSort === 'rating') arr = [...arr].sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    // 가격 없는(만실 등) 호텔은 정렬 모드와 무관하게 항상 아래로 (그룹 내 기존 순서 유지 = 안정 정렬)
+    arr = [...arr].sort((a, b) => (hasP(a) ? 0 : 1) - (hasP(b) ? 0 : 1))
     return arr
   }, [st, flt, clientSort, usdKrw, ci, co])
   const airbnbUrl = `https://www.airbnb.co.kr/s/${enc(CITY_OF[geo])}/homes?checkin=${ci}&checkout=${co}&adults=${adults}`
