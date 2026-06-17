@@ -277,7 +277,7 @@ function HotelSheet({ h, ci, co, adults, rooms, children, usdKrw, onClose }) {
   const minKrw = useCountUp(minTotal != null ? Math.round(minTotal * usdKrw) : null)
   const doShare = () => shareIt({
     title: `${hname(h)} 가격 비교`,
-    text: `🏨 ${hname(h)} (${h.cityName}) ${md(ci)}~${md(co)} · 1박 최저 ${minTotal != null ? wonFmt(minTotal * usdKrw) : '비교 중'} — 예약처별 가격 비교는 싸다구여행에서`,
+    text: `🏨 ${hname(h)} (${h.cityName}) ${md(ci)}~${md(co)} · 1박 ${minTotal != null ? wonFmt(minTotal * usdKrw) + '부터' : (h.priceMin != null ? '참고가 ' + wonFmt(h.priceMin * usdKrw) + '부터' : '가격 확인')} — 싸다구여행`,
     url: 'https://emforhs2002-bit.github.io/ssadagu-air-site/',
   })
   return (
@@ -293,13 +293,13 @@ function HotelSheet({ h, ci, co, adults, rooms, children, usdKrw, onClose }) {
       <div className="px-5 pt-4 pb-8 space-y-3 text-[13.5px]">
         <div className="flex items-center justify-between">
           <div className="text-[12.5px] text-slate-500">🗓️ {md(ci)} ~ {md(co)} · {nights}박 · 성인 {adults}</div>
-          {minKrw != null && <div className="text-[13px] font-bold text-brand-600">1박 최저 {wonFmt(minKrw / 1)}</div>}
+          {minKrw != null ? <div className="text-[13px] font-bold text-brand-600">1박 최저 {wonFmt(minKrw)}</div> : (h.priceMin != null && <div className="text-[13px] font-bold text-brand-600">참고가 1박 {wonFmt(h.priceMin * usdKrw)}~</div>)}
         </div>
         {minTotal != null && maxTotal > minTotal && Math.round((maxTotal - minTotal) * usdKrw) >= 10000 &&
           <div className="bg-rose-50 text-rose-600 text-[12.5px] font-bold rounded-xl px-3 py-2.5">💸 같은 호텔인데 예약처 따라 1박 최대 <b>{wonFmt((maxTotal - minTotal) * usdKrw)}</b> 차이 — 최저 예약처를 콕 집어드렸어요</div>}
         {st.status === 'loading' && <div className="space-y-2">{[0, 1, 2].map(i => <div key={i} className="skel h-[58px] rounded-2xl" />)}</div>}
         {st.status === 'error' && <><div className="bg-slate-50 rounded-2xl p-3 text-[12.5px] text-slate-500">실시간 비교가를 잠깐 불러오지 못했어요. 아래 예약처에서 바로 확인해 보세요.</div><ProviderLinks h={h} ci={ci} co={co} adults={adults} rooms={rooms} children={children} /></>}
-        {st.status === 'empty' && <><div className="bg-slate-50 rounded-2xl p-3 text-[12.5px] text-slate-500">{h.priceMin != null ? <>참고가는 1박 <b className="text-slate-700">{wonFmt(h.priceMin * usdKrw)}</b>부터예요. </> : ''}이 날짜 실시간 비교가는 안 잡혔어요 — 아래 예약처에서 바로 확인해 보세요.</div><ProviderLinks h={h} ci={ci} co={co} adults={adults} rooms={rooms} children={children} /></>}
+        {st.status === 'empty' && <><div className="bg-slate-50 rounded-2xl p-3 text-[12.5px] text-slate-500">{h.priceMin != null ? <>참고가는 1박 <b className="text-slate-700">{wonFmt(h.priceMin * usdKrw)}</b>부터예요. </> : ''}아래 예약처에서 이 날짜 실시간 가격을 확인하세요.</div><ProviderLinks h={h} ci={ci} co={co} adults={adults} rooms={rooms} children={children} /></>}
         {st.status === 'ok' && <div className="space-y-2">
           {st.rates.map((r, i) => {
             const total = r.rate + (r.tax || 0), lowest = total === minTotal
@@ -361,25 +361,28 @@ function HotelCard({ h, ci, co, adults, rooms, children, usdKrw, onOpen }) {
           {h.rating >= 4.5 && <span className="text-[10.5px] font-bold text-white bg-emerald-500/95 rounded-full px-2 py-0.5">⭐ 평점 우수</span>}
           {(h.reviews || 0) >= 2000 && <span className="text-[10.5px] font-bold text-white bg-sky-500/95 rounded-full px-2 py-0.5">💬 리뷰 많은</span>}
         </div>
-        <span className="absolute bottom-2.5 right-2.5 text-[11.5px] font-bold text-brand-700 bg-white/95 rounded-full px-3 py-1.5 shadow">전체 가격 비교 ›</span>
+        <span className="absolute bottom-2.5 right-2.5 text-[11.5px] font-bold text-brand-700 bg-white/95 rounded-full px-3 py-1.5 shadow">예약처 가격 보기 ›</span>
       </div>
       <div className="p-3.5">
         <div className="text-[15px] font-extrabold text-slate-900 leading-tight truncate">{hname(h)}</div>
         {hsub(h) && <div className="text-[10.5px] text-slate-300 truncate leading-tight">{hsub(h)}</div>}
         <div className="text-[12px] text-slate-400 mt-0.5 truncate">{h.rating ? <>★ <b className="text-slate-600">{h.rating}</b> ({(h.reviews || 0).toLocaleString('ko-KR')})</> : '평점 없음'}{h.type ? ` · ${h.type}` : ''}{tags.length > 0 && <> · {tags.join(' · ')}</>}</div>
         <div className="mt-2.5 space-y-1.5">
-          {dm === undefined && <><div className="skel h-[38px] rounded-xl" /><div className="skel h-[38px] rounded-xl" /></>}
-          {dm && dm.rows.map((r, i) => {
-            const low = i === 0
-            return (
-              <button key={r.code + i} onClick={e => rowGo(e, r)} className={'w-full flex items-center justify-between rounded-xl px-3 py-2 text-left ' + (low ? 'bg-brand-50 glow-lowest shine' : 'bg-slate-50')}>
-                <span className="text-[12.5px] font-bold text-slate-700 truncate">{provName(r.code)} {low && <span className="text-[10px] font-bold text-white bg-brand-500 rounded-full px-1.5 py-0.5 align-middle">💰 최저</span>}</span>
-                <span className={'text-[14px] font-black shrink-0 pl-2 ' + (low ? 'text-brand-600' : 'text-slate-600')}>{wonFmt(r.total * usdKrw)}<span className="text-[10px] text-slate-400 font-medium"> /1박</span></span>
-              </button>
-            )
-          })}
-          {dm && saving >= 10000 && <div className="text-[11.5px] font-bold text-rose-500 px-0.5">💸 예약처 따라 1박 최대 {wonFmt(saving)} 차이 — 최저 예약처를 콕 집었어요</div>}
-          {dm === null && <div className="text-[12px] text-slate-400">이 날짜 비교 가격이 안 잡혔어요{h.priceMin != null && <> · 참고가 1박 <b className="text-slate-600">{wonFmt(h.priceMin * usdKrw)}</b>부터</>} — 눌러서 확인</div>}
+          {dm && dm.rows && dm.rows.length ? <>
+            {dm.rows.map((r, i) => {
+              const low = i === 0
+              return (
+                <button key={r.code + i} onClick={e => rowGo(e, r)} className={'w-full flex items-center justify-between rounded-xl px-3 py-2 text-left ' + (low ? 'bg-brand-50 glow-lowest shine' : 'bg-slate-50')}>
+                  <span className="text-[12.5px] font-bold text-slate-700 truncate">{provName(r.code)} {low && <span className="text-[10px] font-bold text-white bg-brand-500 rounded-full px-1.5 py-0.5 align-middle">💰 최저</span>}</span>
+                  <span className={'text-[14px] font-black shrink-0 pl-2 ' + (low ? 'text-brand-600' : 'text-slate-600')}>{wonFmt(r.total * usdKrw)}<span className="text-[10px] text-slate-400 font-medium"> /1박</span></span>
+                </button>
+              )
+            })}
+            {saving >= 10000 && <div className="text-[11.5px] font-bold text-rose-500 px-0.5">💸 예약처 따라 1박 최대 {wonFmt(saving)} 차이 — 최저 예약처를 콕 집었어요</div>}
+          </> : <div className="flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2.5">
+            <span className="text-[12px] text-slate-500">{h.priceMin != null ? '참고가 1박' : '예약처 가격'}</span>
+            <span className="text-[14px] font-black text-brand-600">{h.priceMin != null ? <>{wonFmt(h.priceMin * usdKrw)}<span className="text-[10px] text-slate-400 font-medium">부터 · 눌러서 확인 ›</span></> : <span className="text-[12.5px]">눌러서 확인 ›</span>}</span>
+          </div>}
         </div>
       </div>
     </div>
