@@ -182,7 +182,7 @@ function DealCard({ d, saved, onSave, onOpen, mine, watched }) {
       </div>
       <div className="absolute bottom-3 right-3 text-right">
         <div className="text-[16px] font-black text-brand-600 leading-none">{won(d.price)}</div>
-        <div className="text-[10px] text-slate-400 mt-0.5">왕복</div>
+        <div className="text-[10px] text-slate-400 mt-0.5">왕복 예상가</div>
       </div>
     </div>
   )
@@ -320,8 +320,9 @@ function DealSheet({ d, onClose, onPlan, watched, onWatch }) {
             <div className="text-slate-600 text-[12.5px] mt-1">{pcv.line}</div>
             {d.price_check.memo && <div className="text-[12px] text-slate-400 mt-1">메모: {d.price_check.memo}</div>}
           </div>}
-          <a href={d.affiliate_url} target="_blank" rel="noopener" onClick={() => { haptic(); track('deal', d.id) }} className="block text-center bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">예약처에서 확인하기 →</a>
-          <div className="text-center text-[11px] text-slate-400">💚 예약 수수료 0원 · 가격·환불은 예약처에서 최종 확인</div>
+          <a href={dealTripLink(d)} target="_blank" rel="noopener" onClick={() => { haptic(); track('deal', d.id) }} className="block text-center bg-brand-500 hover:bg-brand-600 text-white font-bold rounded-2xl py-3.5">트립닷컴에서 한국어로 예약하기 →</a>
+          {d.affiliate_url && <a href={d.affiliate_url} target="_blank" rel="noopener" onClick={() => haptic()} className="block text-center text-[12px] text-slate-500 font-bold underline decoration-slate-300">💲 이 가격 확인한 곳에서 보기 (영문) ›</a>}
+          <div className="text-center text-[11px] text-slate-400">💚 표시가는 <b>예상가</b>(검색 시점)예요 · 예약 수수료 0원 · 최종가·환불은 예약처에서</div>
           {onWatch && <button onClick={() => { haptic(); onWatch() }} className={'w-full font-bold rounded-2xl py-3 text-[13px] border-2 ' + (watched ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-white border-slate-200 text-slate-600')}>{watched ? `🔔 ${originOf(d)}–${d.city} 노선 알림 켜짐 (해제)` : `🔔 ${originOf(d)}–${d.city} 노선 가격 알림 받기`}</button>}
           <div className="grid grid-cols-2 gap-2">
             <a href={mapsUrl(d.city + ' 여행')} target="_blank" rel="noopener" className="text-center bg-slate-100 text-slate-700 font-bold rounded-2xl py-3 text-[13px]">🗺️ {d.city} 지도</a>
@@ -564,6 +565,18 @@ function aviaLink({ origin, dest, depart, ret, pax = 1 }) {
   const q = `dcity=${o}&acity=${d}&ddate=${depart}${ret ? `&rdate=${ret}` : ''}&triptype=${ret ? 'rt' : 'ow'}&class=y&quantity=${pax || 1}&locale=ko-KR&curr=KRW`
   return `https://kr.trip.com/flights/showfarefirst?${q}&${TRIP_ALLIANCE}&trip_sub1=flight_tab`
 }
+// 가격 검증용 보조 링크: 인앱 캐시가는 Aviasales 마켓플레이스 출처라, 같은 곳(aviasales)으로 보내면 가격 일치도가 높다(영어). 트립닷컴(한국어)=메인, 이건 "이 가격 확인한 곳" 보조.
+const MARKER = '737258'
+function verifyLink({ origin, dest, depart, ret, pax = 1 }) {
+  const dm = s => { const p = (s || '').split('-'); return p[2] + p[1] }  // YYYY-MM-DD → DDMM
+  const code = (origin || '') + dm(depart) + (dest || '') + (ret ? dm(ret) : '') + (pax || 1)
+  return `https://www.aviasales.com/search/${code}?marker=${MARKER}`
+}
+// 핫딜(딜) → 트립닷컴 한국어 항공검색 딥링크 (route="ICN-FUK")
+function dealTripLink(d) {
+  const [o, dst] = (d.route || '').split('-')
+  return aviaLink({ origin: o, dest: dst, depart: (d.departure_time || '').slice(0, 10), ret: (d.return_time || '').slice(0, 10), pax: 1 })
+}
 const Seg = ({ on, children, onClick }) => <button onClick={onClick} className={'flex-1 text-[13px] rounded-xl py-2 font-bold ' + (on ? 'bg-brand-500 text-white' : 'bg-white text-slate-500 border border-slate-200')}>{children}</button>
 const Pick = ({ label, value, onChange, options }) => <div><label className="text-[12px] text-slate-500">{label}</label><select value={value} onChange={e => onChange(e.target.value)} className="w-full mt-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-[14px]">{options.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></div>
 const inputCls = 'w-full mt-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-[14px]'
@@ -590,7 +603,7 @@ function FlightResult({ o, low }) {
         </div>
         <div className="text-right shrink-0 pl-2">
           <div className="text-[17px] font-black text-brand-600 leading-none">{won(o.price)}</div>
-          <div className="text-[10px] text-slate-400 mt-0.5">{o.return_at ? '왕복' : '편도'} · 참고가</div>
+          <div className="text-[10px] text-slate-400 mt-0.5">{o.return_at ? '왕복' : '편도'} · 예상가</div>
         </div>
       </div>
       <div className="mt-2.5 pt-2.5 border-t border-slate-100 text-[12px] text-slate-500 flex items-center justify-between">
@@ -822,14 +835,18 @@ function Flights() {
             const dd = day || (view[0] && (view[0].departure_at || '').slice(0, 10))
             if (!dd) return null
             const rr = oneway ? null : (retDate || (view[0] && (view[0].return_at || '').slice(0, 10)))
-            return <a href={aviaLink({ origin, dest, depart: dd, ret: rr, pax })} target="_blank" rel="noopener" onClick={() => haptic()}
-              className="block text-center bg-brand-500 text-white font-bold rounded-2xl py-3.5 text-[14px]">✈️ 트립닷컴에서 이 날짜 실시간 검색·예약 →</a>
+            return <>
+              <a href={aviaLink({ origin, dest, depart: dd, ret: rr, pax })} target="_blank" rel="noopener" onClick={() => haptic()}
+                className="block text-center bg-brand-500 text-white font-bold rounded-2xl py-3.5 text-[14px]">✈️ 트립닷컴에서 이 날짜 실시간 검색·예약 →</a>
+              <a href={verifyLink({ origin, dest, depart: dd, ret: rr, pax })} target="_blank" rel="noopener" onClick={() => haptic()}
+                className="block text-center text-[12px] text-slate-500 font-bold mt-1.5 underline decoration-slate-300">💲 이 가격 확인한 곳에서 보기 (영문) ›</a>
+            </>
           })()}
           <div className="pt-1">
             <div className="text-[12px] font-bold text-slate-500 px-1 mb-1.5">📅 다른 날짜 가격 — 탭하면 그 날 항공편</div>
             <PriceCalendar y={st.y} m={st.m} cal={st.cal} day={day} onPick={setDay} />
           </div>
-          <div className="bg-amber-50 text-amber-800 text-[11px] rounded-xl px-3 py-2">💡 인앱 가격은 <b>최근 확인된 참고가</b>예요. 실제 좌석·확정가는 예약처(트립닷컴)에서 확인돼요.</div>
+          <div className="bg-amber-50 text-amber-800 text-[11px] rounded-xl px-3 py-2">💡 인앱 가격은 <b>예상가</b>(최근 검색 기준)예요 — 운임은 자주 바뀌어 예약 화면 최종가와 다를 수 있어요. 같은 가격을 보려면 위 <b>"확인한 곳에서 보기"</b>를 누르세요.</div>
         </>
         : <Empty icon="🔎" text="이 달엔 캐시된 가격이 없어요. 다른 날짜·도시로 검색해 보세요." />)}
 
