@@ -295,6 +295,16 @@ function HotelSheet({ h, ci, co, adults, rooms, children, usdKrw, onClose }) {
           <div className="text-[12.5px] text-slate-500">🗓️ {md(ci)} ~ {md(co)} · {nights}박 · 성인 {adults}</div>
           {minKrw != null ? <div className="text-[13px] font-bold text-brand-600">1박 최저 {wonFmt(minKrw)}</div> : (h.priceMin != null && <div className="text-[13px] font-bold text-brand-600">참고가 1박 {wonFmt(h.priceMin * usdKrw)}~</div>)}
         </div>
+        {(h.priceMin != null || hotelTags(h).length > 0 || h.type) && <div className="bg-slate-50 rounded-2xl p-3.5 space-y-2.5">
+          {h.priceMin != null && <div className="flex items-center justify-between text-[12.5px]">
+            <span className="text-slate-500">💰 1박 가격대 (참고)</span>
+            <span className="font-bold text-brand-600">{wonFmt(h.priceMin * usdKrw)}{h.priceMax != null && h.priceMax > h.priceMin ? ` ~ ${wonFmt(h.priceMax * usdKrw)}` : '부터'}</span>
+          </div>}
+          {h.type && <div className="flex items-center justify-between text-[12.5px]"><span className="text-slate-500">🏨 유형</span><span className="font-bold text-slate-700">{h.type}</span></div>}
+          {hotelTags(h).length > 0 && <div className="flex flex-wrap gap-1.5">
+            {hotelTags(h).map(t => <span key={t} className="text-[11px] font-bold text-slate-600 bg-white rounded-full px-2.5 py-1">{t}</span>)}
+          </div>}
+        </div>}
         {minTotal != null && maxTotal > minTotal && Math.round((maxTotal - minTotal) * usdKrw) >= 10000 &&
           <div className="bg-rose-50 text-rose-600 text-[12.5px] font-bold rounded-xl px-3 py-2.5">💸 같은 호텔인데 예약처 따라 1박 최대 <b>{wonFmt((maxTotal - minTotal) * usdKrw)}</b> 차이 — 최저 예약처를 콕 집어드렸어요</div>}
         {st.status === 'loading' && <div className="space-y-2">{[0, 1, 2].map(i => <div key={i} className="skel h-[58px] rounded-2xl" />)}</div>}
@@ -426,6 +436,7 @@ export default function Hotels() {
         key: x.key, name: x.name, type: x.accommodation_type === 'Hotel' ? '' : x.accommodation_type,
         rating: x.review_summary && x.review_summary.rating, reviews: x.review_summary && x.review_summary.count,
         priceMin: x.price_ranges && x.price_ranges.minimum,
+        priceMax: x.price_ranges && x.price_ranges.maximum,
         image: x.image && x.image.replace('/photo-o/', '/photo-l/'),  // 원본 대신 550px 변형 (데이터 절약)
         mentions: x.mentions, labels: x.merchandising_labels || [],
         geo: x.geo, taUrl: x.url, cityName: CITY_OF[g],
