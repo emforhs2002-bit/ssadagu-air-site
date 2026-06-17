@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { DESTINATIONS } from './destinations'
 import { COUNTRY_INFO, VISA_NOTE } from './planner'
-import { vt, haptic, shareIt, useCountUp, Sheet, SearchOverlay, StepRow, MadLib, SkelRows } from './ui'
+import { vt, haptic, shareIt, useCountUp, Sheet, SearchOverlay, StepRow, MadLib, SkelRows, RangeCalendar } from './ui'
 import { HOLIDAYS, upcomingWeekends } from './holidays'
 const Hotels = lazy(() => import('./Hotels'))
 import { useGoogleAuth } from './auth'
@@ -664,25 +664,28 @@ function Flights() {
   const [oneway, setOneway] = useState(false)
   const [pax, setPax] = useState(1), [cabin, setCabin] = useState('Y')
   const [day, setDay] = useState(null)
+  const [depDate, setDepDate] = useState(null), [retDate, setRetDate] = useState(null)
   const [sort, setSort] = useState('price'), [directOnly, setDirectOnly] = useState(false)
   const [ovFilter, setOvFilter] = useState(false)
   const [fPrice, setFPrice] = useState(0), [fTime, setFTime] = useState(''), [fAir, setFAir] = useState([])
   const [st, setSt] = useState({ status: 'idle' })
   const [ovFrom, setOvFrom] = useState(false)
   const [ovTo, setOvTo] = useState(false)
-  const [ovMonth, setOvMonth] = useState(false)
+  const [ovCal, setOvCal] = useState(false)
   const [ovPax, setOvPax] = useState(false)
   const anywhere = dest === '-'
-  const routeSearch = async (d) => {
+  const routeSearch = async (d, dep = depDate) => {
     setDest(d); setDay(null); setSt({ status: 'loading' })
-    const mo = months[mi]
-    const params = new URLSearchParams({ origin, destination: d, departure_at: mo.value, currency: 'krw', market: 'kr', one_way: oneway ? 'true' : 'false', sorting: 'price', limit: '100', unique: 'false' })
+    const monthVal = dep ? dep.slice(0, 7) : months[mi].value
+    const [yN, mN] = monthVal.split('-').map(Number)
+    const params = new URLSearchParams({ origin, destination: d, departure_at: monthVal, currency: 'krw', market: 'kr', one_way: oneway ? 'true' : 'false', sorting: 'price', limit: '100', unique: 'false' })
     try {
       const r = await fetch(`${PROXY}/aviasales/v3/prices_for_dates?${params}`)
       const j = await r.json()
       const data = (j.data || []).sort((a, b) => a.price - b.price)
       const cal = {}; data.forEach(o => { const k = (o.departure_at || '').slice(0, 10); if (k && (!cal[k] || o.price < cal[k])) cal[k] = o.price })
-      setSt({ status: 'route', data, cal, y: mo.y, m: mo.m, label: mo.label })
+      setSt({ status: 'route', data, cal, y: yN, m: mN - 1, label: `${yN}년 ${mN}월` })
+      setDay(dep && cal[dep] ? dep : null)  // 고른 날짜에 항공편 있으면 그 날 포커스, 없으면 월 전체
     } catch (e) { setSt({ status: 'error' }) }
   }
   const anywhereSearch = async () => {
@@ -724,9 +727,9 @@ function Flights() {
           </button>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <button onClick={() => { haptic(); setOvMonth(true) }} className="bg-slate-50 rounded-xl px-3.5 py-3 text-left active:scale-[.99] transition">
-            <div className="text-[10.5px] text-slate-400 font-bold">언제</div>
-            <div className="text-[14.5px] font-extrabold text-slate-800 truncate">📅 {months[mi].label}</div>
+          <button onClick={() => { haptic(); setOvCal(true) }} className="bg-slate-50 rounded-xl px-3.5 py-3 text-left active:scale-[.99] transition">
+            <div className="text-[10.5px] text-slate-400 font-bold">언제 {oneway ? '· 편도' : '· 왕복'}</div>
+            <div className="text-[14.5px] font-extrabold text-slate-800 truncate">📅 {depDate ? (oneway ? `${+depDate.slice(5, 7)}/${+depDate.slice(8, 10)}` : `${+depDate.slice(5, 7)}/${+depDate.slice(8, 10)} ~ ${retDate ? `${+retDate.slice(5, 7)}/${+retDate.slice(8, 10)}` : '?'}`) : '날짜 선택'}</div>
           </button>
           <button onClick={() => { haptic(); setOvPax(true) }} className="bg-slate-50 rounded-xl px-3.5 py-3 text-left active:scale-[.99] transition">
             <div className="text-[10.5px] text-slate-400 font-bold">인원</div>
@@ -747,12 +750,9 @@ function Flights() {
           { title: '🇺🇸 미주', items: CITIES_US.map(([c, n]) => ({ id: c, label: n, sub: c, icon: '🗽' })) },
         ]}
         onPick={it => setDest(it.id)} />
-      <Sheet open={ovMonth} onClose={() => setOvMonth(false)} title="언제 떠나세요?">
-        <div className="grid grid-cols-4 gap-2 px-5 pb-6 pt-2">
-          {months.map((mo, i) => <button key={mo.value} onClick={() => { haptic(); setMi(i); setOvMonth(false) }}
-            className={'rounded-2xl py-3 text-[14px] font-bold ' + (mi === i ? 'bg-brand-500 text-white' : 'bg-slate-50 text-slate-600')}>{mo.label}</button>)}
-        </div>
-      </Sheet>
+      <RangeCalendar open={ovCal} onClose={() => setOvCal(false)} title={oneway ? '며칠에 떠나세요?' : '가는 날 · 오는 날'} mode={oneway ? 'single' : 'range'}
+        initStart={depDate} initEnd={retDate} monthsCount={10}
+        onConfirm={(s, e) => { setDepDate(s); setRetDate(oneway ? null : e); if (!anywhere) routeSearch(dest, s) }} />
       <Sheet open={ovPax} onClose={() => setOvPax(false)} title="인원 · 옵션">
         <div className="px-5 pb-6 pt-1 divide-y divide-slate-100">
           <StepRow label="인원" sub="성인 기준" value={pax} min={1} max={6} onChange={setPax} />
@@ -810,25 +810,28 @@ function Flights() {
 
       {st.status === 'route' && (st.data.length
         ? <>
-          <PriceCalendar y={st.y} m={st.m} cal={st.cal} day={day} onPick={setDay} />
+          <div className="text-[13px] text-slate-700 px-1 font-extrabold">{day ? <>🛫 {oName}→{cityName(dest)} · <b className="text-brand-600">{day.slice(5).replace('-', '/')}</b> 출발</> : <>🛫 {oName}→{cityName(dest)} · {st.label}</>} <span className="text-slate-400 font-medium">{view.length}편 · 최저 {won(lowest)}</span>{day && <button onClick={() => setDay(null)} className="ml-1.5 text-[11.5px] text-brand-600 font-bold">전체날짜</button>}</div>
           <div className="flex items-center gap-1.5 text-[12.5px] overflow-x-auto">
             <button onClick={() => { haptic(); setOvFilter(true) }} className={'shrink-0 rounded-full px-3 py-1.5 font-bold border ' + (fltCount ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>⚙️ 필터{fltCount ? ' ' + fltCount : ''}</button>
             <button onClick={() => setSort('price')} className={'shrink-0 rounded-full px-3 py-1.5 font-bold ' + (sort === 'price' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>최저가순</button>
             <button onClick={() => setSort('duration')} className={'shrink-0 rounded-full px-3 py-1.5 font-bold ' + (sort === 'duration' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>빠른순</button>
             <label className="ml-auto shrink-0 flex items-center gap-1.5 text-slate-600"><input type="checkbox" checked={directOnly} onChange={e => setDirectOnly(e.target.checked)} /> 직항만</label>
           </div>
-          <div className="text-[12px] text-slate-500 px-1">{day ? <><b className="text-brand-600">{day.slice(5).replace('-', '/')}</b> 출발 · <button onClick={() => setDay(null)} className="text-brand-600 font-bold">전체</button></> : st.label} · 최저가 <b className="text-brand-600">{won(lowest)}</b> · {view.length}편 · <a href={mapsUrl(cityName(dest) + ' 관광')} target="_blank" rel="noopener" className="text-brand-600 font-bold">🗺️ {cityName(dest)} 지도</a></div>
-          <div className="bg-amber-50 text-amber-800 text-[11.5px] rounded-xl px-3 py-2">💡 여기 보이는 건 <b>최근 확인된 최저가 모음(참고가)</b>이에요 — 전체 시간표가 아니에요. 카드를 누르면 예약처에서 실시간 확정, 모든 항공편은 아래 <b>실시간 전체 보기</b>로.</div>
-          {view.length ? view.map((o, i) => <FlightResult key={i} o={o} low={o.price === lowest} />) : <Empty icon="🔎" text="조건에 맞는 항공편이 없어요. 필터를 줄여보세요." />}
-          {view.length > 0 && (() => {
-            const c = view[0]
-            const dd = (c.departure_at || '').slice(0, 10), rr = oneway ? null : (c.return_at || '').slice(0, 10)
+          {view.length ? view.map((o, i) => <FlightResult key={i} o={o} low={o.price === lowest} />) : <Empty icon="🔎" text="이 날짜엔 조건에 맞는 항공편이 없어요. 필터를 줄이거나 아래 달력에서 다른 날을 골라보세요." />}
+          {(() => {
+            const dd = day || (view[0] && (view[0].departure_at || '').slice(0, 10))
             if (!dd) return null
+            const rr = oneway ? null : (retDate || (view[0] && (view[0].return_at || '').slice(0, 10)))
             return <a href={aviaLink({ origin, dest, depart: dd, ret: rr, pax })} target="_blank" rel="noopener" onClick={() => haptic()}
-              className="block text-center border-2 border-brand-200 bg-white text-brand-700 font-bold rounded-2xl py-3.5 text-[14px]">🔎 이 날짜 전체 항공편 실시간 보기 →</a>
+              className="block text-center bg-brand-500 text-white font-bold rounded-2xl py-3.5 text-[14px]">✈️ 트립닷컴에서 이 날짜 실시간 검색·예약 →</a>
           })()}
+          <div className="pt-1">
+            <div className="text-[12px] font-bold text-slate-500 px-1 mb-1.5">📅 다른 날짜 가격 — 탭하면 그 날 항공편</div>
+            <PriceCalendar y={st.y} m={st.m} cal={st.cal} day={day} onPick={setDay} />
+          </div>
+          <div className="bg-amber-50 text-amber-800 text-[11px] rounded-xl px-3 py-2">💡 인앱 가격은 <b>최근 확인된 참고가</b>예요. 실제 좌석·확정가는 예약처(트립닷컴)에서 확인돼요.</div>
         </>
-        : <Empty icon="🔎" text="이 달엔 캐시된 가격이 없어요. 다른 달·도시로 검색해 보세요." />)}
+        : <Empty icon="🔎" text="이 달엔 캐시된 가격이 없어요. 다른 날짜·도시로 검색해 보세요." />)}
 
       <Sheet open={ovFilter} onClose={() => setOvFilter(false)} title="필터">
         <div className="px-4 pb-6 space-y-5">
