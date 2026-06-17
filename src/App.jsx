@@ -334,11 +334,40 @@ function DealSheet({ d, onClose, onPlan, watched, onWatch }) {
   )
 }
 
+/* 핫딜 달력형 보기 — 딜을 출발일 기준 달력에 배치 (PriceCalendar 재사용) */
+function DealCalendar({ deals, savedIds, onSave, onOpen, prefs, watchRoutes = [] }) {
+  const [mkSel, setMkSel] = useState(null)
+  const [day, setDay] = useState(null)
+  const byMonth = {}
+  deals.forEach(d => { const k = (d.departure_time || '').slice(0, 7); if (k) (byMonth[k] = byMonth[k] || []).push(d) })
+  const monthKeys = Object.keys(byMonth).sort()
+  if (!monthKeys.length) return <Empty icon="🗓️" text="이 조건엔 달력에 표시할 핫딜이 없어요." />
+  const activeMk = monthKeys.includes(mkSel) ? mkSel : monthKeys[0]
+  const [yy, mm] = activeMk.split('-').map(Number)  // mm: 1-based
+  const monthDeals = byMonth[activeMk]
+  const cal = {}; monthDeals.forEach(d => { const key = (d.departure_time || '').slice(0, 10); if (key && (!cal[key] || d.price < cal[key])) cal[key] = d.price })
+  const effDay = (day && day.slice(0, 7) === activeMk) ? day : null
+  const shown = effDay ? monthDeals.filter(d => (d.departure_time || '').slice(0, 10) === effDay) : monthDeals
+  return (
+    <div className="space-y-3">
+      {monthKeys.length > 1 && <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+        {monthKeys.map(k => <button key={k} onClick={() => { haptic(); setMkSel(k); setDay(null) }} className={'shrink-0 text-[12.5px] rounded-full px-3 py-1.5 font-bold ' + (activeMk === k ? 'bg-brand-500 text-white' : 'bg-white text-slate-500 border border-slate-200')}>{+k.split('-')[1]}월</button>)}
+      </div>}
+      <PriceCalendar y={yy} m={mm - 1} cal={cal} day={effDay} onPick={setDay} />
+      <div className="text-[12px] text-slate-500 px-1">{effDay ? <><b className="text-brand-600">{effDay.slice(5).replace('-', '/')}</b> 출발 · <button onClick={() => setDay(null)} className="text-brand-600 font-bold">전체</button></> : `${mm}월 핫딜 ${monthDeals.length}건`}</div>
+      <div className="space-y-3">
+        {shown.map(d => <DealCard key={d.id} d={d} saved={savedIds.includes(d.id)} onSave={onSave} onOpen={onOpen} mine={matchPrefs(d, prefs)} watched={watchRoutes.includes(d.route)} />)}
+      </div>
+    </div>
+  )
+}
+
 /* ───────── 🔥 핫딜 (본체 · 포토 히어로) ───────── */
 function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onRefresh, updatedAt, ext, watchRoutes = [] }) {
   const isW = d => watchRoutes.includes(d.route)
   const [cat, setCat] = useState('all')
   const [pick, setPick] = useState(null)
+  const [view, setView] = useState('list')
   // 홈 검색에서 넘어온 필터(나라/도시) 적용
   useEffect(() => { if (!ext) return; setCat(ext.cat || 'all'); setPick(ext.pick || null) }, [ext && ext.ts])
   const [flash, setFlash] = useState(false)
@@ -378,15 +407,22 @@ function HotDeals({ deals, savedIds, onSave, onOpen, prefs, onRefresh, updatedAt
           {CATS.map(([k, label]) => <button key={k} onClick={() => setCat(k)} className={'shrink-0 text-[12.5px] rounded-full px-3 py-1.5 font-medium ' + (cat === k ? 'bg-brand-500 text-white' : 'bg-white text-slate-500 border border-slate-200')}>{label}</button>)}
         </div>}
         {/* list */}
-        <div className="flex items-center justify-between mt-5 mb-1">
-          <h2 className="text-[16.5px] font-extrabold text-slate-900">{mineCount > 0 ? '🔔 내 조건 핫딜' : '🔥 핫딜'} <span className="text-[12px] font-medium text-slate-400">{list.length}건</span></h2>
-          <button onClick={doRefresh} className={'text-[12.5px] font-bold active:scale-95 ' + (flash ? 'text-emerald-500' : 'text-brand-600')}>{flash ? '✓ 최신이에요' : '🔄 새로고침'}</button>
+        <div className="flex items-center justify-between mt-5 mb-1 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <button onClick={doRefresh} className={'text-[13px] font-bold active:scale-95 shrink-0 ' + (flash ? 'text-emerald-500' : 'text-brand-600')}>{flash ? '✓ 최신' : '🔄'}</button>
+            <h2 className="text-[16.5px] font-extrabold text-slate-900 truncate">{mineCount > 0 ? '🔔 내 조건 핫딜' : '🔥 핫딜'} <span className="text-[12px] font-medium text-slate-400">{list.length}건</span></h2>
+          </div>
+          <div className="flex bg-slate-100 rounded-full p-0.5 shrink-0">
+            {[['list', '리스트'], ['cal', '달력']].map(([v, t]) => <button key={v} onClick={() => { haptic(); setView(v) }} className={'px-3 py-1 rounded-full text-[12px] font-bold transition ' + (view === v ? 'bg-white shadow text-brand-600' : 'text-slate-400')}>{t}</button>)}
+          </div>
         </div>
         {updatedAt && <div className="text-[11px] text-slate-400 mb-3"><b className="text-slate-500">{updatedAt}</b> 기준 · 1시간마다 자동 갱신, 누르면 최신 조회</div>}
-        <div className="space-y-3">
-          {list.length ? list.map(d => <DealCard key={d.id} d={d} saved={savedIds.includes(d.id)} onSave={onSave} onOpen={onOpen} mine={matchPrefs(d, prefs)} watched={isW(d)} />)
-            : <Empty icon="🔎" text="이 조건엔 핫딜이 아직 없어요." />}
-        </div>
+        {view === 'cal'
+          ? <DealCalendar deals={list} savedIds={savedIds} onSave={onSave} onOpen={onOpen} prefs={prefs} watchRoutes={watchRoutes} />
+          : <div className="space-y-3">
+              {list.length ? list.map(d => <DealCard key={d.id} d={d} saved={savedIds.includes(d.id)} onSave={onSave} onOpen={onOpen} mine={matchPrefs(d, prefs)} watched={isW(d)} />)
+                : <Empty icon="🔎" text="이 조건엔 핫딜이 아직 없어요." />}
+            </div>}
       </div>
     </div>
   )
