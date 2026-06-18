@@ -676,7 +676,8 @@ function Flights() {
   const [mi, setMi] = useState(1)
   const [oneway, setOneway] = useState(false)
   const [pax, setPax] = useState(1), [cabin, setCabin] = useState('Y')
-  const [day, setDay] = useState(null)
+  const [day, setDay] = useState(null), [retDay, setRetDay] = useState(null)
+  const [calDir, setCalDir] = useState('dep')
   const [depDate, setDepDate] = useState(null), [retDate, setRetDate] = useState(null)
   const [sort, setSort] = useState('price'), [directOnly, setDirectOnly] = useState(false)
   const [ovFilter, setOvFilter] = useState(false)
@@ -688,7 +689,7 @@ function Flights() {
   const [ovPax, setOvPax] = useState(false)
   const anywhere = dest === '-'
   const routeSearch = async (d, dep = depDate) => {
-    setDest(d); setDay(null); setSt({ status: 'loading' })
+    setDest(d); setDay(null); setRetDay(null); setCalDir('dep'); setSt({ status: 'loading' })
     const monthVal = dep ? dep.slice(0, 7) : months[mi].value
     const [yN, mN] = monthVal.split('-').map(Number)
     const params = new URLSearchParams({ origin, destination: d, departure_at: monthVal, currency: 'krw', market: 'kr', one_way: oneway ? 'true' : 'false', sorting: 'price', limit: '100', unique: 'false' })
@@ -713,7 +714,9 @@ function Flights() {
   }
   const search = () => anywhere ? anywhereSearch() : routeSearch(dest)
   const DESTOPTS = [['-', '🌍 어디든지'], ...CITIES.map(([c, n]) => [c, `${n}(${c})`])]
-  const results = st.status === 'route' ? (day ? st.data.filter(o => (o.departure_at || '').slice(0, 10) === day) : st.data) : []
+  const results = st.status === 'route' ? st.data.filter(o => (!day || (o.departure_at || '').slice(0, 10) === day) && (!retDay || (o.return_at || '').slice(0, 10) === retDay)) : []
+  const calRet = {}
+  if (st.status === 'route') st.data.forEach(o => { if (day && (o.departure_at || '').slice(0, 10) !== day) return; const k = (o.return_at || '').slice(0, 10); if (k && (!calRet[k] || o.price < calRet[k])) calRet[k] = o.price })
   const view = results
     .filter(o => (!directOnly || o.transfers === 0)
       && (!fPrice || o.price <= fPrice)
@@ -823,7 +826,7 @@ function Flights() {
 
       {st.status === 'route' && (st.data.length
         ? <>
-          <div className="text-[13px] text-slate-700 px-1 font-extrabold">{day ? <>🛫 {oName}→{cityName(dest)} · <b className="text-brand-600">{day.slice(5).replace('-', '/')}</b> 출발</> : <>🛫 {oName}→{cityName(dest)} · {st.label}</>} <span className="text-slate-400 font-medium">{view.length}편 · 최저 {won(lowest)}</span>{day && <button onClick={() => setDay(null)} className="ml-1.5 text-[11.5px] text-brand-600 font-bold">전체날짜</button>}</div>
+          <div className="text-[13px] text-slate-700 px-1 font-extrabold">🛫 {oName}→{cityName(dest)} {(day || retDay) ? <span className="text-brand-600">· {day ? day.slice(5).replace('-', '/') : '아무날'}{!oneway && ` ~ ${retDay ? retDay.slice(5).replace('-', '/') : '아무날'}`}</span> : <span className="text-slate-400 font-medium">· {st.label}</span>} <span className="text-slate-400 font-medium">{view.length}편 · 최저 {won(lowest)}</span>{(day || retDay) && <button onClick={() => { setDay(null); setRetDay(null) }} className="ml-1.5 text-[11.5px] text-brand-600 font-bold">전체</button>}</div>
           <div className="flex items-center gap-1.5 text-[12.5px] overflow-x-auto">
             <button onClick={() => { haptic(); setOvFilter(true) }} className={'shrink-0 rounded-full px-3 py-1.5 font-bold border ' + (fltCount ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>⚙️ 필터{fltCount ? ' ' + fltCount : ''}</button>
             <button onClick={() => setSort('price')} className={'shrink-0 rounded-full px-3 py-1.5 font-bold ' + (sort === 'price' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>최저가순</button>
@@ -843,8 +846,16 @@ function Flights() {
             </>
           })()}
           <div className="pt-1">
-            <div className="text-[12px] font-bold text-slate-500 px-1 mb-1.5">📅 다른 날짜 가격 — 탭하면 그 날 항공편</div>
-            <PriceCalendar y={st.y} m={st.m} cal={st.cal} day={day} onPick={setDay} />
+            <div className="flex items-center justify-between px-1 mb-1.5">
+              <div className="text-[12px] font-bold text-slate-500">📅 날짜 바꿔 더 싸게</div>
+              {!oneway && <div className="flex bg-slate-100 rounded-full p-0.5">
+                {[['dep', '가는 날'], ['ret', '오는 날']].map(([v, t]) => <button key={v} onClick={() => { haptic(); setCalDir(v) }} className={'px-3 py-1 rounded-full text-[11.5px] font-bold ' + (calDir === v ? 'bg-white shadow text-brand-600' : 'text-slate-400')}>{t}</button>)}
+              </div>}
+            </div>
+            {(oneway || calDir === 'dep')
+              ? <PriceCalendar y={st.y} m={st.m} cal={st.cal} day={day} onPick={setDay} />
+              : <PriceCalendar y={st.y} m={st.m} cal={calRet} day={retDay} onPick={setRetDay} />}
+            <div className="text-[10.5px] text-slate-400 text-center mt-1">{oneway ? '가는 날을 탭해 그 날 항공편을 보세요' : (calDir === 'dep' ? '가는 날 탭 = 그 날 출발 항공편 (오는 날은 위 토글)' : (day ? `${day.slice(5).replace('-', '/')} 출발 기준 · 오는 날을 탭하세요` : '먼저 가는 날을 고르면 오는 날 가격이 더 정확해져요'))}</div>
           </div>
           <div className="bg-amber-50 text-amber-800 text-[11px] rounded-xl px-3 py-2">💡 인앱 가격은 <b>예상가</b>(최근 검색 기준)예요 — 운임은 자주 바뀌어 예약 화면 최종가와 다를 수 있어요. 같은 가격을 보려면 위 <b>"확인한 곳에서 보기"</b>를 누르세요.</div>
         </>
