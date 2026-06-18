@@ -54,6 +54,9 @@ const PROVIDERS = {
   Orbitz: { name: '오르비츠', url: (n, ci, co, ad = 2, rm = 1, ch = 0) => `https://www.orbitz.com/Hotel-Search?destination=${enc(n)}&startDate=${ci}&endDate=${co}&adults=${ad}&rooms=${rm}` + (ch > 0 ? `&children=${ch}` : '') },
 }
 const provName = c => (PROVIDERS[c] && PROVIDERS[c].name) || c
+// SerpApi 예약처(source) → 한국어 (없으면 .com 등 떼고 원문)
+const SRC_KO = { 'Booking.com': '부킹닷컴', 'Agoda': '아고다', 'Agoda.com': '아고다', 'Expedia': '익스피디아', 'Expedia.co.kr': '익스피디아', 'Hotels.com': '호텔스닷컴', 'Trip.com': '트립닷컴', 'Trip.com Korea': '트립닷컴', 'KAYAK.com': '카약', 'KAYAK': '카약', 'Priceline': '프라이스라인', 'Travelocity.com': '트래블로시티', 'Travelocity': '트래블로시티', 'Orbitz.com': '오르비츠', 'Traveloka.com': '트래블로카', 'Hotwire.com': '핫와이어' }
+const srcKo = s => SRC_KO[s] || (s || '').replace(/\.(com|co\.kr|net|org)$/i, '')
 // 실시간 비교가(Xotelo)가 안 잡힐 때 직접 검색으로 보내줄 주요 예약처 (딥링크 빌더 있는 것만)
 const FALLBACK_PROVIDERS = ['BookingCom', 'Agoda', 'CtripTA', 'Expedia', 'HotelsCom']
 
@@ -261,23 +264,21 @@ function HotelSheet({ h, ci, co, adults, rooms, children, usdKrw, onClose }) {
   useEffect(() => {
     let alive = true
     setSt({ status: 'loading' })
-    fetch(`${PROXY}/xotelo/rates?hotel_key=${h.key}&chk_in=${ci}&chk_out=${co}&currency=USD`)
+    const q = `${h.name} ${h.cityName || ''}`.trim()
+    fetch(`${PROXY}/serp/hotels?q=${enc(q)}&checkin=${ci}&checkout=${co}&adults=${adults}`)
       .then(r => r.json())
-      .then(j => {
-        if (!alive) return
-        const rates = (j.result && j.result.rates) || []
-        if (j.error || !rates.length) setSt({ status: 'empty' })
-        else setSt({ status: 'ok', rates: [...rates].sort((a, b) => (a.rate + (a.tax || 0)) - (b.rate + (b.tax || 0))) })
-      })
+      .then(j => { if (!alive) return; const rates = (j && j.rates) || []; setSt(rates.length ? { status: 'ok', rates } : { status: 'empty' }) })
       .catch(() => alive && setSt({ status: 'error' }))
     return () => { alive = false }
-  }, [h.key, ci, co])
-  const minTotal = st.status === 'ok' ? Math.min(...st.rates.map(r => r.rate + (r.tax || 0))) : null
-  const maxTotal = st.status === 'ok' ? Math.max(...st.rates.map(r => r.rate + (r.tax || 0))) : null
-  const minKrw = useCountUp(minTotal != null ? Math.round(minTotal * usdKrw) : null)
+  }, [h.key, ci, co, adults])
+  const npn = r => (r.night != null ? r.night : r.total)  // 1박 KRW (없으면 총액)
+  const rows = st.status === 'ok' ? st.rates : []
+  const minNight = rows.length ? Math.min(...rows.map(npn)) : null
+  const maxNight = rows.length ? Math.max(...rows.map(npn)) : null
+  const minKrw = useCountUp(minNight)
   const doShare = () => shareIt({
     title: `${hname(h)} 가격 비교`,
-    text: `🏨 ${hname(h)} (${h.cityName}) ${md(ci)}~${md(co)} · 1박 ${minTotal != null ? wonFmt(minTotal * usdKrw) + '부터' : (h.priceMin != null ? '참고가 ' + wonFmt(h.priceMin * usdKrw) + '부터' : '가격 확인')} — 싸다구여행`,
+    text: `🏨 ${hname(h)} (${h.cityName}) ${md(ci)}~${md(co)} · 1박 ${minNight != null ? wonFmt(minNight) + '부터' : (h.priceMin != null ? '참고가 ' + wonFmt(h.priceMin * usdKrw) + '부터' : '가격 확인')} — 싸다구여행`,
     url: 'https://emforhs2002-bit.github.io/ssadagu-air-site/',
   })
   return (
@@ -296,7 +297,7 @@ function HotelSheet({ h, ci, co, adults, rooms, children, usdKrw, onClose }) {
           {minKrw != null ? <div className="text-[13px] font-bold text-brand-600">1박 최저 {wonFmt(minKrw)}</div> : (h.priceMin != null && <div className="text-[13px] font-bold text-brand-600">참고가 1박 {wonFmt(h.priceMin * usdKrw)}~</div>)}
         </div>
         {(h.priceMin != null || hotelTags(h).length > 0 || h.type) && <div className="bg-slate-50 rounded-2xl p-3.5 space-y-2.5">
-          {h.priceMin != null && <div className="flex items-center justify-between text-[12.5px]">
+          {h.priceMin != null && st.status !== 'ok' && <div className="flex items-center justify-between text-[12.5px]">
             <span className="text-slate-500">💰 1박 가격대 (참고)</span>
             <span className="font-bold text-brand-600">{wonFmt(h.priceMin * usdKrw)}{h.priceMax != null && h.priceMax > h.priceMin ? ` ~ ${wonFmt(h.priceMax * usdKrw)}` : '부터'}</span>
           </div>}
@@ -305,31 +306,29 @@ function HotelSheet({ h, ci, co, adults, rooms, children, usdKrw, onClose }) {
             {hotelTags(h).map(t => <span key={t} className="text-[11px] font-bold text-slate-600 bg-white rounded-full px-2.5 py-1">{t}</span>)}
           </div>}
         </div>}
-        {minTotal != null && maxTotal > minTotal && Math.round((maxTotal - minTotal) * usdKrw) >= 10000 &&
-          <div className="bg-rose-50 text-rose-600 text-[12.5px] font-bold rounded-xl px-3 py-2.5">💸 같은 호텔인데 예약처 따라 1박 최대 <b>{wonFmt((maxTotal - minTotal) * usdKrw)}</b> 차이 — 최저 예약처를 콕 집어드렸어요</div>}
+        {minNight != null && maxNight > minNight && (maxNight - minNight) >= 10000 &&
+          <div className="bg-rose-50 text-rose-600 text-[12.5px] font-bold rounded-xl px-3 py-2.5">💸 같은 호텔인데 예약처 따라 1박 최대 <b>{wonFmt(maxNight - minNight)}</b> 차이 — 최저 예약처를 콕 집어드렸어요</div>}
         {st.status === 'loading' && <div className="space-y-2">{[0, 1, 2].map(i => <div key={i} className="skel h-[58px] rounded-2xl" />)}</div>}
         {st.status === 'error' && <><div className="bg-slate-50 rounded-2xl p-3 text-[12.5px] text-slate-500">실시간 비교가를 잠깐 불러오지 못했어요. 아래 예약처에서 바로 확인해 보세요.</div><ProviderLinks h={h} ci={ci} co={co} adults={adults} rooms={rooms} children={children} /></>}
         {st.status === 'empty' && <><div className="bg-slate-50 rounded-2xl p-3 text-[12.5px] text-slate-500">{h.priceMin != null ? <>참고가는 1박 <b className="text-slate-700">{wonFmt(h.priceMin * usdKrw)}</b>부터예요. </> : ''}아래 예약처에서 이 날짜 실시간 가격을 확인하세요.</div><ProviderLinks h={h} ci={ci} co={co} adults={adults} rooms={rooms} children={children} /></>}
         {st.status === 'ok' && <div className="space-y-2">
           {st.rates.map((r, i) => {
-            const total = r.rate + (r.tax || 0), lowest = total === minTotal
-            const p = PROVIDERS[r.code]
-            const href = p && p.url ? p.url(h.name, ci, co, adults, rooms, children) : h.taUrl
+            const per = npn(r), lowest = per === minNight
             return (
-              <a key={i} href={href} target="_blank" rel="noopener" onClick={() => { haptic(); try { fetch(`${PROXY}/click`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'hotel', id: h.key + ':' + r.code }), keepalive: true }).catch(() => {}) } catch (e) {} }} className={'flex items-center justify-between rounded-2xl px-3.5 py-3 ' + (lowest ? 'bg-brand-50 glow-lowest shine' : 'bg-slate-50')}>
+              <a key={i} href={r.link || h.taUrl} target="_blank" rel="noopener" onClick={() => { haptic(); try { fetch(`${PROXY}/click`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'hotel', id: h.key + ':' + r.source }), keepalive: true }).catch(() => {}) } catch (e) {} }} className={'flex items-center justify-between rounded-2xl px-3.5 py-3 ' + (lowest ? 'bg-brand-50 glow-lowest shine' : 'bg-slate-50')}>
                 <div className="min-w-0">
-                  <div className="text-[14px] font-bold text-slate-800">{provName(r.code)} {lowest && <span className="text-[10.5px] font-bold text-white bg-brand-500 rounded-full px-2 py-0.5 align-middle">🏆 전 예약처 최저</span>}</div>
-                  <div className="text-[11px] text-slate-400 mt-0.5">{r.tax ? `객실 ${wonFmt(r.rate * usdKrw)} + 세금 ${wonFmt(r.tax * usdKrw)}` : '세금 정보 없음'}</div>
+                  <div className="text-[14px] font-bold text-slate-800">{srcKo(r.source)}{r.official && <span className="text-[10px] text-slate-400 font-medium"> 공식</span>} {lowest && <span className="text-[10.5px] font-bold text-white bg-brand-500 rounded-full px-2 py-0.5 align-middle">🏆 최저</span>}</div>
+                  {r.total != null && <div className="text-[11px] text-slate-400 mt-0.5">총 {nights}박 {wonFmt(r.total)}</div>}
                 </div>
                 <div className="text-right shrink-0 pl-2">
-                  <div className={'text-[16px] font-black leading-none ' + (lowest ? 'text-brand-600' : 'text-slate-700')}>{wonFmt(total * usdKrw)}</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">1박 · 확인 ›</div>
+                  <div className={'text-[16px] font-black leading-none ' + (lowest ? 'text-brand-600' : 'text-slate-700')}>{wonFmt(per)}</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">1박 · 예약 ›</div>
                 </div>
               </a>
             )
           })}
         </div>}
-        <div className="bg-amber-50 text-amber-800 text-[11.5px] rounded-xl px-3 py-2">💡 환율 적용 <b>참고가</b>예요. 누르면 그 예약처에서 실제가·환불조건을 확인하고 결제해요. 우린 호텔을 팔지 않고 수수료도 안 붙여요.</div>
+        <div className="bg-amber-50 text-amber-800 text-[11.5px] rounded-xl px-3 py-2">💡 구글호텔 기준 <b>실시간 비교가</b>예요. 누르면 그 예약처에서 최종가·환불조건을 확인하고 결제해요. 우린 호텔을 팔지 않고 수수료도 안 붙여요.</div>
         <div className="grid grid-cols-2 gap-2">
           <a href={'https://www.google.com/maps/search/?api=1&query=' + (h.geo && h.geo.latitude ? h.geo.latitude + ',' + h.geo.longitude : enc(h.name))} target="_blank" rel="noopener" onClick={() => haptic()} className="text-center bg-slate-100 text-slate-700 font-bold rounded-2xl py-3 text-[13px]">🗺️ 구글 지도</a>
           <a href={h.taUrl} target="_blank" rel="noopener" className="text-center bg-slate-100 text-slate-700 font-bold rounded-2xl py-3 text-[13px]">⭐ 리뷰 보기</a>
