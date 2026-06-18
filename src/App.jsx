@@ -678,6 +678,7 @@ function Flights() {
   const [pax, setPax] = useState(1), [cabin, setCabin] = useState('Y')
   const [day, setDay] = useState(null), [retDay, setRetDay] = useState(null)
   const [calDir, setCalDir] = useState('dep')
+  const [flexPrices, setFlexPrices] = useState({})
   const [depDate, setDepDate] = useState(null), [retDate, setRetDate] = useState(null)
   const [sort, setSort] = useState('price'), [directOnly, setDirectOnly] = useState(false)
   const [ovFilter, setOvFilter] = useState(false)
@@ -713,10 +714,17 @@ function Flights() {
     } catch (e) { setSt({ status: 'error' }) }
   }
   const search = () => anywhere ? anywhereSearch() : routeSearch(dest)
+  // 날짜 선택 달력에 가격 색칠: 피커 열릴 때 노선의 3개월 최저가를 모아 priceOf로 (트립닷컴식)
+  useEffect(() => {
+    if (!ovCal || anywhere) return
+    let alive = true
+    const now = new Date()
+    const ms = [0, 1, 2].map(i => { const dt = new Date(now.getFullYear(), now.getMonth() + i, 1); return `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}` })
+    Promise.all(ms.map(m => fetch(`${PROXY}/aviasales/v3/prices_for_dates?` + new URLSearchParams({ origin, destination: dest, departure_at: m, currency: 'krw', market: 'kr', one_way: oneway ? 'true' : 'false', sorting: 'price', limit: '200', unique: 'false' })).then(r => r.json()).catch(() => ({})))).then(rs => { if (!alive) return; const map = {}; rs.forEach(j => (j.data || []).forEach(o => { const k = (o.departure_at || '').slice(0, 10); if (k && (!map[k] || o.price < map[k])) map[k] = o.price })); setFlexPrices(map) })
+    return () => { alive = false }
+  }, [ovCal, origin, dest, oneway, anywhere])
   const DESTOPTS = [['-', '🌍 어디든지'], ...CITIES.map(([c, n]) => [c, `${n}(${c})`])]
   const results = st.status === 'route' ? st.data.filter(o => (!day || (o.departure_at || '').slice(0, 10) === day) && (!retDay || (o.return_at || '').slice(0, 10) === retDay)) : []
-  const calRet = {}
-  if (st.status === 'route') st.data.forEach(o => { if (day && (o.departure_at || '').slice(0, 10) !== day) return; const k = (o.return_at || '').slice(0, 10); if (k && (!calRet[k] || o.price < calRet[k])) calRet[k] = o.price })
   const view = results
     .filter(o => (!directOnly || o.transfers === 0)
       && (!fPrice || o.price <= fPrice)
@@ -767,7 +775,7 @@ function Flights() {
         ]}
         onPick={it => setDest(it.id)} />
       <RangeCalendar open={ovCal} onClose={() => setOvCal(false)} title={oneway ? '며칠에 떠나세요?' : '가는 날 · 오는 날'} mode={oneway ? 'single' : 'range'}
-        initStart={depDate} initEnd={retDate} monthsCount={10}
+        initStart={depDate} initEnd={retDate} monthsCount={10} priceOf={d => flexPrices[d]}
         onConfirm={(s, e) => { setDepDate(s); setRetDate(oneway ? null : e); if (!anywhere) routeSearch(dest, s) }} />
       <Sheet open={ovPax} onClose={() => setOvPax(false)} title="인원 · 옵션">
         <div className="px-5 pb-6 pt-1 divide-y divide-slate-100">
@@ -845,18 +853,7 @@ function Flights() {
                 className="block text-center text-[12px] text-slate-500 font-bold mt-1.5 underline decoration-slate-300">💲 이 가격 확인한 곳에서 보기 (영문) ›</a>
             </>
           })()}
-          <div className="pt-1">
-            <div className="flex items-center justify-between px-1 mb-1.5">
-              <div className="text-[12px] font-bold text-slate-500">📅 날짜 바꿔 더 싸게</div>
-              {!oneway && <div className="flex bg-slate-100 rounded-full p-0.5">
-                {[['dep', '가는 날'], ['ret', '오는 날']].map(([v, t]) => <button key={v} onClick={() => { haptic(); setCalDir(v) }} className={'px-3 py-1 rounded-full text-[11.5px] font-bold ' + (calDir === v ? 'bg-white shadow text-brand-600' : 'text-slate-400')}>{t}</button>)}
-              </div>}
-            </div>
-            {(oneway || calDir === 'dep')
-              ? <PriceCalendar y={st.y} m={st.m} cal={st.cal} day={day} onPick={setDay} />
-              : <PriceCalendar y={st.y} m={st.m} cal={calRet} day={retDay} onPick={setRetDay} />}
-            <div className="text-[10.5px] text-slate-400 text-center mt-1">{oneway ? '가는 날을 탭해 그 날 항공편을 보세요' : (calDir === 'dep' ? '가는 날 탭 = 그 날 출발 항공편 (오는 날은 위 토글)' : (day ? `${day.slice(5).replace('-', '/')} 출발 기준 · 오는 날을 탭하세요` : '먼저 가는 날을 고르면 오는 날 가격이 더 정확해져요'))}</div>
-          </div>
+          <button onClick={() => { haptic(); setOvCal(true) }} className="w-full text-center text-[13px] font-bold text-brand-600 bg-brand-50 rounded-2xl py-3">📅 다른 날짜로 다시 검색 (가격 달력에서 가는날·오는날)</button>
           <div className="bg-amber-50 text-amber-800 text-[11px] rounded-xl px-3 py-2">💡 인앱 가격은 <b>예상가</b>(최근 검색 기준)예요 — 운임은 자주 바뀌어 예약 화면 최종가와 다를 수 있어요. 같은 가격을 보려면 위 <b>"확인한 곳에서 보기"</b>를 누르세요.</div>
         </>
         : <Empty icon="🔎" text="이 달엔 캐시된 가격이 없어요. 다른 날짜·도시로 검색해 보세요." />)}
