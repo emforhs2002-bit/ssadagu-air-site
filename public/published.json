@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-21T02:14:01+00:00",
+  "updated_at": "2026-06-21T08:19:42+00:00",
   "note": null,
   "deals": [
     {
@@ -337,43 +337,6 @@
       "affiliate_url": "https://www.aviasales.com/search/GMP0507KIX08071?t=MM17832507001783257000000105GMPKIX17835267001783533600000115KIXGMP_cbc74c08b3e6d2a08612a3d5563b7555_9564&search_date=02062026&expected_price_uuid=019e870d-adaf-8030-a1b7-26968db07dd2&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=201530&marker=737258",
       "source": "Travelpayouts 자동발견",
       "status": "published"
-    },
-    {
-      "id": "ICN-GUM-2026-07-03",
-      "route": "ICN-GUM",
-      "city": "괌",
-      "badge": "🔥",
-      "price": 316017,
-      "normal_price": 430396,
-      "discount_rate": 27,
-      "airline": "에어서울",
-      "carrier_type": "LCC",
-      "departure_time": "2026-07-03 19:25",
-      "return_time": "2026-07-05 02:00",
-      "duration": "9시간 25분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 316017,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 384917
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "확인 전",
-      "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0307GUM05071?t=RS17831067001783126800000275ICNGUM17832168001783230600000290GUMICN_36b98b535381c818e7e337ac8160ba33_15119&search_date=20062026&expected_price_uuid=019ee757-bf59-8010-a99f-2b9aea1f8618&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=587mzbc26WTUGGODlBSzww&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=316017&marker=737258",
-      "status": "published",
-      "source": "auto"
     }
   ]
 }
