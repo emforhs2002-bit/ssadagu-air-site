@@ -21,6 +21,8 @@ export const DESTINATIONS = [
     themes: ['휴양', '바다', '맛집'], goodFor: ['커플', '가족', '친구', '부모님'], badFor: [], months: [2,3,4,5,6,7,8], caution: ['우기(10~12월) 비 많음'] },
   { codes: ['NHA'], name: '나트랑', country: '베트남', region: '동남아', flightMin: 320, budgetMin: 350000, budget: '35만~50만',
     themes: ['휴양', '바다'], goodFor: ['커플', '가족', '친구'], badFor: ['쇼핑'], months: [1,2,3,4,6,7,8], caution: ['우기 주의'] },
+  { codes: ['PQC'], name: '푸꾸옥', country: '베트남', region: '동남아', flightMin: 320, budgetMin: 400000, budget: '40만~60만',
+    themes: ['휴양', '바다', '자연'], goodFor: ['커플', '가족', '친구', '부모님'], badFor: ['쇼핑'], months: [11,12,1,2,3,4], caution: ['우기(7~9월) 비 많음'] },
   { codes: ['HAN'], name: '하노이', country: '베트남', region: '동남아', flightMin: 290, budgetMin: 350000, budget: '35만~50만',
     themes: ['맛집', '도시'], goodFor: ['친구', '부모님', '혼자'], badFor: ['휴양'], months: [3,4,10,11], caution: ['여름 무더위'] },
   { codes: ['SGN'], name: '호치민', country: '베트남', region: '동남아', flightMin: 330, budgetMin: 350000, budget: '35만~50만',

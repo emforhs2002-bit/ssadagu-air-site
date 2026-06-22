@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, lazy, Suspense } from 'react'
 import { DESTINATIONS } from './destinations'
+import { AIRPORT_NAME, AIRPORT_GROUPS } from './airports'
 import { COUNTRY_INFO, VISA_NOTE } from './planner'
 import { vt, haptic, shareIt, useCountUp, Sheet, SearchOverlay, StepRow, MadLib, SkelRows, RangeCalendar } from './ui'
 import { HOLIDAYS, upcomingWeekends } from './holidays'
@@ -554,7 +555,7 @@ function Where({ deals, onOpen }) {
    1차 타겟이 한국인이라 영어 사이트(aviasales) 거부감을 없애려 트립닷컴으로 보냄 + 제휴 추적(Allianceid/SID, 항공/호텔은 trip_sub1로 구분). */
 const TRIP_ALLIANCE = 'Allianceid=8617491&SID=318432318'
 const ORIGINS = [['ICN', '인천'], ['GMP', '김포'], ['PUS', '부산']]
-const CITIES = [['FUK', '후쿠오카'], ['KIX', '오사카'], ['TYO', '도쿄'], ['OKA', '오키나와'], ['CTS', '삿포로'], ['TPE', '타이베이'], ['KHH', '가오슝'], ['DAD', '다낭'], ['NHA', '나트랑'], ['HAN', '하노이'], ['SGN', '호치민'], ['BKK', '방콕'], ['HKT', '푸켓'], ['CEB', '세부'], ['MNL', '마닐라'], ['BKI', '코타키나발루'], ['HKG', '홍콩'], ['SIN', '싱가포르'], ['GUM', '괌']]
+const CITIES = [['FUK', '후쿠오카'], ['KIX', '오사카'], ['TYO', '도쿄'], ['OKA', '오키나와'], ['CTS', '삿포로'], ['TPE', '타이베이'], ['KHH', '가오슝'], ['DAD', '다낭'], ['NHA', '나트랑'], ['PQC', '푸꾸옥'], ['HAN', '하노이'], ['SGN', '호치민'], ['BKK', '방콕'], ['HKT', '푸켓'], ['CEB', '세부'], ['MNL', '마닐라'], ['BKI', '코타키나발루'], ['HKG', '홍콩'], ['SIN', '싱가포르'], ['GUM', '괌']]
 const CITIES_US = [['NYC', '뉴욕'], ['LAX', '로스앤젤레스'], ['SFO', '샌프란시스코'], ['LAS', '라스베가스'], ['HNL', '호놀룰루(하와이)'], ['SEA', '시애틀'], ['ORD', '시카고'], ['BOS', '보스턴'], ['MIA', '마이애미']]
 const pad2 = n => String(n).padStart(2, '0')
 const ymd = (y, m, d) => `${y}-${pad2(m + 1)}-${pad2(d)}`  // m: 0-based
@@ -614,15 +615,10 @@ function FlightResult({ o, low }) {
   )
 }
 
-const CITY_NAME = Object.fromEntries([...CITIES, ...CITIES_US])
+const CITY_NAME = { ...AIRPORT_NAME, ...Object.fromEntries([...CITIES, ...CITIES_US]) }
 const cityName = c => CITY_NAME[c] || c
-// 도착지 지역 그룹 (호텔 탭과 통일된 분류)
-const FLIGHT_GROUPS = [
-  ['일본', ['FUK', 'KIX', 'TYO', 'OKA', 'CTS']],
-  ['대만 · 홍콩', ['TPE', 'KHH', 'HKG']],
-  ['동남아', ['DAD', 'NHA', 'HAN', 'SGN', 'BKK', 'HKT', 'CEB', 'MNL', 'BKI', 'SIN']],
-  ['괌', ['GUM']],
-]
+// 도착지 검색 오버레이 상단의 '인기 노선' 칩 (그 아래로 airports.js의 전 지역 목록이 이어짐)
+const POPULAR_DESTS = ['FUK', 'KIX', 'TYO', 'OKA', 'BKK', 'DAD', 'PQC', 'TPE', 'CEB', 'DPS']
 function monthsList() {
   const out = [], now = new Date()
   for (let i = 0; i < 8; i++) { const m = now.getMonth() + i, y = now.getFullYear() + Math.floor(m / 12), mm = ((m % 12) + 12) % 12; out.push({ value: `${y}-${pad2(mm + 1)}`, label: `${mm + 1}월`, y, m: mm }) }
@@ -689,18 +685,25 @@ function Flights() {
   const [ovCal, setOvCal] = useState(false)
   const [ovPax, setOvPax] = useState(false)
   const anywhere = dest === '-'
-  const routeSearch = async (d, dep = depDate) => {
+  const routeSearch = async (d, dep = depDate, ret = retDate) => {
     setDest(d); setDay(null); setRetDay(null); setCalDir('dep'); setSt({ status: 'loading' })
+    // 사용자가 정확한 날짜(YYYY-MM-DD)를 골랐으면 그 날짜로 조회·고정한다.
+    // 날짜를 안 골랐으면(인기 노선 탭 등) 해당 월 전체를 조회한다.
+    const exact = !!(dep && dep.length === 10)
+    const useRet = exact && !oneway && !!(ret && ret.length === 10)
     const monthVal = dep ? dep.slice(0, 7) : months[mi].value
     const [yN, mN] = monthVal.split('-').map(Number)
-    const params = new URLSearchParams({ origin, destination: d, departure_at: monthVal, currency: 'krw', market: 'kr', one_way: oneway ? 'true' : 'false', sorting: 'price', limit: '100', unique: 'false' })
+    const qp = { origin, destination: d, departure_at: exact ? dep : monthVal, currency: 'krw', market: 'kr', one_way: oneway ? 'true' : 'false', sorting: 'price', limit: '100', unique: 'false' }
+    if (useRet) qp.return_at = ret
+    const params = new URLSearchParams(qp)
     try {
       const r = await fetch(`${PROXY}/aviasales/v3/prices_for_dates?${params}`)
       const j = await r.json()
       const data = (j.data || []).sort((a, b) => a.price - b.price)
       const cal = {}; data.forEach(o => { const k = (o.departure_at || '').slice(0, 10); if (k && (!cal[k] || o.price < cal[k])) cal[k] = o.price })
       setSt({ status: 'route', data, cal, y: yN, m: mN - 1, label: `${yN}년 ${mN}월` })
-      setDay(dep && cal[dep] ? dep : null)  // 고른 날짜에 항공편 있으면 그 날 포커스, 없으면 월 전체
+      setDay(exact ? dep : null)        // 고른 출발일로 고정 (없으면 월 전체)
+      setRetDay(useRet ? ret : null)    // 왕복이면 고른 귀국일도 고정
     } catch (e) { setSt({ status: 'error' }) }
   }
   const anywhereSearch = async () => {
@@ -766,17 +769,17 @@ function Flights() {
       <SearchOverlay open={ovFrom} onClose={() => setOvFrom(false)} title="어디서 출발하세요?" placeholder="출발 공항"
         recentKey="fromAp" groups={[{ title: '출발 공항', items: ORIGINS.map(([c, n]) => ({ id: c, label: n, sub: c, icon: '🛫' })) }]}
         onPick={it => setOrigin(it.id)} />
-      <SearchOverlay open={ovTo} onClose={() => setOvTo(false)} title="어디로 가세요?" placeholder="도시 검색 (예: 오사카, ㅇㅅㅋ)"
+      <SearchOverlay open={ovTo} onClose={() => setOvTo(false)} title="어디로 가세요? (도시·나라·영문·초성 모두 OK)" placeholder="아무 도시나 검색 (예: 푸꾸옥, 다낭, ㄷㅈ, tokyo)"
         recentKey="toAp" voice
         groups={[
           { title: '모르겠어요', items: [{ id: '-', label: '어디든지', sub: '가장 싼 도시부터 보기', icon: '🌍' }] },
-          ...FLIGHT_GROUPS.map(([title, codes]) => ({ title, items: codes.map(c => ({ id: c, label: cityName(c), sub: c, icon: '🏙️' })) })),
-          { title: '🇺🇸 미주', items: CITIES_US.map(([c, n]) => ({ id: c, label: n, sub: c, icon: '🗽' })) },
+          { title: '🔥 인기 노선', items: POPULAR_DESTS.map(c => ({ id: c, label: cityName(c), sub: c, icon: '🔥', kw: [c] })) },
+          ...AIRPORT_GROUPS,
         ]}
         onPick={it => setDest(it.id)} />
       <RangeCalendar open={ovCal} onClose={() => setOvCal(false)} title={oneway ? '며칠에 떠나세요?' : '가는 날 · 오는 날'} mode={oneway ? 'single' : 'range'}
         initStart={depDate} initEnd={retDate} monthsCount={10} priceOf={d => flexPrices[d]}
-        onConfirm={(s, e) => { setDepDate(s); setRetDate(oneway ? null : e); if (!anywhere) routeSearch(dest, s) }} />
+        onConfirm={(s, e) => { setDepDate(s); setRetDate(oneway ? null : e); if (!anywhere) routeSearch(dest, s, oneway ? null : e) }} />
       <Sheet open={ovPax} onClose={() => setOvPax(false)} title="인원 · 옵션">
         <div className="px-5 pb-6 pt-1 divide-y divide-slate-100">
           <StepRow label="인원" sub="성인 기준" value={pax} min={1} max={6} onChange={setPax} />
@@ -832,8 +835,7 @@ function Flights() {
         </>
         : <Empty icon="🔎" text="지금은 캐시된 여행지가 없어요. 잠시 후 다시 시도해 보세요." />)}
 
-      {st.status === 'route' && (st.data.length
-        ? <>
+      {st.status === 'route' && <>
           <div className="text-[13px] text-slate-700 px-1 font-extrabold">🛫 {oName}→{cityName(dest)} {(day || retDay) ? <span className="text-brand-600">· {day ? day.slice(5).replace('-', '/') : '아무날'}{!oneway && ` ~ ${retDay ? retDay.slice(5).replace('-', '/') : '아무날'}`}</span> : <span className="text-slate-400 font-medium">· {st.label}</span>} <span className="text-slate-400 font-medium">{view.length}편 · 최저 {won(lowest)}</span>{(day || retDay) && <button onClick={() => { setDay(null); setRetDay(null) }} className="ml-1.5 text-[11.5px] text-brand-600 font-bold">전체</button>}</div>
           <div className="flex items-center gap-1.5 text-[12.5px] overflow-x-auto">
             <button onClick={() => { haptic(); setOvFilter(true) }} className={'shrink-0 rounded-full px-3 py-1.5 font-bold border ' + (fltCount ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>⚙️ 필터{fltCount ? ' ' + fltCount : ''}</button>
@@ -841,11 +843,12 @@ function Flights() {
             <button onClick={() => setSort('duration')} className={'shrink-0 rounded-full px-3 py-1.5 font-bold ' + (sort === 'duration' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>빠른순</button>
             <label className="ml-auto shrink-0 flex items-center gap-1.5 text-slate-600"><input type="checkbox" checked={directOnly} onChange={e => setDirectOnly(e.target.checked)} /> 직항만</label>
           </div>
-          {view.length ? view.map((o, i) => <FlightResult key={i} o={o} low={o.price === lowest} />) : <Empty icon="🔎" text="이 날짜엔 조건에 맞는 항공편이 없어요. 필터를 줄이거나 아래 달력에서 다른 날을 골라보세요." />}
+          {view.length ? view.map((o, i) => <FlightResult key={i} o={o} low={o.price === lowest} />)
+            : <Empty icon="🔎" text={(day || retDay) ? '이 날짜엔 캐시된 항공편이 없어요. 아래 “트립닷컴에서 실시간 검색”으로 정확한 가격을 확인하거나, 달력에서 다른 날을 골라보세요.' : '이 달엔 캐시된 가격이 없어요. 달력에서 날짜를 고르거나 아래 트립닷컴에서 실시간으로 확인해 보세요.'} />}
           {(() => {
-            const dd = day || (view[0] && (view[0].departure_at || '').slice(0, 10))
+            const dd = day || (view[0] && (view[0].departure_at || '').slice(0, 10)) || depDate
             if (!dd) return null
-            const rr = oneway ? null : (retDate || (view[0] && (view[0].return_at || '').slice(0, 10)))
+            const rr = oneway ? null : (retDay || retDate || (view[0] && (view[0].return_at || '').slice(0, 10)))
             return <>
               <a href={aviaLink({ origin, dest, depart: dd, ret: rr, pax })} target="_blank" rel="noopener" onClick={() => haptic()}
                 className="block text-center bg-brand-500 text-white font-bold rounded-2xl py-3.5 text-[14px]">✈️ 트립닷컴에서 이 날짜 실시간 검색·예약 →</a>
@@ -855,8 +858,7 @@ function Flights() {
           })()}
           <button onClick={() => { haptic(); setOvCal(true) }} className="w-full text-center text-[13px] font-bold text-brand-600 bg-brand-50 rounded-2xl py-3">📅 다른 날짜로 다시 검색 (가격 달력에서 가는날·오는날)</button>
           <div className="bg-amber-50 text-amber-800 text-[11px] rounded-xl px-3 py-2">💡 인앱 가격은 <b>예상가</b>(최근 검색 기준)예요 — 운임은 자주 바뀌어 예약 화면 최종가와 다를 수 있어요. 같은 가격을 보려면 위 <b>"확인한 곳에서 보기"</b>를 누르세요.</div>
-        </>
-        : <Empty icon="🔎" text="이 달엔 캐시된 가격이 없어요. 다른 날짜·도시로 검색해 보세요." />)}
+        </>}
 
       <Sheet open={ovFilter} onClose={() => setOvFilter(false)} title="필터">
         <div className="px-4 pb-6 space-y-5">
@@ -898,7 +900,7 @@ const Empty = ({ icon, text }) => <div className="text-center text-slate-400 py-
 // 알림 대상 도시 (flight_deals.py ROUTES와 일치). [지역그룹, [[도시명,[IATA코드]], ...]]
 const ALERT_CITIES = [
   ['일본', [['도쿄', ['TYO', 'HND']], ['오사카', ['KIX']], ['후쿠오카', ['FUK']], ['삿포로', ['CTS']], ['오키나와', ['OKA']]]],
-  ['베트남', [['다낭', ['DAD']], ['나트랑', ['NHA']], ['하노이', ['HAN']], ['호치민', ['SGN']]]],
+  ['베트남', [['다낭', ['DAD']], ['나트랑', ['NHA']], ['푸꾸옥', ['PQC']], ['하노이', ['HAN']], ['호치민', ['SGN']]]],
   ['태국', [['방콕', ['BKK']], ['푸켓', ['HKT']]]],
   ['대만', [['타이베이', ['TPE']], ['가오슝', ['KHH']]]],
   ['필리핀', [['세부', ['CEB']], ['마닐라', ['MNL']]]],
@@ -910,14 +912,14 @@ const ALL_CITY_CODES = Object.values(CITY_CODES).flat()
 const CITY_ALIASES = {
   도쿄: ['도쿄', '동경', 'tokyo', '하네다', '나리타'], 오사카: ['오사카', 'osaka', '간사이'], 후쿠오카: ['후쿠오카', 'fukuoka'],
   삿포로: ['삿포로', '홋카이도', 'sapporo'], 오키나와: ['오키나와', 'okinawa'],
-  다낭: ['다낭', 'danang'], 나트랑: ['나트랑', '나짱', 'nhatrang'], 하노이: ['하노이', 'hanoi'], 호치민: ['호치민', '사이공', 'hochiminh'],
+  다낭: ['다낭', 'danang'], 나트랑: ['나트랑', '나짱', 'nhatrang'], 푸꾸옥: ['푸꾸옥', '푸꾸억', '푸국', 'phuquoc', 'phuquốc'], 하노이: ['하노이', 'hanoi'], 호치민: ['호치민', '사이공', 'hochiminh'],
   방콕: ['방콕', 'bangkok'], 푸켓: ['푸켓', 'phuket'], 타이베이: ['타이베이', '타이페이', '대북', 'taipei'], 가오슝: ['가오슝', 'kaohsiung'],
   세부: ['세부', 'cebu'], 마닐라: ['마닐라', 'manila'], 코타키나발루: ['코타키나발루', '코타', 'kk'], 홍콩: ['홍콩', 'hongkong'], 괌: ['괌', 'guam'],
 }
 const BROAD_CITIES = {
-  일본: ['도쿄', '오사카', '후쿠오카', '삿포로', '오키나와'], 베트남: ['다낭', '나트랑', '하노이', '호치민'],
+  일본: ['도쿄', '오사카', '후쿠오카', '삿포로', '오키나와'], 베트남: ['다낭', '나트랑', '푸꾸옥', '하노이', '호치민'],
   태국: ['방콕', '푸켓'], 대만: ['타이베이', '가오슝'], 필리핀: ['세부', '마닐라'],
-  동남아: ['다낭', '나트랑', '하노이', '호치민', '방콕', '푸켓', '세부', '마닐라', '코타키나발루'],
+  동남아: ['다낭', '나트랑', '푸꾸옥', '하노이', '호치민', '방콕', '푸켓', '세부', '마닐라', '코타키나발루'],
 }
 const BROAD_ALIASES = { 일본: ['일본', 'japan'], 베트남: ['베트남', 'vietnam'], 태국: ['태국', 'thailand'], 대만: ['대만', '타이완', 'taiwan'], 필리핀: ['필리핀', 'philippines'], 동남아: ['동남아'] }
 function parseAlertText(text) {

@@ -108,7 +108,7 @@ export function SearchOverlay({ open, onClose, title, placeholder, groups, onPic
       setListening(true); r.start()
     } catch (e) { setListening(false) }
   }
-  const filtered = groups.map(g => ({ ...g, items: g.items.filter(it => matchKo(it.label, q) || (it.sub && matchKo(it.sub, q))) })).filter(g => g.items.length)
+  const filtered = groups.map(g => ({ ...g, items: g.items.filter(it => matchKo(it.label, q) || (it.sub && matchKo(it.sub, q)) || (it.kw && it.kw.some(k => matchKo(k, q)))) })).filter(g => g.items.length)
   return (
     <div className="fixed inset-0 z-[70] bg-white max-w-md mx-auto flex flex-col fade-in">
       <div className="px-4 pt-4 pb-2 shrink-0">
