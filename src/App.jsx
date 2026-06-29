@@ -584,7 +584,7 @@ const Pick = ({ label, value, onChange, options }) => <div><label className="tex
 const inputCls = 'w-full mt-1 bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-[14px]'
 
 const PROXY = 'https://curly-meadow-ab36ssadagu-proxy.emforhs2002.workers.dev'
-const IATA_NAME = { KE: '대한항공', OZ: '아시아나항공', '7C': '제주항공', LJ: '진에어', TW: '티웨이항공', BX: '에어부산', RS: '에어서울', ZE: '이스타항공', YP: '에어프레미아', '5J': '세부퍼시픽', VJ: '비엣젯', VN: '베트남항공', MM: '피치항공', AK: '에어아시아', FD: '타이에어아시아', TR: '스쿠트', PR: '필리핀항공', CX: '캐세이퍼시픽', UO: '홍콩익스프레스', SQ: '싱가포르항공', TG: '타이항공', NH: 'ANA', JL: '일본항공', JX: '스타럭스', CI: '중화항공', BR: '에바항공', UA: '유나이티드', MH: '말레이시아항공', DL: '델타항공', AA: '아메리칸항공', HA: '하와이안항공', AS: '알래스카항공', B6: '제트블루', AC: '에어캐나다', WS: '웨스트젯' }
+const IATA_NAME = { KE: '대한항공', OZ: '아시아나항공', '7C': '제주항공', LJ: '진에어', TW: '티웨이항공', BX: '에어부산', RS: '에어서울', ZE: '이스타항공', YP: '에어프레미아', '5J': '세부퍼시픽', VJ: '비엣젯', VN: '베트남항공', MM: '피치항공', AK: '에어아시아', FD: '타이에어아시아', TR: '스쿠트', PR: '필리핀항공', CX: '캐세이퍼시픽', UO: '홍콩익스프레스', SQ: '싱가포르항공', TG: '타이항공', NH: 'ANA', JL: '일본항공', JX: '스타럭스', CI: '중화항공', BR: '에바항공', UA: '유나이티드', MH: '말레이시아항공', DL: '델타항공', AA: '아메리칸항공', HA: '하와이안항공', AS: '알래스카항공', B6: '제트블루', AC: '에어캐나다', WS: '웨스트젯', ZG: '집에어', ET: '에티오피아항공', WE: '타이스마일', GK: '젯스타재팬', IT: '타이거에어대만', D7: '에어아시아엑스', SL: '타이라이언에어', CA: '중국국제항공', MU: '중국동방항공', CZ: '중국남방항공', HX: '홍콩항공', NX: '에어마카오', '9C': '춘추항공', JD: '베이징수도항공' }
 const airlineName = c => IATA_NAME[c] || c
 function fmtISO(s) { if (!s) return { full: '-' }; const dt = new Date(s); if (isNaN(dt)) return { full: s }; const w = dt.getDay(); return { md: `${dt.getMonth() + 1}/${dt.getDate()}`, dow: DAYS[w], time: `${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`, weekend: w === 0 || w === 6 } }
 // 개별 특가 카드 → 그 노선·날짜로 트립닷컴 항공검색 (트립닷컴은 aviasales 전용 링크를 못 받으므로 노선·날짜로 재구성)
@@ -600,7 +600,7 @@ function FlightResult({ o, low, pax = 1, cabin = 'Y' }) {
           <img src={`https://pics.avs.io/60/60/${o.airline}.png`} alt="" className="w-8 h-8 object-contain rounded-md bg-slate-50" onError={e => { e.target.style.visibility = 'hidden' }} />
           <div className="min-w-0">
             <div className="text-[14px] font-bold text-slate-800 truncate">{airlineName(o.airline)} {low && <span className="text-[10px] font-bold text-white bg-brand-500 rounded-full px-2 py-0.5 align-middle">🏆 이 검색 최저</span>}</div>
-            <div className="text-[11.5px] text-slate-400">{o.transfers === 0 ? '직항' : '경유 ' + o.transfers + '회'}{o.duration ? ' · ' + durStr(o.duration) : ''}</div>
+            <div className="text-[11.5px] text-slate-400">{o.transfers === 0 ? '직항' : '경유 ' + o.transfers + '회'}{(o.duration_to || o.duration) ? ' · ' + durStr(o.duration_to || o.duration) : ''}</div>
           </div>
         </div>
         <div className="text-right shrink-0 pl-2">
@@ -733,7 +733,7 @@ function Flights() {
       && (!fPrice || o.price <= fPrice)
       && (!fTime || slotOf(o.departure_at) === fTime)
       && (!fAir.length || fAir.includes(o.airline)))
-    .sort((a, b) => sort === 'duration' ? ((a.duration || 9e9) - (b.duration || 9e9)) : (a.price - b.price))
+    .sort((a, b) => sort === 'duration' ? (((a.duration_to || a.duration || 9e9) - (b.duration_to || b.duration || 9e9)) || (a.price - b.price)) : (a.price - b.price))
   const airOpts = [...new Set(results.map(o => o.airline).filter(Boolean))]
   const fltCount = (fPrice ? 1 : 0) + (fTime ? 1 : 0) + (fAir.length ? 1 : 0)
   const lowest = view.length ? view.reduce((m, o) => Math.min(m, o.price), Infinity) : 0
