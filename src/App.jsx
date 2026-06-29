@@ -688,14 +688,11 @@ function Flights() {
   const anywhere = dest === '-'
   const routeSearch = async (d, dep = depDate, ret = retDate) => {
     setDest(d); setDay(null); setRetDay(null); setCalDir('dep'); setSt({ status: 'loading' })
-    // 사용자가 정확한 날짜(YYYY-MM-DD)를 골랐으면 그 날짜로 조회·고정한다.
-    // 날짜를 안 골랐으면(인기 노선 탭 등) 해당 월 전체를 조회한다.
-    const exact = !!(dep && dep.length === 10)
-    const useRet = exact && !oneway && !!(ret && ret.length === 10)
+    // ★항상 '월 전체'를 조회한다. 캐시가 희소해 특정 출발일+귀국일 콤보로 직접 조회하면 거의 0편이 나옴.
+    //   고른 출발일은 client에서 soft-filter(dayHas)로 좁히되, 그 날 캐시가 없으면 그 달 전체를 보여준다.
     const monthVal = dep ? dep.slice(0, 7) : months[mi].value
     const [yN, mN] = monthVal.split('-').map(Number)
-    const qp = { origin, destination: d, departure_at: exact ? dep : monthVal, currency: 'krw', market: 'kr', one_way: oneway ? 'true' : 'false', sorting: 'price', limit: '100', unique: 'false', trip_class: cabin === 'C' ? '1' : '0' }
-    if (useRet) qp.return_at = ret
+    const qp = { origin, destination: d, departure_at: monthVal, currency: 'krw', market: 'kr', one_way: oneway ? 'true' : 'false', sorting: 'price', limit: '100', unique: 'false', trip_class: cabin === 'C' ? '1' : '0' }
     const params = new URLSearchParams(qp)
     try {
       const r = await fetch(`${PROXY}/aviasales/v3/prices_for_dates?${params}`)
@@ -703,8 +700,8 @@ function Flights() {
       const data = (j.data || []).sort((a, b) => a.price - b.price)
       const cal = {}; data.forEach(o => { const k = (o.departure_at || '').slice(0, 10); if (k && (!cal[k] || o.price < cal[k])) cal[k] = o.price })
       setSt({ status: 'route', data, cal, y: yN, m: mN - 1, label: `${yN}년 ${mN}월` })
-      setDay(exact ? dep : null)        // 고른 출발일로 고정 (없으면 월 전체)
-      setRetDay(useRet ? ret : null)    // 왕복이면 고른 귀국일도 고정
+      setDay(dep && dep.length === 10 ? dep : null)  // 고른 출발일 — dayHas가 soft-filter(없으면 월 전체)
+      setRetDay(null)
     } catch (e) { setSt({ status: 'error' }) }
   }
   const anywhereSearch = async () => {
