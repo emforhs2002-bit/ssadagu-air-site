@@ -728,7 +728,9 @@ function Flights() {
     return () => { alive = false }
   }, [ovCal, origin, dest, oneway, anywhere, cabin])
   const DESTOPTS = [['-', '🌍 어디든지'], ...CITIES.map(([c, n]) => [c, `${n}(${c})`])]
-  const results = st.status === 'route' ? st.data.filter(o => (!day || (o.departure_at || '').slice(0, 10) === day) && (!retDay || (o.return_at || '').slice(0, 10) === retDay)) : []
+  // 고른 가는날에 캐시가 있으면 그 날만, 없으면 그 달 전체(0편 방지). 오는날은 필터 안 함(캐시 희소해 과잉필터 금지)
+  const dayHas = !!day && st.status === 'route' && st.data.some(o => (o.departure_at || '').slice(0, 10) === day)
+  const results = st.status === 'route' ? (dayHas ? st.data.filter(o => (o.departure_at || '').slice(0, 10) === day) : st.data) : []
   const view = results
     .filter(o => (!directOnly || o.transfers === 0)
       && (!fPrice || o.price <= fPrice)
@@ -837,7 +839,8 @@ function Flights() {
         : <Empty icon="🔎" text="지금은 캐시된 여행지가 없어요. 잠시 후 다시 시도해 보세요." />)}
 
       {st.status === 'route' && <>
-          <div className="text-[13px] text-slate-700 px-1 font-extrabold">🛫 {oName}→{cityName(dest)} {(day || retDay) ? <span className="text-brand-600">· {day ? day.slice(5).replace('-', '/') : '아무날'}{!oneway && ` ~ ${retDay ? retDay.slice(5).replace('-', '/') : '아무날'}`}</span> : <span className="text-slate-400 font-medium">· {st.label}</span>} <span className="text-slate-400 font-medium">{view.length}편 · 최저 {won(lowest)}</span>{(day || retDay) && <button onClick={() => { setDay(null); setRetDay(null) }} className="ml-1.5 text-[11.5px] text-brand-600 font-bold">전체</button>}</div>
+          <div className="text-[13px] text-slate-700 px-1 font-extrabold">🛫 {oName}→{cityName(dest)} {dayHas ? <span className="text-brand-600">· {day.slice(5).replace('-', '/')} 출발</span> : <span className="text-slate-400 font-medium">· {st.label} 전체</span>} <span className="text-slate-400 font-medium">{view.length}편 · 최저 {won(lowest)}</span>{dayHas && <button onClick={() => setDay(null)} className="ml-1.5 text-[11.5px] text-brand-600 font-bold">전체</button>}</div>
+          {depDate && !dayHas && st.data.length > 0 && <div className="text-[11.5px] text-amber-700 bg-amber-50 rounded-xl px-3 py-2">📅 고른 날짜({+depDate.slice(5, 7)}/{+depDate.slice(8, 10)})엔 캐시 특가가 없어 <b>{st.label} 전체</b>를 보여드려요. 그 날짜 실제가는 아래 <b>트립닷컴</b>에서.</div>}
           <div className="flex items-center gap-1.5 text-[12.5px] overflow-x-auto">
             <button onClick={() => { haptic(); setOvFilter(true) }} className={'shrink-0 rounded-full px-3 py-1.5 font-bold border ' + (fltCount ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-slate-600 border-slate-200')}>⚙️ 필터{fltCount ? ' ' + fltCount : ''}</button>
             <button onClick={() => setSort('price')} className={'shrink-0 rounded-full px-3 py-1.5 font-bold ' + (sort === 'price' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200')}>최저가순</button>
