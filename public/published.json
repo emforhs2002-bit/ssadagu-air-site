@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-30T01:59:07+00:00",
+  "updated_at": "2026-06-30T06:08:16+00:00",
   "note": null,
   "deals": [
     {
@@ -342,10 +342,10 @@
       "id": "ICN-CTS-2026-09-10",
       "route": "ICN-CTS",
       "city": "삿포로",
-      "badge": "🔥🔥",
+      "badge": "🔥",
       "price": 375378,
-      "normal_price": 646512,
-      "discount_rate": 42,
+      "normal_price": 590795,
+      "discount_rate": 36,
       "airline": "이스타항공",
       "carrier_type": "LCC",
       "departure_time": "2026-09-10 09:20",
