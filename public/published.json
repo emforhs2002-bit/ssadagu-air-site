@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-01T02:04:54+00:00",
+  "updated_at": "2026-07-01T08:01:23+00:00",
   "note": null,
   "deals": [
     {
@@ -302,8 +302,8 @@
       "city": "삿포로",
       "badge": "🔥",
       "price": 375378,
-      "normal_price": 590795,
-      "discount_rate": 36,
+      "normal_price": 535078,
+      "discount_rate": 30,
       "airline": "이스타항공",
       "carrier_type": "LCC",
       "departure_time": "2026-09-10 09:20",
