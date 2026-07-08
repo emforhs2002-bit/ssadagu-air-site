@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-08T13:23:09+00:00",
+  "updated_at": "2026-07-08T15:56:43+00:00",
   "note": null,
   "deals": [
     {
@@ -41,48 +41,6 @@
         "refund": "특가운임 변경제한 가능"
       },
       "affiliate_url": "https://www.aviasales.com/search/ICN2407FUK28071?t=BX17848776001784883300000095ICNFUK17852328001785238500000095FUKICN_3839f3565e2b4ea1c32b00185181cc1d_8501&search_date=03062026&expected_price_uuid=019e8f25-3848-8030-2e52-3ed6e9c76cf6&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=176870&marker=737258",
-      "source": "Travelpayouts 자동발견",
-      "status": "published"
-    },
-    {
-      "id": "ICN-TYO-2026-07-08",
-      "route": "ICN-TYO",
-      "city": "도쿄",
-      "badge": "",
-      "price": 243007,
-      "normal_price": 280000,
-      "discount_rate": 13,
-      "airline": "이스타항공",
-      "carrier_type": "LCC",
-      "departure_time": "2026-07-08 07:25",
-      "return_time": "2026-07-22 18:30",
-      "duration": "5시간 10분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 243007,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 311907
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "B",
-      "inspection": {
-        "checked_at": "6/9(화) 10:38",
-        "price_ok": false,
-        "link_ok": false,
-        "refund": "특가운임 변경제한 가능"
-      },
-      "affiliate_url": "https://www.aviasales.com/search/ICN0807TYO22071?t=ZE17834955001783504200000145ICNNRT17847450001784754900000165NRTICN_3595a7e77ba756a7a650e267d25761b8_11717&search_date=08062026&expected_price_uuid=019ea4bc-052b-8030-20f1-83b303ac0f15&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=243007&marker=737258",
       "source": "Travelpayouts 자동발견",
       "status": "published"
     },
@@ -210,47 +168,6 @@
         "refund": "특가운임 변경제한 가능"
       },
       "affiliate_url": "https://www.aviasales.com/search/ICN2908TPE31081?t=IT17879634001787969700000165ICNTPE17882064001788219000000150TPEICN_18915642d5ce6edb3e465c2c9aab1e5a_11177&search_date=07062026&expected_price_uuid=019ea42d-532f-8030-2790-4537aa37316a&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=236410&marker=737258",
-      "source": "Travelpayouts 자동발견",
-      "status": "published"
-    },
-    {
-      "id": "GMP-HND-2026-07-08",
-      "route": "GMP-HND",
-      "city": "도쿄(하네다)",
-      "badge": "",
-      "price": 463520,
-      "normal_price": 300000,
-      "discount_rate": -55,
-      "airline": "ANA",
-      "carrier_type": "FSC",
-      "departure_time": "2026-07-08 07:40",
-      "return_time": "2026-07-14 08:40",
-      "duration": "4시간 35분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 포함 가능성 높음 (FSC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 463520,
-        "baggage_est": 0,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 472420
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람"
-      ],
-      "booking_grade": "B",
-      "inspection": {
-        "checked_at": "6/9(화) 10:38",
-        "price_ok": false,
-        "link_ok": false,
-        "refund": "특가운임 변경제한 가능"
-      },
-      "affiliate_url": "https://www.aviasales.com/search/GMP0807HND14071?t=NH17834964001783504200000130GMPHND17840184001784027100000145HNDGMP_fb253b0ff8682d311b140137c0535cc3_21901&search_date=06062026&expected_price_uuid=019e9c17-1f79-8010-68ab-4a7bc55450e9&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=463520&marker=737258",
       "source": "Travelpayouts 자동발견",
       "status": "published"
     },
