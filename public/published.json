@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-10T01:24:58+00:00",
+  "updated_at": "2026-07-10T05:49:37+00:00",
   "note": null,
   "deals": [
     {
@@ -177,8 +177,8 @@
       "city": "오키나와",
       "badge": "🔥🔥🔥",
       "price": 76873,
-      "normal_price": 357836,
-      "discount_rate": 79,
+      "normal_price": 355594,
+      "discount_rate": 78,
       "airline": "제주항공",
       "carrier_type": "LCC",
       "departure_time": "2026-09-14 13:15",
