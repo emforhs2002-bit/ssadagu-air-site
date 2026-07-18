@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-18T01:13:13+00:00",
+  "updated_at": "2026-07-18T04:35:42+00:00",
   "note": null,
   "deals": [
     {
@@ -177,7 +177,7 @@
       "city": "코타키나발루",
       "badge": "🔥",
       "price": 310661,
-      "normal_price": 445293,
+      "normal_price": 442510,
       "discount_rate": 30,
       "airline": "제주항공",
       "carrier_type": "LCC",
