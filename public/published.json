@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-20T12:07:41+00:00",
+  "updated_at": "2026-07-20T15:42:47+00:00",
   "note": null,
   "deals": [
     {
@@ -83,48 +83,6 @@
         "refund": "특가운임 변경제한 가능"
       },
       "affiliate_url": "https://www.aviasales.com/search/ICN1409BKK18091?t=VZ17893878001789401600000350ICNBKK17896983001789725600000335BKKICN_06d1dc15c0df14babcfd25c0cfbfe803_20660&search_date=03062026&expected_price_uuid=019e8ed6-230c-8030-62f4-ebf6f9f4e907&static_fare_key=TY%7CP1%7CH1%7CL1_1_20%7CCH0%7CR0%7CTBC1&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=429871&marker=737258",
-      "source": "Travelpayouts 자동발견",
-      "status": "published"
-    },
-    {
-      "id": "ICN-CEB-2026-07-20",
-      "route": "ICN-CEB",
-      "city": "세부",
-      "badge": "🔥🔥",
-      "price": 243378,
-      "normal_price": 430000,
-      "discount_rate": 43,
-      "airline": "세부퍼시픽",
-      "carrier_type": "LCC",
-      "departure_time": "2026-07-20 21:35",
-      "return_time": "2026-07-23 14:50",
-      "duration": "9시간 30분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 243378,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 312278
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "B",
-      "inspection": {
-        "checked_at": "6/9(화) 10:38",
-        "price_ok": false,
-        "link_ok": false,
-        "refund": "특가운임 변경제한 가능"
-      },
-      "affiliate_url": "https://www.aviasales.com/search/ICN2007CEB23071?t=5J17845833001784596800000285ICNCEB17848182001784838900000285CEBICN_027f563ccbacf7c75ae6677a98dea70d_11512&search_date=07062026&expected_price_uuid=019ea3dc-5d11-8030-68d4-a9d54b49f617&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH1%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=243378&marker=737258",
       "source": "Travelpayouts 자동발견",
       "status": "published"
     },
