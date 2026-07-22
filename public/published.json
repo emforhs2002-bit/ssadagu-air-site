@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-22T01:17:22+00:00",
+  "updated_at": "2026-07-22T04:55:12+00:00",
   "note": null,
   "deals": [
     {
@@ -128,43 +128,6 @@
       "affiliate_url": "https://www.aviasales.com/search/ICN2908TPE31081?t=IT17879634001787969700000165ICNTPE17882064001788219000000150TPEICN_18915642d5ce6edb3e465c2c9aab1e5a_11177&search_date=07062026&expected_price_uuid=019ea42d-532f-8030-2790-4537aa37316a&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=236410&marker=737258",
       "source": "Travelpayouts 자동발견",
       "status": "published"
-    },
-    {
-      "id": "ICN-BKI-2026-09-13",
-      "route": "ICN-BKI",
-      "city": "코타키나발루",
-      "badge": "🔥",
-      "price": 325831,
-      "normal_price": 439728,
-      "discount_rate": 26,
-      "airline": "제주항공",
-      "carrier_type": "LCC",
-      "departure_time": "2026-09-13 19:10",
-      "return_time": "2026-09-18 01:40",
-      "duration": "11시간 0분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 325831,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 394731
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "확인 전",
-      "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1309BKI18091?t=AK17893266001789342200000320ICNBKI17896956001789719600000340BKIICN_bec5e6d970a77b1985d8640179b4385f_17166&search_date=19072026&expected_price_uuid=019f7c18-1dc8-8030-a269-c3a242f44a09&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=1jIG0cUkoJlHRmLEhSFdHQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=325831&marker=737258",
-      "status": "published",
-      "source": "auto"
     }
   ]
 }
