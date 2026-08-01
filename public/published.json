@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-01T20:39:07+00:00",
+  "updated_at": "2026-08-01T22:42:23+00:00",
   "note": null,
   "deals": [
     {
@@ -86,6 +86,43 @@
       "affiliate_url": "https://www.aviasales.com/search/ICN2908TPE31081?t=IT17879634001787969700000165ICNTPE17882064001788219000000150TPEICN_18915642d5ce6edb3e465c2c9aab1e5a_11177&search_date=07062026&expected_price_uuid=019ea42d-532f-8030-2790-4537aa37316a&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=236410&marker=737258",
       "source": "Travelpayouts 자동발견",
       "status": "published"
+    },
+    {
+      "id": "ICN-OKA-2026-09-10",
+      "route": "ICN-OKA",
+      "city": "오키나와",
+      "badge": "🔥",
+      "price": 254920,
+      "normal_price": 345928,
+      "discount_rate": 26,
+      "airline": "티웨이",
+      "carrier_type": "LCC",
+      "departure_time": "2026-09-10 11:00",
+      "return_time": "2026-09-17 14:35",
+      "duration": "4시간 55분",
+      "transfers": 0,
+      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
+      "fatigue": "좋음",
+      "hidden_cost": {
+        "airfare": 254920,
+        "baggage_est": 60000,
+        "esim": 8900,
+        "hotel_note": "숙소 별도 (연계 추천 예정)",
+        "total_est": 323820
+      },
+      "fit_recommend": [
+        "짐 가벼운 2인·주말 여행",
+        "평일 연차 가능자"
+      ],
+      "fit_avoid": [
+        "날짜 고정이라 못 바꾸는 사람",
+        "위탁수하물 많은 가족 여행"
+      ],
+      "booking_grade": "확인 전",
+      "inspection": null,
+      "affiliate_url": "https://www.aviasales.com/search/ICN1009OKA17091?t=TW17890380001789047300000155ICNOKA17896557001789664100000140OKAICN_81348c29c9dcd02d492233225930640e_14003&search_date=01082026&expected_price_uuid=019fbf41-8aeb-8050-2741-3f5652666954&static_fare_key=TY%7CP1_JW%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=ZJjs80AuMroTR9vXsocgPg&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=254920&marker=737258",
+      "status": "published",
+      "source": "auto"
     },
     {
       "id": "ICN-SGN-2026-10-06",
