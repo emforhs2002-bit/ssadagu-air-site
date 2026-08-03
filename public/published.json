@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-03T01:23:50+00:00",
+  "updated_at": "2026-08-03T05:26:23+00:00",
   "note": null,
   "deals": [
     {
@@ -93,7 +93,7 @@
       "city": "오키나와",
       "badge": "🔥",
       "price": 254920,
-      "normal_price": 345928,
+      "normal_price": 344104,
       "discount_rate": 26,
       "airline": "티웨이",
       "carrier_type": "LCC",
@@ -130,8 +130,8 @@
       "city": "호치민",
       "badge": "🔥",
       "price": 244598,
-      "normal_price": 385823,
-      "discount_rate": 37,
+      "normal_price": 371339,
+      "discount_rate": 34,
       "airline": "9G",
       "carrier_type": "LCC",
       "departure_time": "2026-10-06 00:10",
@@ -168,8 +168,8 @@
       "city": "푸켓",
       "badge": "🔥",
       "price": 437204,
-      "normal_price": 598975,
-      "discount_rate": 27,
+      "normal_price": 593840,
+      "discount_rate": 26,
       "airline": "아시아나",
       "carrier_type": "FSC",
       "departure_time": "2026-09-06 17:20",
