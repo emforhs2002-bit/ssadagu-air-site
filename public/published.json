@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-04T16:05:00+00:00",
+  "updated_at": "2026-08-04T19:15:23+00:00",
   "note": null,
   "deals": [
     {
@@ -166,7 +166,7 @@
       "route": "ICN-SGN",
       "city": "호치민",
       "badge": "🔥",
-      "price": 255779,
+      "price": 256177,
       "normal_price": 356855,
       "discount_rate": 28,
       "airline": "비엣젯",
@@ -178,11 +178,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 255779,
+        "airfare": 256177,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 324679
+        "total_est": 325077
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -194,7 +194,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1210SGN25101?t=VJ17918397001791851400000315ICNSGN17929299001792956300000320SGNICN_0d56f22231b5914931bb15a45efcf361_14554&search_date=04082026&expected_price_uuid=019fcc92-c961-8030-a7f3-1adfc6b863f3&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=xJ8KOiZeGjfriOD4hhDesA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=255779&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1210SGN25101?t=VJ17918397001791851400000315ICNSGN17929299001792956300000320SGNICN_0d56f22231b5914931bb15a45efcf361_14554&search_date=04082026&expected_price_uuid=019fcc92-c961-8030-a7f3-1adfc6b863f3&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=xJ8KOiZeGjfriOD4hhDesA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=256177&marker=737258",
       "status": "published",
       "source": "auto"
     },
@@ -203,7 +203,7 @@
       "route": "ICN-BKI",
       "city": "코타키나발루",
       "badge": "🔥🔥",
-      "price": 229398,
+      "price": 229755,
       "normal_price": 408844,
       "discount_rate": 44,
       "airline": "에어아시아",
@@ -215,11 +215,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 229398,
+        "airfare": 229755,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 298298
+        "total_est": 298655
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -231,7 +231,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1309BKI18091?t=AK17892912001789306200000310ICNBKI17896956001789719600000340BKIICN_8bac4be4d70ac92912dfa2ace8227834_13049&search_date=04082026&expected_price_uuid=019fcd28-b116-8030-a053-e0e1871bf24d&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=TnZFWYzO0lvUgCppIuqw4g&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=229398&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1309BKI18091?t=AK17892912001789306200000310ICNBKI17896956001789719600000340BKIICN_8bac4be4d70ac92912dfa2ace8227834_13049&search_date=04082026&expected_price_uuid=019fcd28-b116-8030-a053-e0e1871bf24d&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=TnZFWYzO0lvUgCppIuqw4g&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=229755&marker=737258",
       "status": "published",
       "source": "auto"
     }
