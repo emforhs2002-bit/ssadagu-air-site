@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-10T20:29:24+00:00",
+  "updated_at": "2026-08-10T22:24:13+00:00",
   "note": null,
   "deals": [
     {
@@ -92,7 +92,7 @@
       "route": "ICN-CTS",
       "city": "삿포로",
       "badge": "🔥",
-      "price": 286640,
+      "price": 286551,
       "normal_price": 422952,
       "discount_rate": 32,
       "airline": "티웨이",
@@ -104,11 +104,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 286640,
+        "airfare": 286551,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 355540
+        "total_est": 355451
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -120,7 +120,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1609CTS22091?t=WE17895534001789563600000170ICNCTS17900862001790097000000180CTSICN_c414017ba98ed2c5de88ed0aa5e1a6b4_16696&search_date=10082026&expected_price_uuid=019febff-a486-8050-60ea-1751212b2e9a&static_fare_key=TY%7CP1%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=7ryLZ1aVLrh4gjE-ltMJyg&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=286640&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1609CTS22091?t=WE17895534001789563600000170ICNCTS17900862001790097000000180CTSICN_c414017ba98ed2c5de88ed0aa5e1a6b4_16696&search_date=10082026&expected_price_uuid=019febff-a486-8050-60ea-1751212b2e9a&static_fare_key=TY%7CP1%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=7ryLZ1aVLrh4gjE-ltMJyg&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=286551&marker=737258",
       "status": "published",
       "source": "auto"
     },
