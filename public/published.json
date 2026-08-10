@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-10T12:38:56+00:00",
+  "updated_at": "2026-08-10T14:49:18+00:00",
   "note": null,
   "deals": [
     {
@@ -86,6 +86,43 @@
       "affiliate_url": "https://www.aviasales.com/search/ICN2908TPE31081?t=IT17879634001787969700000165ICNTPE17882064001788219000000150TPEICN_18915642d5ce6edb3e465c2c9aab1e5a_11177&search_date=07062026&expected_price_uuid=019ea42d-532f-8030-2790-4537aa37316a&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=236410&marker=737258",
       "source": "Travelpayouts 자동발견",
       "status": "published"
+    },
+    {
+      "id": "ICN-CTS-2026-09-16",
+      "route": "ICN-CTS",
+      "city": "삿포로",
+      "badge": "🔥",
+      "price": 286478,
+      "normal_price": 422952,
+      "discount_rate": 32,
+      "airline": "티웨이",
+      "carrier_type": "LCC",
+      "departure_time": "2026-09-16 10:10",
+      "return_time": "2026-09-22 14:10",
+      "duration": "5시간 50분",
+      "transfers": 0,
+      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
+      "fatigue": "좋음",
+      "hidden_cost": {
+        "airfare": 286478,
+        "baggage_est": 60000,
+        "esim": 8900,
+        "hotel_note": "숙소 별도 (연계 추천 예정)",
+        "total_est": 355378
+      },
+      "fit_recommend": [
+        "짐 가벼운 2인·주말 여행",
+        "평일 연차 가능자"
+      ],
+      "fit_avoid": [
+        "날짜 고정이라 못 바꾸는 사람",
+        "위탁수하물 많은 가족 여행"
+      ],
+      "booking_grade": "확인 전",
+      "inspection": null,
+      "affiliate_url": "https://www.aviasales.com/search/ICN1609CTS22091?t=WE17895534001789563600000170ICNCTS17900862001790097000000180CTSICN_c414017ba98ed2c5de88ed0aa5e1a6b4_16696&search_date=10082026&expected_price_uuid=019febff-a486-8050-60ea-1751212b2e9a&static_fare_key=TY%7CP1%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=7ryLZ1aVLrh4gjE-ltMJyg&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=286478&marker=737258",
+      "status": "published",
+      "source": "auto"
     },
     {
       "id": "ICN-OKA-2026-09-08",
