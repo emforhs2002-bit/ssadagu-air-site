@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-13T00:53:10+00:00",
+  "updated_at": "2026-08-13T03:56:58+00:00",
   "note": null,
   "deals": [
     {
@@ -130,8 +130,8 @@
       "city": "오키나와",
       "badge": "🔥",
       "price": 236446,
-      "normal_price": 341135,
-      "discount_rate": 31,
+      "normal_price": 338202,
+      "discount_rate": 30,
       "airline": "이스타항공",
       "carrier_type": "LCC",
       "departure_time": "2026-08-25 11:30",
@@ -166,7 +166,7 @@
       "route": "ICN-HAN",
       "city": "하노이",
       "badge": "🔥",
-      "price": 198243,
+      "price": 197510,
       "normal_price": 312773,
       "discount_rate": 37,
       "airline": "9G",
@@ -178,11 +178,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 198243,
+        "airfare": 197510,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 267143
+        "total_est": 266410
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -195,7 +195,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN2608HAN02091?t=9G17877033001787713800000295ICNHAN17883660001788389100000265HANICN_cd472d520523f595fe7d2480d6284791_11587&search_date=12082026&expected_price_uuid=019ff6a8-1a12-8030-a36a-08951d566cce&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=LqY3NbIHqpjIao2I387t3A&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=198242&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN2608HAN02091?t=9G17877033001787713800000295ICNHAN17883660001788389100000265HANICN_cd472d520523f595fe7d2480d6284791_11586&search_date=13082026&expected_price_uuid=019ff914-1a5a-8030-6d0d-7cd428e5a28f&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=LqY3NbIHqpjIao2I387t3A&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=197510&marker=737258",
       "status": "published",
       "source": "auto"
     },
@@ -205,7 +205,7 @@
       "city": "호치민",
       "badge": "🔥🔥",
       "price": 195043,
-      "normal_price": 355632,
+      "normal_price": 353493,
       "discount_rate": 45,
       "airline": "9G",
       "carrier_type": "LCC",
@@ -243,7 +243,7 @@
       "city": "코타키나발루",
       "badge": "🔥",
       "price": 235754,
-      "normal_price": 353751,
+      "normal_price": 353710,
       "discount_rate": 33,
       "airline": "에어아시아",
       "carrier_type": "LCC",
