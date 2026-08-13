@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-13T10:50:04+00:00",
+  "updated_at": "2026-08-13T12:38:59+00:00",
   "note": null,
   "deals": [
     {
@@ -166,9 +166,9 @@
       "route": "ICN-HAN",
       "city": "하노이",
       "badge": "🔥",
-      "price": 198898,
+      "price": 198610,
       "normal_price": 312773,
-      "discount_rate": 36,
+      "discount_rate": 37,
       "airline": "9G",
       "carrier_type": "LCC",
       "departure_time": "2026-08-26 00:15",
@@ -178,11 +178,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 198898,
+        "airfare": 198610,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 267798
+        "total_est": 267510
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -195,7 +195,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN2608HAN02091?t=9G17877033001787713800000295ICNHAN17883660001788389100000265HANICN_cd472d520523f595fe7d2480d6284791_11586&search_date=13082026&expected_price_uuid=019ff914-1a5a-8030-6d0d-7cd428e5a28f&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=LqY3NbIHqpjIao2I387t3A&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=198898&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN2608HAN02091?t=9G17877033001787713800000295ICNHAN17883660001788389100000265HANICN_cd472d520523f595fe7d2480d6284791_11586&search_date=13082026&expected_price_uuid=019ff914-1a5a-8030-6d0d-7cd428e5a28f&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=LqY3NbIHqpjIao2I387t3A&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=198610&marker=737258",
       "status": "published",
       "source": "auto"
     },
