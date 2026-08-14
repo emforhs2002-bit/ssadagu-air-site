@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-14T00:52:37+00:00",
+  "updated_at": "2026-08-14T03:53:52+00:00",
   "note": null,
   "deals": [
     {
@@ -130,8 +130,8 @@
       "city": "오키나와",
       "badge": "🔥",
       "price": 236446,
-      "normal_price": 338202,
-      "discount_rate": 30,
+      "normal_price": 331024,
+      "discount_rate": 29,
       "airline": "이스타항공",
       "carrier_type": "LCC",
       "departure_time": "2026-08-25 11:30",
@@ -205,8 +205,8 @@
       "city": "호치민",
       "badge": "🔥🔥",
       "price": 195043,
-      "normal_price": 353493,
-      "discount_rate": 45,
+      "normal_price": 351354,
+      "discount_rate": 44,
       "airline": "9G",
       "carrier_type": "LCC",
       "departure_time": "2026-08-26 00:10",
@@ -243,7 +243,7 @@
       "city": "코타키나발루",
       "badge": "🔥",
       "price": 235754,
-      "normal_price": 353710,
+      "normal_price": 352028,
       "discount_rate": 33,
       "airline": "에어아시아",
       "carrier_type": "LCC",
