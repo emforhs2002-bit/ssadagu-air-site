@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-14T05:22:35+00:00",
+  "updated_at": "2026-08-14T07:03:23+00:00",
   "note": null,
   "deals": [
     {
@@ -162,27 +162,27 @@
       "source": "auto"
     },
     {
-      "id": "ICN-HAN-2026-08-22",
+      "id": "ICN-HAN-2026-08-26",
       "route": "ICN-HAN",
       "city": "하노이",
       "badge": "🔥",
-      "price": 225940,
+      "price": 215313,
       "normal_price": 312773,
-      "discount_rate": 28,
+      "discount_rate": 31,
       "airline": "WE",
       "carrier_type": "LCC",
-      "departure_time": "2026-08-22 19:55",
-      "return_time": "2026-08-26 00:20",
+      "departure_time": "2026-08-26 19:55",
+      "return_time": "2026-09-02 00:20",
       "duration": "9시간 15분",
       "transfers": 0,
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 225940,
+        "airfare": 215313,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 294840
+        "total_est": 284213
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -194,7 +194,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN2208HAN26081?t=WE17874285001787439000000295ICNHAN17877036001787726400000260HANICN_694b76518908bebedf72b2d6228e90ef_13168&search_date=11082026&expected_price_uuid=019ff0a2-a359-8030-af1b-35a9cd0a11b5&static_fare_key=TY%7CP0%7CH1%7CL1_1_15%7CCH0%7CR0%7CTBC1&itinerary_key=wK6MtQ-NYfAw1G5CvKO_FA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=225940&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN2608HAN02091?t=WE17877741001787784600000295ICNHAN17883084001788331200000260HANICN_76b3f92514add299104cf51dd2f1e21b_12638&search_date=14082026&expected_price_uuid=019fff0d-94a8-8030-24f4-d0611e15a55d&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=bz4vgqrIZ1fqWoApjrytzQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=215313&marker=737258",
       "status": "published",
       "source": "auto"
     },
