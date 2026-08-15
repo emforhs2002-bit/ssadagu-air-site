@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-15T12:13:01+00:00",
+  "updated_at": "2026-08-15T14:10:48+00:00",
   "note": null,
   "deals": [
     {
@@ -162,27 +162,27 @@
       "source": "auto"
     },
     {
-      "id": "ICN-HAN-2026-08-26",
+      "id": "ICN-HAN-2026-08-27",
       "route": "ICN-HAN",
       "city": "하노이",
-      "badge": "🔥",
-      "price": 205481,
+      "badge": "🔥🔥",
+      "price": 182379,
       "normal_price": 312306,
-      "discount_rate": 34,
-      "airline": "WE",
+      "discount_rate": 42,
+      "airline": "9G",
       "carrier_type": "LCC",
-      "departure_time": "2026-08-26 19:55",
-      "return_time": "2026-09-02 00:20",
-      "duration": "9시간 15분",
+      "departure_time": "2026-08-27 00:15",
+      "return_time": "2026-09-10 16:20",
+      "duration": "9시간 20분",
       "transfers": 0,
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 205481,
+        "airfare": 182379,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 274381
+        "total_est": 251279
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -190,11 +190,12 @@
       ],
       "fit_avoid": [
         "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
+        "위탁수하물 많은 가족 여행",
+        "새벽 출발/도착이 부담스러운 사람"
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN2608HAN02091?t=WE17877741001787784600000295ICNHAN17883084001788331200000260HANICN_76b3f92514add299104cf51dd2f1e21b_12185&search_date=15082026&expected_price_uuid=01a00459-4f51-8040-6b64-c2c5358ac584&static_fare_key=TY%7CP0%7CH1%7CL1_1_15%7CCH0%7CR0%7CTBC1&itinerary_key=bz4vgqrIZ1fqWoApjrytzQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=205481&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN2708HAN10091?t=9G17877897001787800200000295ICNHAN17890572001789080300000265HANICN_7892cebfd0dcf6554f237dc9986e428d_10838&search_date=15082026&expected_price_uuid=01a00582-f105-8030-22f6-26b0a933b281&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=1qVCRfKfv81fPsV1HCQA8g&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=182379&marker=737258",
       "status": "published",
       "source": "auto"
     },
