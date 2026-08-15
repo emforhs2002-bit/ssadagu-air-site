@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-15T14:10:48+00:00",
+  "updated_at": "2026-08-15T16:09:41+00:00",
   "note": null,
   "deals": [
     {
@@ -125,27 +125,27 @@
       "source": "auto"
     },
     {
-      "id": "ICN-OKA-2026-08-25",
+      "id": "ICN-OKA-2026-09-01",
       "route": "ICN-OKA",
       "city": "오키나와",
       "badge": "🔥",
-      "price": 236446,
+      "price": 238024,
       "normal_price": 325687,
       "discount_rate": 27,
       "airline": "이스타항공",
       "carrier_type": "LCC",
-      "departure_time": "2026-08-25 11:30",
-      "return_time": "2026-08-27 15:00",
+      "departure_time": "2026-09-01 11:30",
+      "return_time": "2026-09-08 15:00",
       "duration": "5시간 5분",
       "transfers": 0,
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 236446,
+        "airfare": 238024,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 305346
+        "total_est": 306924
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -157,7 +157,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN2508OKA27081?t=ZE17876574001787666400000150ICNOKA17878428001787852100000155OKAICN_28faf48503c771fd32ac1270a6b263a0_13816&search_date=08082026&expected_price_uuid=019fe1eb-a960-8040-a2be-d97478d62cd2&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=GJ1E8r7YnZwBjrnhsv-p6Q&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=236446&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN0109OKA08091?t=ZE17882622001788271200000150ICNOKA17888796001788888900000155OKAICN_a99865bfa3d3d0e20ec1c97875fcb90b_13906&search_date=11082026&expected_price_uuid=019feec0-71af-8030-a9ba-39d484889452&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=AzxDsbNWLHmWaQxcGCoyLg&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=238024&marker=737258",
       "status": "published",
       "source": "auto"
     },
