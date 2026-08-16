@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-16T00:30:05+00:00",
+  "updated_at": "2026-08-16T02:50:39+00:00",
   "note": null,
   "deals": [
     {
@@ -130,7 +130,7 @@
       "city": "오키나와",
       "badge": "🔥",
       "price": 238024,
-      "normal_price": 325687,
+      "normal_price": 324596,
       "discount_rate": 27,
       "airline": "이스타항공",
       "carrier_type": "LCC",
@@ -167,7 +167,7 @@
       "city": "하노이",
       "badge": "🔥🔥",
       "price": 179686,
-      "normal_price": 312306,
+      "normal_price": 311838,
       "discount_rate": 42,
       "airline": "9G",
       "carrier_type": "LCC",
@@ -279,7 +279,7 @@
       "city": "코타키나발루",
       "badge": "🔥",
       "price": 235754,
-      "normal_price": 350386,
+      "normal_price": 349968,
       "discount_rate": 33,
       "airline": "에어아시아",
       "carrier_type": "LCC",
