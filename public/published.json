@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-17T16:13:00+00:00",
+  "updated_at": "2026-08-17T18:19:29+00:00",
   "note": null,
   "deals": [
     {
@@ -92,7 +92,7 @@
       "route": "ICN-TYO",
       "city": "도쿄",
       "badge": "🔥",
-      "price": 159158,
+      "price": 159194,
       "normal_price": 218722,
       "discount_rate": 27,
       "airline": "이스타항공",
@@ -104,11 +104,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 159158,
+        "airfare": 159194,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 228058
+        "total_est": 228094
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -120,7 +120,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1609TYO24091?t=ZE17895435001789552200000145ICNNRT17902710001790281200000170NRTICN_2f7e34f08541b2dc83ca3a10c0c9f76b_9592&search_date=17082026&expected_price_uuid=01a00f88-fe35-8050-6021-d647aa731a8b&static_fare_key=TY%7CP1%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=FbccaE8zYIy0OsIlO5oPtw&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=159158&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1609TYO24091?t=ZE17895435001789552200000145ICNNRT17902710001790281200000170NRTICN_2f7e34f08541b2dc83ca3a10c0c9f76b_9592&search_date=17082026&expected_price_uuid=01a00f88-fe35-8050-6021-d647aa731a8b&static_fare_key=TY%7CP1%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=FbccaE8zYIy0OsIlO5oPtw&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=159194&marker=737258",
       "status": "published",
       "source": "auto"
     },
@@ -129,7 +129,7 @@
       "route": "ICN-DAD",
       "city": "다낭",
       "badge": "🔥",
-      "price": 181536,
+      "price": 181577,
       "normal_price": 252357,
       "discount_rate": 28,
       "airline": "에어서울",
@@ -141,11 +141,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 181536,
+        "airfare": 181577,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 250436
+        "total_est": 250477
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -157,7 +157,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0109DAD01101?t=RS17882961001788306000000285ICNDAD17908152001790838900000275DADICN_d5179492907066e5f7e17792ddee1d9f_10918&search_date=17082026&expected_price_uuid=01a0106c-170c-8030-2990-28ea15dc2b21&static_fare_key=TY%7CP1_JW%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=urfb10Tn-IlGf_yx1p1vjg&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=181536&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN0109DAD01101?t=RS17882961001788306000000285ICNDAD17908152001790838900000275DADICN_d5179492907066e5f7e17792ddee1d9f_10918&search_date=17082026&expected_price_uuid=01a0106c-170c-8030-2990-28ea15dc2b21&static_fare_key=TY%7CP1_JW%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=urfb10Tn-IlGf_yx1p1vjg&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=181577&marker=737258",
       "status": "published",
       "source": "auto"
     },
@@ -316,7 +316,7 @@
       "route": "ICN-HKT",
       "city": "푸켓",
       "badge": "🔥",
-      "price": 406722,
+      "price": 406814,
       "normal_price": 586894,
       "discount_rate": 31,
       "airline": "아시아나",
@@ -328,11 +328,11 @@
       "baggage_note": "위탁수하물 포함 가능성 높음 (FSC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 406722,
+        "airfare": 406814,
         "baggage_est": 0,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 415622
+        "total_est": 415714
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -343,7 +343,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1009HKT14091?t=OZ17890608001789076700000385ICNHKT17894259001789455900000380HKTICN_35a4e748c9c6900cc256107c27e3e3a1_24155&search_date=17082026&expected_price_uuid=01a00e4b-72be-8030-21ac-224f14b257af&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=os4QtffFRR3H64gfyx2WFQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=406722&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1009HKT14091?t=OZ17890608001789076700000385ICNHKT17894259001789455900000380HKTICN_35a4e748c9c6900cc256107c27e3e3a1_24155&search_date=17082026&expected_price_uuid=01a00e4b-72be-8030-21ac-224f14b257af&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=os4QtffFRR3H64gfyx2WFQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=406814&marker=737258",
       "status": "published",
       "source": "auto"
     },
