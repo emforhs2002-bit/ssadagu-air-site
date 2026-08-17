@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-17T10:19:20+00:00",
+  "updated_at": "2026-08-17T12:17:08+00:00",
   "note": null,
   "deals": [
     {
@@ -92,7 +92,7 @@
       "route": "ICN-TYO",
       "city": "도쿄",
       "badge": "🔥",
-      "price": 139706,
+      "price": 139797,
       "normal_price": 218722,
       "discount_rate": 36,
       "airline": "이스타항공",
@@ -104,11 +104,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 139706,
+        "airfare": 139797,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 208606
+        "total_est": 208697
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -120,7 +120,44 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1509TYO23091?t=ZE17894571001789465800000145ICNNRT17901804001790190600000170NRTICN_f9eb38b75f3264410776e91921a9212d_8304&search_date=17082026&expected_price_uuid=01a00d6d-1055-8030-67a5-6d5e904144f8&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=gb9kBxvIH_ZP4rjWkpEzIw&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=139706&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1509TYO23091?t=ZE17894571001789465800000145ICNNRT17901804001790190600000170NRTICN_f9eb38b75f3264410776e91921a9212d_8304&search_date=17082026&expected_price_uuid=01a00d6d-1055-8030-67a5-6d5e904144f8&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=gb9kBxvIH_ZP4rjWkpEzIw&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=139797&marker=737258",
+      "status": "published",
+      "source": "auto"
+    },
+    {
+      "id": "ICN-DAD-2026-09-01",
+      "route": "ICN-DAD",
+      "city": "다낭",
+      "badge": "🔥",
+      "price": 181594,
+      "normal_price": 252357,
+      "discount_rate": 28,
+      "airline": "에어서울",
+      "carrier_type": "LCC",
+      "departure_time": "2026-09-01 20:55",
+      "return_time": "2026-10-01 00:40",
+      "duration": "9시간 20분",
+      "transfers": 0,
+      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
+      "fatigue": "좋음",
+      "hidden_cost": {
+        "airfare": 181594,
+        "baggage_est": 60000,
+        "esim": 8900,
+        "hotel_note": "숙소 별도 (연계 추천 예정)",
+        "total_est": 250494
+      },
+      "fit_recommend": [
+        "짐 가벼운 2인·주말 여행",
+        "평일 연차 가능자"
+      ],
+      "fit_avoid": [
+        "날짜 고정이라 못 바꾸는 사람",
+        "위탁수하물 많은 가족 여행"
+      ],
+      "booking_grade": "확인 전",
+      "inspection": null,
+      "affiliate_url": "https://www.aviasales.com/search/ICN0109DAD01101?t=RS17882961001788306000000285ICNDAD17908152001790838900000275DADICN_d5179492907066e5f7e17792ddee1d9f_10938&search_date=17082026&expected_price_uuid=01a00f78-488d-8030-ed43-4a410ef91b24&static_fare_key=TY%7CP1_JW%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=urfb10Tn-IlGf_yx1p1vjg&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=181594&marker=737258",
       "status": "published",
       "source": "auto"
     },
@@ -279,7 +316,7 @@
       "route": "ICN-HKT",
       "city": "푸켓",
       "badge": "🔥",
-      "price": 406567,
+      "price": 406831,
       "normal_price": 586894,
       "discount_rate": 31,
       "airline": "아시아나",
@@ -291,11 +328,11 @@
       "baggage_note": "위탁수하물 포함 가능성 높음 (FSC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 406567,
+        "airfare": 406831,
         "baggage_est": 0,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 415467
+        "total_est": 415731
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -306,7 +343,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1009HKT14091?t=OZ17890608001789076700000385ICNHKT17894259001789455900000380HKTICN_35a4e748c9c6900cc256107c27e3e3a1_24155&search_date=17082026&expected_price_uuid=01a00e4b-72be-8030-21ac-224f14b257af&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=os4QtffFRR3H64gfyx2WFQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=406567&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1009HKT14091?t=OZ17890608001789076700000385ICNHKT17894259001789455900000380HKTICN_35a4e748c9c6900cc256107c27e3e3a1_24155&search_date=17082026&expected_price_uuid=01a00e4b-72be-8030-21ac-224f14b257af&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=os4QtffFRR3H64gfyx2WFQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=406831&marker=737258",
       "status": "published",
       "source": "auto"
     },
