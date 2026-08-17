@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-16T22:07:51+00:00",
+  "updated_at": "2026-08-17T00:28:52+00:00",
   "note": null,
   "deals": [
     {
@@ -92,23 +92,23 @@
       "route": "ICN-TYO",
       "city": "도쿄",
       "badge": "🔥",
-      "price": 143083,
+      "price": 137407,
       "normal_price": 218722,
-      "discount_rate": 35,
+      "discount_rate": 37,
       "airline": "이스타항공",
       "carrier_type": "LCC",
-      "departure_time": "2026-09-15 07:25",
+      "departure_time": "2026-09-15 08:00",
       "return_time": "2026-09-23 16:20",
-      "duration": "5시간 15분",
+      "duration": "5시간 20분",
       "transfers": 0,
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 143083,
+        "airfare": 137407,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 211983
+        "total_est": 206307
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -120,7 +120,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1509TYO23091?t=ZE17894571001789465800000145ICNNRT17901804001790190600000170NRTICN_f9eb38b75f3264410776e91921a9212d_8484&search_date=16082026&expected_price_uuid=01a00c2a-4b3c-8030-e2e4-189a4cf46753&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=gb9kBxvIH_ZP4rjWkpEzIw&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=143083&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1509TYO23091?t=ZE17894592001789468200000150ICNNRT17901804001790190600000170NRTICN_a6c8ad62ff61d5ddbe3894f8a1b6539e_8144&search_date=17082026&expected_price_uuid=01a00d10-d2b6-8030-ac33-588b220712ad&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=ZgF2F9p-gUELBg6gIw9AeQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=137407&marker=737258",
       "status": "published",
       "source": "auto"
     },
@@ -241,7 +241,7 @@
       "route": "ICN-SGN",
       "city": "호치민",
       "badge": "🔥🔥",
-      "price": 182244,
+      "price": 182236,
       "normal_price": 351354,
       "discount_rate": 48,
       "airline": "9G",
@@ -253,11 +253,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 182244,
+        "airfare": 182236,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 251144
+        "total_est": 251136
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -270,32 +270,32 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0709SGN11091?t=9G17887398001788752100000325ICNSGN17891403001789166400000315SGNICN_2ac4f7c50e461d1e925eff95d22ca4ba_10806&search_date=16082026&expected_price_uuid=01a00ac8-70a6-8040-6b1c-85e954c719a4&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=ZWJ6aad2AsEcbw7JreazRA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=182244&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN0709SGN11091?t=9G17887398001788752100000325ICNSGN17891403001789166400000315SGNICN_2ac4f7c50e461d1e925eff95d22ca4ba_10806&search_date=16082026&expected_price_uuid=01a00ac8-70a6-8040-6b1c-85e954c719a4&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=ZWJ6aad2AsEcbw7JreazRA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=182236&marker=737258",
       "status": "published",
       "source": "auto"
     },
     {
-      "id": "ICN-HKT-2026-09-05",
+      "id": "ICN-HKT-2026-09-06",
       "route": "ICN-HKT",
       "city": "푸켓",
       "badge": "🔥",
-      "price": 408675,
+      "price": 407220,
       "normal_price": 586894,
-      "discount_rate": 30,
+      "discount_rate": 31,
       "airline": "아시아나",
       "carrier_type": "FSC",
-      "departure_time": "2026-09-05 17:20",
-      "return_time": "2026-09-12 23:00",
-      "duration": "12시간 35분",
+      "departure_time": "2026-09-06 17:20",
+      "return_time": "2026-09-11 23:00",
+      "duration": "12시간 25분",
       "transfers": 0,
       "baggage_note": "위탁수하물 포함 가능성 높음 (FSC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 408675,
+        "airfare": 407220,
         "baggage_est": 0,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 417575
+        "total_est": 416120
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -306,7 +306,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0509HKT12091?t=OZ17886288001788644700000385ICNHKT17892540001789283400000370HKTICN_a9759bb1e5f3f38d63cc8724183109b0_24307&search_date=14082026&expected_price_uuid=01a000d9-12da-8030-6785-3145da12a7ff&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=WDSXgyRSrnhtLBdyWYKfxQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=408675&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN0609HKT11091?t=OZ17887152001788730500000375ICNHKT17891676001789197000000370HKTICN_047bb5fcb80e64720bf948c19d216c96_24155&search_date=16082026&expected_price_uuid=01a00cdf-b9da-8030-6f45-f0ddb155c072&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=RKO_C6qX0d0mAzceniv6gA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=407220&marker=737258",
       "status": "published",
       "source": "auto"
     },
