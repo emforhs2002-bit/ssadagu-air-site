@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-18T08:20:43+00:00",
+  "updated_at": "2026-08-18T10:16:05+00:00",
   "note": null,
   "deals": [
     {
@@ -86,6 +86,43 @@
       "affiliate_url": "https://www.aviasales.com/search/ICN2908TPE31081?t=IT17879634001787969700000165ICNTPE17882064001788219000000150TPEICN_18915642d5ce6edb3e465c2c9aab1e5a_11177&search_date=07062026&expected_price_uuid=019ea42d-532f-8030-2790-4537aa37316a&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=236410&marker=737258",
       "source": "Travelpayouts 자동발견",
       "status": "published"
+    },
+    {
+      "id": "ICN-DAD-2026-08-25",
+      "route": "ICN-DAD",
+      "city": "다낭",
+      "badge": "🔥🔥🔥",
+      "price": 111720,
+      "normal_price": 250470,
+      "discount_rate": 55,
+      "airline": "이스타항공",
+      "carrier_type": "LCC",
+      "departure_time": "2026-08-25 20:35",
+      "return_time": "2026-09-03 00:40",
+      "duration": "9시간 25분",
+      "transfers": 0,
+      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
+      "fatigue": "좋음",
+      "hidden_cost": {
+        "airfare": 111720,
+        "baggage_est": 60000,
+        "esim": 8900,
+        "hotel_note": "숙소 별도 (연계 추천 예정)",
+        "total_est": 180620
+      },
+      "fit_recommend": [
+        "짐 가벼운 2인·주말 여행",
+        "평일 연차 가능자"
+      ],
+      "fit_avoid": [
+        "날짜 고정이라 못 바꾸는 사람",
+        "위탁수하물 많은 가족 여행"
+      ],
+      "booking_grade": "확인 전",
+      "inspection": null,
+      "affiliate_url": "https://www.aviasales.com/search/ICN2508DAD03091?t=ZE17876901001787700300000290ICNDAD17883960001788419700000275DADICN_2eb164aad1a15780b1b35768d69c90b6_6743&search_date=18082026&expected_price_uuid=01a0145c-ce5d-8030-ed11-8f09e1df1c18&static_fare_key=TY%7CP1%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=vyymg9cI7HMWAl40fbjqAA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=111720&marker=737258",
+      "status": "published",
+      "source": "auto"
     },
     {
       "id": "ICN-CTS-2026-09-16",
@@ -205,7 +242,7 @@
       "route": "ICN-HKT",
       "city": "푸켓",
       "badge": "🔥",
-      "price": 406730,
+      "price": 406850,
       "normal_price": 586894,
       "discount_rate": 31,
       "airline": "아시아나",
@@ -217,11 +254,11 @@
       "baggage_note": "위탁수하물 포함 가능성 높음 (FSC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 406730,
+        "airfare": 406850,
         "baggage_est": 0,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 415630
+        "total_est": 415750
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -232,7 +269,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0609HKT11091?t=OZ17887152001788730500000375ICNHKT17891676001789197000000370HKTICN_047bb5fcb80e64720bf948c19d216c96_24505&search_date=18082026&expected_price_uuid=01a012ef-54e4-8030-a04d-3b397bf3677e&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=RKO_C6qX0d0mAzceniv6gA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=406730&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN0609HKT11091?t=OZ17887152001788730500000375ICNHKT17891676001789197000000370HKTICN_047bb5fcb80e64720bf948c19d216c96_24505&search_date=18082026&expected_price_uuid=01a012ef-54e4-8030-a04d-3b397bf3677e&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=RKO_C6qX0d0mAzceniv6gA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=406850&marker=737258",
       "status": "published",
       "source": "auto"
     }
