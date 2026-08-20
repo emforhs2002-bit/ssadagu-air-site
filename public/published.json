@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-20T18:19:42+00:00",
+  "updated_at": "2026-08-20T20:15:34+00:00",
   "note": null,
   "deals": [
     {
@@ -92,7 +92,7 @@
       "route": "ICN-TYO",
       "city": "도쿄",
       "badge": "🔥",
-      "price": 146337,
+      "price": 146480,
       "normal_price": 206422,
       "discount_rate": 29,
       "airline": "이스타항공",
@@ -104,11 +104,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 146337,
+        "airfare": 146480,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 215237
+        "total_est": 215380
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -120,7 +120,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1609TYO23091?t=ZE17895435001789552200000145ICNNRT17901882001790198100000165NRTICN_b5d80877a4fb18847cf0a536e2f83c06_8818&search_date=20082026&expected_price_uuid=01a01c8c-c8f7-8030-25ed-30dd171ee689&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=TPmD0n1RWGno_t6QOHeK6w&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=146337&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1609TYO23091?t=ZE17895435001789552200000145ICNNRT17901882001790198100000165NRTICN_b5d80877a4fb18847cf0a536e2f83c06_8818&search_date=20082026&expected_price_uuid=01a01c8c-c8f7-8030-25ed-30dd171ee689&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=TPmD0n1RWGno_t6QOHeK6w&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=146480&marker=737258",
       "status": "published",
       "source": "auto"
     },
@@ -166,7 +166,7 @@
       "route": "ICN-OKA",
       "city": "오키나와",
       "badge": "🔥",
-      "price": 216346,
+      "price": 216557,
       "normal_price": 324596,
       "discount_rate": 33,
       "airline": "이스타항공",
@@ -178,11 +178,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 216346,
+        "airfare": 216557,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 285246
+        "total_est": 285457
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -194,7 +194,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN2709OKA01101?t=ZE17905086001790517600000150ICNOKA17908542001790863500000155OKAICN_839c677837371e281f1e028a48c212b8_12916&search_date=20082026&expected_price_uuid=01a01eec-bb08-8030-6fff-54e2a8b26278&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=9g_l2XbwvkSf2iADtwvDXw&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=216346&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN2709OKA01101?t=ZE17905086001790517600000150ICNOKA17908542001790863500000155OKAICN_839c677837371e281f1e028a48c212b8_12916&search_date=20082026&expected_price_uuid=01a01eec-bb08-8030-6fff-54e2a8b26278&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=9g_l2XbwvkSf2iADtwvDXw&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=216557&marker=737258",
       "status": "published",
       "source": "auto"
     },
