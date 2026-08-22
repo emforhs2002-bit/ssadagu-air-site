@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-22T12:13:48+00:00",
+  "updated_at": "2026-08-22T14:10:09+00:00",
   "note": null,
   "deals": [
     {
@@ -92,23 +92,23 @@
       "route": "ICN-TYO",
       "city": "도쿄",
       "badge": "🔥",
-      "price": 123579,
+      "price": 127524,
       "normal_price": 201796,
-      "discount_rate": 39,
+      "discount_rate": 37,
       "airline": "이스타항공",
       "carrier_type": "LCC",
       "departure_time": "2026-09-16 08:00",
-      "return_time": "2026-09-23 16:20",
+      "return_time": "2026-09-23 17:30",
       "duration": "5시간 20분",
       "transfers": 0,
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 123579,
+        "airfare": 127524,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 192479
+        "total_est": 196424
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -120,7 +120,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1609TYO23091?t=ZE17895456001789554600000150ICNNRT17901804001790190600000170NRTICN_a93a088d211e3f830085bacfc60a6135_7374&search_date=21082026&expected_price_uuid=01a024d5-b22d-8030-68c7-9343d93edcb6&static_fare_key=TY%7CP1%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=wB_sA0ltrqb_0avDKS5SCA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=123578&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1609TYO23091?t=ZE17895456001789554600000150ICNNRT17901846001790194800000170NRTICN_f286a12d3377427edb3254cc2b9c9346_7607&search_date=22082026&expected_price_uuid=01a02974-39c2-8030-6358-8db3b20ef777&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=Liyxs_lIMK5dzKqMYovEKQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=127524&marker=737258",
       "status": "published",
       "source": "auto"
     },
