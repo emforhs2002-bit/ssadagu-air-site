@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-24T00:30:20+00:00",
+  "updated_at": "2026-08-24T02:53:52+00:00",
   "note": null,
   "deals": [
     {
@@ -130,8 +130,8 @@
       "city": "삿포로",
       "badge": "🔥",
       "price": 274513,
-      "normal_price": 401872,
-      "discount_rate": 32,
+      "normal_price": 388625,
+      "discount_rate": 29,
       "airline": "제주항공",
       "carrier_type": "LCC",
       "departure_time": "2026-09-04 12:15",
@@ -167,8 +167,8 @@
       "city": "오키나와",
       "badge": "🔥",
       "price": 207858,
-      "normal_price": 313776,
-      "discount_rate": 34,
+      "normal_price": 284348,
+      "discount_rate": 27,
       "airline": "이스타항공",
       "carrier_type": "LCC",
       "departure_time": "2026-08-31 11:30",
@@ -274,27 +274,27 @@
       "source": "auto"
     },
     {
-      "id": "ICN-SGN-2026-09-09",
+      "id": "ICN-SGN-2026-09-14",
       "route": "ICN-SGN",
       "city": "호치민",
       "badge": "🔥🔥",
-      "price": 193786,
+      "price": 194167,
       "normal_price": 338281,
       "discount_rate": 43,
       "airline": "9G",
       "carrier_type": "LCC",
-      "departure_time": "2026-09-09 00:10",
-      "return_time": "2026-09-23 15:25",
+      "departure_time": "2026-09-14 00:10",
+      "return_time": "2026-09-16 15:25",
       "duration": "10시간 40분",
       "transfers": 0,
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 193786,
+        "airfare": 194167,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 262686
+        "total_est": 263067
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -307,7 +307,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0909SGN23091?t=9G17889126001788924900000325ICNSGN17901771001790203200000315SGNICN_0de0924c090ecf946e1bc93e18bdddec_11556&search_date=22082026&expected_price_uuid=01a0282c-1d08-8040-a414-b67554b0b6ea&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=hu7UGtShTz4xYN5S-XWYpQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=193786&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1409SGN16091?t=9G17893446001789356900000325ICNSGN17895723001789598400000315SGNICN_3a4f96dd2f947270536aecf6dfd68601_11603&search_date=21082026&expected_price_uuid=01a0244b-f4ab-8040-632b-2c060150940f&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=JZmY01AKZtuyo40tjS0esw&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=194167&marker=737258",
       "status": "published",
       "source": "auto"
     },
@@ -317,8 +317,8 @@
       "city": "푸켓",
       "badge": "🔥",
       "price": 403941,
-      "normal_price": 586719,
-      "discount_rate": 31,
+      "normal_price": 565816,
+      "discount_rate": 29,
       "airline": "아시아나",
       "carrier_type": "FSC",
       "departure_time": "2026-09-09 17:20",
@@ -344,6 +344,43 @@
       "booking_grade": "확인 전",
       "inspection": null,
       "affiliate_url": "https://www.aviasales.com/search/ICN0909HKT14091?t=OZ17889744001788989700000375ICNHKT17894259001789455900000380HKTICN_5d81739dee95cf68da8e920f10ba257a_24682&search_date=19082026&expected_price_uuid=01a019e5-7c56-8030-6442-3f37075051b3&static_fare_key=TY%7CP1%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=NrRZN_HqbvwADcmgUtxtjA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=403941&marker=737258",
+      "status": "published",
+      "source": "auto"
+    },
+    {
+      "id": "ICN-BKI-2026-09-13",
+      "route": "ICN-BKI",
+      "city": "코타키나발루",
+      "badge": "🔥",
+      "price": 206069,
+      "normal_price": 325831,
+      "discount_rate": 37,
+      "airline": "제주항공",
+      "carrier_type": "LCC",
+      "departure_time": "2026-09-13 19:10",
+      "return_time": "2026-09-18 00:30",
+      "duration": "10시간 40분",
+      "transfers": 0,
+      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
+      "fatigue": "좋음",
+      "hidden_cost": {
+        "airfare": 206069,
+        "baggage_est": 60000,
+        "esim": 8900,
+        "hotel_note": "숙소 별도 (연계 추천 예정)",
+        "total_est": 274969
+      },
+      "fit_recommend": [
+        "짐 가벼운 2인·주말 여행",
+        "평일 연차 가능자"
+      ],
+      "fit_avoid": [
+        "날짜 고정이라 못 바꾸는 사람",
+        "위탁수하물 많은 가족 여행"
+      ],
+      "booking_grade": "확인 전",
+      "inspection": null,
+      "affiliate_url": "https://www.aviasales.com/search/ICN1309BKI18091?t=7C17893266001789342200000320ICNBKI17896914001789714200000320BKIICN_849adb8524fdb97be136112b4e7d7f01_12298&search_date=24082026&expected_price_uuid=01a03198-6f19-8030-a704-231afeebf62e&static_fare_key=TY%7CP0%7CH1%7CL1_1_15%7CCH0%7CR0%7CTBC1&itinerary_key=MYH-G84t4OmHWseexTFafw&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=206069&marker=737258",
       "status": "published",
       "source": "auto"
     }
