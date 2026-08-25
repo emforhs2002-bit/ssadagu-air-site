@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T02:49:22+00:00",
+  "updated_at": "2026-08-25T04:26:54+00:00",
   "note": null,
   "deals": [
     {
@@ -121,43 +121,6 @@
       "booking_grade": "확인 전",
       "inspection": null,
       "affiliate_url": "https://www.aviasales.com/search/ICN1609TYO23091?t=ZE17895435001789552200000145ICNNRT17901630001790172900000165NRTICN_2c6ba573ecf6cfd70706b4ee370fdbe8_8265&search_date=23082026&expected_price_uuid=01a02f35-bf8c-8030-eb0b-e83c3454006a&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=mfDm1y3pZAQEomoPvdUM-w&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=138564&marker=737258",
-      "status": "published",
-      "source": "auto"
-    },
-    {
-      "id": "ICN-CTS-2026-09-04",
-      "route": "ICN-CTS",
-      "city": "삿포로",
-      "badge": "🔥",
-      "price": 274513,
-      "normal_price": 388625,
-      "discount_rate": 29,
-      "airline": "제주항공",
-      "carrier_type": "LCC",
-      "departure_time": "2026-09-04 12:15",
-      "return_time": "2026-09-06 11:00",
-      "duration": "5시간 55분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 274513,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 343413
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "확인 전",
-      "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0409CTS06091?t=7C17885241001788534000000165ICNCTS17886924001788703800000190CTSICN_23032b7f9062b6595958939e4618fb5d_16395&search_date=21082026&expected_price_uuid=01a02244-0733-8030-661d-458034f5d068&static_fare_key=TY%7CP0%7CH1%7CL1_1_15%7CCH0%7CR0%7CTBC1&itinerary_key=XovSoB16w94c_ev-wtwEQQ&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=274513&marker=737258",
       "status": "published",
       "source": "auto"
     },
