@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T10:19:33+00:00",
+  "updated_at": "2026-08-25T12:21:18+00:00",
   "note": null,
   "deals": [
     {
@@ -275,27 +275,27 @@
       "source": "auto"
     },
     {
-      "id": "ICN-HKT-2026-09-09",
+      "id": "ICN-HKT-2026-09-12",
       "route": "ICN-HKT",
       "city": "푸켓",
       "badge": "🔥",
-      "price": 403941,
+      "price": 399644,
       "normal_price": 544913,
-      "discount_rate": 26,
+      "discount_rate": 27,
       "airline": "아시아나",
       "carrier_type": "FSC",
-      "departure_time": "2026-09-09 17:20",
-      "return_time": "2026-09-14 22:45",
-      "duration": "12시간 35분",
+      "departure_time": "2026-09-12 17:20",
+      "return_time": "2026-09-16 22:45",
+      "duration": "12시간 45분",
       "transfers": 0,
       "baggage_note": "위탁수하물 포함 가능성 높음 (FSC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 403941,
+        "airfare": 399644,
         "baggage_est": 0,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 412841
+        "total_est": 408544
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -306,7 +306,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0909HKT14091?t=OZ17889744001788989700000375ICNHKT17894259001789455900000380HKTICN_5d81739dee95cf68da8e920f10ba257a_24682&search_date=19082026&expected_price_uuid=01a019e5-7c56-8030-6442-3f37075051b3&static_fare_key=TY%7CP1%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=NrRZN_HqbvwADcmgUtxtjA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=403941&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1209HKT16091?t=OZ17892336001789249500000385ICNHKT17895987001789628700000380HKTICN_2e59dc895edc6fa3169e4878fc7b73c0_24380&search_date=25082026&expected_price_uuid=01a038ab-a641-8030-2330-3cfc36420ee1&static_fare_key=TY%7CP0%7CH1%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=os4QtffFRR3H64gfyx2WFQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=399644&marker=737258",
       "status": "published",
       "source": "auto"
     },
