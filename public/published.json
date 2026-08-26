@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-25T22:13:35+00:00",
+  "updated_at": "2026-08-26T00:31:00+00:00",
   "note": null,
   "deals": [
     {
@@ -279,7 +279,7 @@
       "route": "ICN-HKT",
       "city": "푸켓",
       "badge": "🔥",
-      "price": 396728,
+      "price": 396624,
       "normal_price": 544913,
       "discount_rate": 27,
       "airline": "아시아나",
@@ -291,11 +291,11 @@
       "baggage_note": "위탁수하물 포함 가능성 높음 (FSC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 396728,
+        "airfare": 396624,
         "baggage_est": 0,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 405628
+        "total_est": 405524
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -306,7 +306,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0109HKT07091?t=OZ17882832001788298500000375ICNHKT17888211001788851100000380HKTICN_c62c441ef6e312fe1459910753fc0576_24023&search_date=25082026&expected_price_uuid=01a03ac0-b982-8030-e4fb-c775d8db4929&static_fare_key=TY%7CP1%7CH0%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=I0XP6-YQQruRQ5ZlZlXFkg&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=396728&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN0109HKT07091?t=OZ17882832001788298500000375ICNHKT17888211001788851100000380HKTICN_c62c441ef6e312fe1459910753fc0576_24023&search_date=25082026&expected_price_uuid=01a03ac0-b982-8030-e4fb-c775d8db4929&static_fare_key=TY%7CP1%7CH0%7CL1_1_23%7CCH0%7CR0%7CTBC1&itinerary_key=I0XP6-YQQruRQ5ZlZlXFkg&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=396624&marker=737258",
       "status": "published",
       "source": "auto"
     },
