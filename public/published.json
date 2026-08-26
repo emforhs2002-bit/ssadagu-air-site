@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T00:31:00+00:00",
+  "updated_at": "2026-08-26T02:55:41+00:00",
   "note": null,
   "deals": [
     {
@@ -92,23 +92,23 @@
       "route": "ICN-TYO",
       "city": "도쿄",
       "badge": "🔥",
-      "price": 138564,
+      "price": 146813,
       "normal_price": 201706,
-      "discount_rate": 31,
+      "discount_rate": 27,
       "airline": "이스타항공",
       "carrier_type": "LCC",
       "departure_time": "2026-09-16 07:25",
-      "return_time": "2026-09-23 11:30",
+      "return_time": "2026-09-24 18:30",
       "duration": "5시간 10분",
       "transfers": 0,
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 138564,
+        "airfare": 146813,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 207464
+        "total_est": 215713
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -120,7 +120,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1609TYO23091?t=ZE17895435001789552200000145ICNNRT17901630001790172900000165NRTICN_2c6ba573ecf6cfd70706b4ee370fdbe8_8265&search_date=23082026&expected_price_uuid=01a02f35-bf8c-8030-eb0b-e83c3454006a&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=mfDm1y3pZAQEomoPvdUM-w&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=138564&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN1609TYO24091?t=ZE17895435001789552200000145ICNNRT17902746001790284500000165NRTICN_8948dd2a99ab4e436a804f59e6b05dd1_8839&search_date=24082026&expected_price_uuid=01a033a5-bf40-8050-af82-81eacf5ed2c0&static_fare_key=TY%7CP1%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=dm0l3MvkZDzQeoqz-0mvBg&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=146813&marker=737258",
       "status": "published",
       "source": "auto"
     },
@@ -204,8 +204,8 @@
       "city": "하노이",
       "badge": "🔥",
       "price": 181414,
-      "normal_price": 300776,
-      "discount_rate": 40,
+      "normal_price": 290256,
+      "discount_rate": 37,
       "airline": "9G",
       "carrier_type": "LCC",
       "departure_time": "2026-09-09 00:15",
@@ -242,7 +242,7 @@
       "city": "호치민",
       "badge": "🔥🔥",
       "price": 200777,
-      "normal_price": 338281,
+      "normal_price": 338116,
       "discount_rate": 41,
       "airline": "9G",
       "carrier_type": "LCC",
