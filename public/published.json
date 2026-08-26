@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T12:23:23+00:00",
+  "updated_at": "2026-08-26T14:32:51+00:00",
   "note": null,
   "deals": [
     {
@@ -158,43 +158,6 @@
       "booking_grade": "확인 전",
       "inspection": null,
       "affiliate_url": "https://www.aviasales.com/search/ICN0109OKA02091?t=ZE17882622001788271200000150ICNOKA17883612001788370500000155OKAICN_a65c4ad565b5d5820fe16aa2bc9a92f7_11185&search_date=24082026&expected_price_uuid=01a03388-8f2f-8040-62f6-02f500631f5d&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=jsbz1Jhf7R5opV173EpGQQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=185776&marker=737258",
-      "status": "published",
-      "source": "auto"
-    },
-    {
-      "id": "ICN-KHH-2026-09-01",
-      "route": "ICN-KHH",
-      "city": "가오슝",
-      "badge": "🔥",
-      "price": 223577,
-      "normal_price": 300347,
-      "discount_rate": 26,
-      "airline": "티웨이",
-      "carrier_type": "LCC",
-      "departure_time": "2026-09-01 13:05",
-      "return_time": "2026-09-10 16:10",
-      "duration": "5시간 55분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 223577,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 292477
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "확인 전",
-      "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0109KHH10091?t=TW17882679001788275400000185ICNKHH17890566001789070400000170KHHICN_31951b28e720ea683fc3ccad1cdd48af_13690&search_date=19082026&expected_price_uuid=01a01a1a-57d9-8030-6c38-b754d5872af7&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=O7TYHJLw_hjmO-55gUckDA&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=223577&marker=737258",
       "status": "published",
       "source": "auto"
     },
