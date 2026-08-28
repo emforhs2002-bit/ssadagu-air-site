@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-28T01:49:59+00:00",
+  "updated_at": "2026-08-28T13:26:59+00:00",
   "note": null,
   "deals": [
     {
@@ -125,43 +125,6 @@
       "source": "auto"
     },
     {
-      "id": "ICN-OKA-2026-09-01",
-      "route": "ICN-OKA",
-      "city": "오키나와",
-      "badge": "🔥",
-      "price": 185776,
-      "normal_price": 254920,
-      "discount_rate": 27,
-      "airline": "이스타항공",
-      "carrier_type": "LCC",
-      "departure_time": "2026-09-01 11:30",
-      "return_time": "2026-09-02 15:00",
-      "duration": "5시간 5분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 185776,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 254676
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "확인 전",
-      "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0109OKA02091?t=ZE17882622001788271200000150ICNOKA17883612001788370500000155OKAICN_a65c4ad565b5d5820fe16aa2bc9a92f7_11185&search_date=24082026&expected_price_uuid=01a03388-8f2f-8040-62f6-02f500631f5d&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=jsbz1Jhf7R5opV173EpGQQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=185776&marker=737258",
-      "status": "published",
-      "source": "auto"
-    },
-    {
       "id": "ICN-HAN-2026-09-08",
       "route": "ICN-HAN",
       "city": "하노이",
@@ -200,27 +163,27 @@
       "source": "auto"
     },
     {
-      "id": "ICN-SGN-2026-09-07",
+      "id": "ICN-SGN-2026-09-28",
       "route": "ICN-SGN",
       "city": "호치민",
-      "badge": "🔥🔥",
-      "price": 200777,
-      "normal_price": 337951,
-      "discount_rate": 41,
+      "badge": "🔥",
+      "price": 237191,
+      "normal_price": 337611,
+      "discount_rate": 30,
       "airline": "9G",
       "carrier_type": "LCC",
-      "departure_time": "2026-09-07 00:10",
-      "return_time": "2026-09-08 15:25",
-      "duration": "10시간 40분",
+      "departure_time": "2026-09-28 00:10",
+      "return_time": "2026-10-14 12:20",
+      "duration": "10시간 30분",
       "transfers": 0,
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 200777,
+        "airfare": 237191,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 269677
+        "total_est": 306091
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -233,7 +196,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0709SGN08091?t=9G17887398001788752100000325ICNSGN17888811001788907200000315SGNICN_b57d3da47d2af23e10d73b126602de47_11998&search_date=21082026&expected_price_uuid=01a02447-202f-8040-aa51-21c7f82e6c83&static_fare_key=TY%7CP0%7CH1%7CL1_1_20%7CCH0%7CR0%7CTBC1&itinerary_key=QH9kxFiGdGhhrqkOZRuSbw&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=200777&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN2809SGN14101?t=9G17905542001790566500000325ICNSGN17919804001792005900000305SGNICN_ca7e99a559cf76b6d50068997d185a8a_14488&search_date=27082026&expected_price_uuid=01a041e1-96b5-8050-6033-9cf5c771c64d&static_fare_key=TY%7CP1%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=hG3-Ic4x2w8oZpFdhq7irQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=237191&marker=737258",
       "status": "published",
       "source": "auto"
     },
@@ -243,8 +206,8 @@
       "city": "푸켓",
       "badge": "🔥",
       "price": 396624,
-      "normal_price": 544913,
-      "discount_rate": 27,
+      "normal_price": 539210,
+      "discount_rate": 26,
       "airline": "아시아나",
       "carrier_type": "FSC",
       "departure_time": "2026-09-01 17:20",
