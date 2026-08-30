@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-30T01:55:44+00:00",
+  "updated_at": "2026-08-30T07:35:12+00:00",
   "note": null,
   "deals": [
     {
@@ -45,43 +45,6 @@
       "status": "published"
     },
     {
-      "id": "ICN-TYO-2026-09-16",
-      "route": "ICN-TYO",
-      "city": "도쿄",
-      "badge": "🔥",
-      "price": 145596,
-      "normal_price": 198541,
-      "discount_rate": 27,
-      "airline": "이스타항공",
-      "carrier_type": "LCC",
-      "departure_time": "2026-09-16 07:25",
-      "return_time": "2026-09-24 16:20",
-      "duration": "5시간 15분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 145596,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 214496
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "확인 전",
-      "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1609TYO24091?t=ZE17895435001789552200000145ICNNRT17902668001790277000000170NRTICN_80004748252f45f5823694f597339ce3_9091&search_date=27082026&expected_price_uuid=01a0433b-beaa-8030-693d-d0cc909fd561&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=gb9kBxvIH_ZP4rjWkpEzIw&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=145596&marker=737258",
-      "status": "published",
-      "source": "auto"
-    },
-    {
       "id": "ICN-HAN-2026-09-05",
       "route": "ICN-HAN",
       "city": "하노이",
@@ -124,8 +87,8 @@
       "city": "호치민",
       "badge": "🔥",
       "price": 237191,
-      "normal_price": 334045,
-      "discount_rate": 29,
+      "normal_price": 328371,
+      "discount_rate": 28,
       "airline": "9G",
       "carrier_type": "LCC",
       "departure_time": "2026-09-28 00:10",
@@ -162,7 +125,7 @@
       "city": "푸켓",
       "badge": "🔥",
       "price": 396624,
-      "normal_price": 533506,
+      "normal_price": 533044,
       "discount_rate": 26,
       "airline": "아시아나",
       "carrier_type": "FSC",
@@ -198,8 +161,8 @@
       "city": "코타키나발루",
       "badge": "🔥",
       "price": 205744,
-      "normal_price": 318246,
-      "discount_rate": 35,
+      "normal_price": 310661,
+      "discount_rate": 34,
       "airline": "제주항공",
       "carrier_type": "LCC",
       "departure_time": "2026-09-13 19:10",
