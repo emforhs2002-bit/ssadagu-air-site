@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-31T18:16:57+00:00",
+  "updated_at": "2026-08-31T23:28:22+00:00",
   "note": null,
   "deals": [
     {
@@ -43,43 +43,6 @@
       "affiliate_url": "https://www.aviasales.com/search/ICN1409BKK18091?t=VZ17893878001789401600000350ICNBKK17896983001789725600000335BKKICN_06d1dc15c0df14babcfd25c0cfbfe803_20660&search_date=03062026&expected_price_uuid=019e8ed6-230c-8030-62f4-ebf6f9f4e907&static_fare_key=TY%7CP1%7CH1%7CL1_1_20%7CCH0%7CR0%7CTBC1&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=429871&marker=737258",
       "source": "Travelpayouts 자동발견",
       "status": "published"
-    },
-    {
-      "id": "ICN-CTS-2026-09-01",
-      "route": "ICN-CTS",
-      "city": "삿포로",
-      "badge": "🔥",
-      "price": 280745,
-      "normal_price": 401872,
-      "discount_rate": 30,
-      "airline": "진에어",
-      "carrier_type": "LCC",
-      "departure_time": "2026-09-01 08:20",
-      "return_time": "2026-09-02 12:10",
-      "duration": "5시간 35분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 280745,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 349645
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "확인 전",
-      "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN0109CTS02091?t=LJ17882508001788260400000160ICNCTS17883510001788361500000175CTSICN_bb0cee7aacd6e707dd63fb4bcb7bf3fc_17609&search_date=31082026&expected_price_uuid=01a056e3-8d3a-8051-2ab7-322c8f9bfce5&static_fare_key=TY%7CP0%7CH1%7CL0%7CCH1%7CR0%7CTBC0&itinerary_key=aMtndRxwNI0Ad4fKLyRPHA&origin_airports=0,1&destination_airports=0,1&expected_price_source=share&expected_price_currency=krw&expected_price=280745&marker=737258",
-      "status": "published",
-      "source": "auto"
     },
     {
       "id": "ICN-HAN-2026-09-05",
