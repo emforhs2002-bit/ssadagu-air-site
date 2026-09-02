@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-02T01:36:41+00:00",
+  "updated_at": "2026-09-02T06:31:02+00:00",
   "note": null,
   "deals": [
     {
@@ -50,8 +50,8 @@
       "city": "하노이",
       "badge": "🔥",
       "price": 182756,
-      "normal_price": 288822,
-      "discount_rate": 37,
+      "normal_price": 287388,
+      "discount_rate": 36,
       "airline": "제주항공",
       "carrier_type": "LCC",
       "departure_time": "2026-09-05 20:40",
@@ -87,8 +87,8 @@
       "city": "코타키나발루",
       "badge": "🔥",
       "price": 214658,
-      "normal_price": 310661,
-      "discount_rate": 31,
+      "normal_price": 296670,
+      "discount_rate": 28,
       "airline": "에어아시아",
       "carrier_type": "LCC",
       "departure_time": "2026-09-13 09:20",
