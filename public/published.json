@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-02T12:20:23+00:00",
+  "updated_at": "2026-09-02T17:28:18+00:00",
   "note": null,
   "deals": [
     {
@@ -78,43 +78,6 @@
       "booking_grade": "확인 전",
       "inspection": null,
       "affiliate_url": "https://www.aviasales.com/search/ICN0509HAN08091?t=7C17886408001788651900000305ICNHAN17888283001788852900000290HANICN_dcfcc35b9d295258d65311641bff4ba0_11411&search_date=29082026&expected_price_uuid=01a04fe9-b2b3-8040-66ec-14583bda7fdc&static_fare_key=TY%7CP0%7CH1%7CL1_1_15%7CCH0%7CR0%7CTBC1&itinerary_key=cyG6dS3xEvB-cTuT3bLF5Q&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=182756&marker=737258",
-      "status": "published",
-      "source": "auto"
-    },
-    {
-      "id": "ICN-BKI-2026-09-13",
-      "route": "ICN-BKI",
-      "city": "코타키나발루",
-      "badge": "🔥",
-      "price": 214658,
-      "normal_price": 296670,
-      "discount_rate": 28,
-      "airline": "에어아시아",
-      "carrier_type": "LCC",
-      "departure_time": "2026-09-13 09:20",
-      "return_time": "2026-09-18 01:40",
-      "duration": "10시간 50분",
-      "transfers": 0,
-      "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
-      "fatigue": "좋음",
-      "hidden_cost": {
-        "airfare": 214658,
-        "baggage_est": 60000,
-        "esim": 8900,
-        "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 283558
-      },
-      "fit_recommend": [
-        "짐 가벼운 2인·주말 여행",
-        "평일 연차 가능자"
-      ],
-      "fit_avoid": [
-        "날짜 고정이라 못 바꾸는 사람",
-        "위탁수하물 많은 가족 여행"
-      ],
-      "booking_grade": "확인 전",
-      "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN1309BKI18091?t=AK17892912001789306200000310ICNBKI17896956001789719600000340BKIICN_8bac4be4d70ac92912dfa2ace8227834_13078&search_date=26082026&expected_price_uuid=01a03ed4-2cb7-8030-611a-beee1040b98a&static_fare_key=TY%7CP0%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=TnZFWYzO0lvUgCppIuqw4g&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=214658&marker=737258",
       "status": "published",
       "source": "auto"
     }
