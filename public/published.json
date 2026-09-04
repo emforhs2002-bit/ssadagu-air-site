@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-04T01:33:54+00:00",
+  "updated_at": "2026-09-04T06:37:23+00:00",
   "note": null,
   "deals": [
     {
@@ -50,8 +50,8 @@
       "city": "하노이",
       "badge": "🔥",
       "price": 182756,
-      "normal_price": 279796,
-      "discount_rate": 35,
+      "normal_price": 270242,
+      "discount_rate": 32,
       "airline": "제주항공",
       "carrier_type": "LCC",
       "departure_time": "2026-09-05 20:40",
