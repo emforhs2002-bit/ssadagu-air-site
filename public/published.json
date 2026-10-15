@@ -1,29 +1,29 @@
 {
-  "updated_at": "2026-10-15T07:03:51+00:00",
+  "updated_at": "2026-10-15T12:55:16+00:00",
   "note": null,
   "deals": [
     {
       "id": "ICN-NHA-2026-11-28",
       "route": "ICN-NHA",
       "city": "나트랑",
-      "badge": "🔥🔥🔥",
-      "price": 71436,
+      "badge": "🔥",
+      "price": 155953,
       "normal_price": 213107,
-      "discount_rate": 66,
+      "discount_rate": 27,
       "airline": "티웨이",
       "carrier_type": "LCC",
       "departure_time": "2026-11-28 20:10",
-      "return_time": "2026-12-01 00:55",
-      "duration": "10시간 45분",
+      "return_time": "2026-12-01 00:30",
+      "duration": "10시간 40분",
       "transfers": 0,
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 71436,
+        "airfare": 155953,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 140336
+        "total_est": 224853
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -35,7 +35,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN2811NHA01121?t=TW17958966001795910100000345ICNCXR17960865001796111700000300CXRICN_b01641994b5275e561810da4b8d8422d_4428&search_date=15102026&expected_price_uuid=01a13df3-353c-8030-aa4d-7da28f41b8b4&static_fare_key=TY%7CP1_JW%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=us6j88fYDWol15ceg80jlQ&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=71436&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN2811NHA01121?t=TW17958966001795910100000345ICNCXR17960850001796109900000295CXRICN_10ebc5193a10cb4accb2f1ed28c0e069_9701&search_date=15102026&expected_price_uuid=01a13e6c-ad4a-8030-237e-05627e0aa174&static_fare_key=TY%7CP1_JW%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=4FGTiDoPWGzCBo6ShALe7A&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=155953&marker=737258",
       "status": "published",
       "source": "auto"
     }
