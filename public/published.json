@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-15T20:36:18+00:00",
+  "updated_at": "2026-10-15T23:57:32+00:00",
   "note": null,
   "deals": [
     {
@@ -7,7 +7,7 @@
       "route": "ICN-NHA",
       "city": "나트랑",
       "badge": "🔥",
-      "price": 155658,
+      "price": 155687,
       "normal_price": 213107,
       "discount_rate": 27,
       "airline": "티웨이",
@@ -19,11 +19,11 @@
       "baggage_note": "위탁수하물 별도 가능성 높음 (LCC 기준 추정)",
       "fatigue": "좋음",
       "hidden_cost": {
-        "airfare": 155658,
+        "airfare": 155687,
         "baggage_est": 60000,
         "esim": 8900,
         "hotel_note": "숙소 별도 (연계 추천 예정)",
-        "total_est": 224558
+        "total_est": 224587
       },
       "fit_recommend": [
         "짐 가벼운 2인·주말 여행",
@@ -35,7 +35,7 @@
       ],
       "booking_grade": "확인 전",
       "inspection": null,
-      "affiliate_url": "https://www.aviasales.com/search/ICN2811NHA01121?t=TW17958966001795910100000345ICNCXR17960850001796109900000295CXRICN_10ebc5193a10cb4accb2f1ed28c0e069_9701&search_date=15102026&expected_price_uuid=01a13e6c-ad4a-8030-237e-05627e0aa174&static_fare_key=TY%7CP1_JW%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=4FGTiDoPWGzCBo6ShALe7A&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=155658&marker=737258",
+      "affiliate_url": "https://www.aviasales.com/search/ICN2811NHA01121?t=TW17958966001795910100000345ICNCXR17960850001796109900000295CXRICN_10ebc5193a10cb4accb2f1ed28c0e069_9701&search_date=15102026&expected_price_uuid=01a13e6c-ad4a-8030-237e-05627e0aa174&static_fare_key=TY%7CP1_JW%7CH1%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=4FGTiDoPWGzCBo6ShALe7A&origin_airports=0&destination_airports=1&expected_price_source=share&expected_price_currency=krw&expected_price=155687&marker=737258",
       "status": "published",
       "source": "auto"
     }
